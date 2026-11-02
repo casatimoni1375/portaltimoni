@@ -1,12 +1,35 @@
 import { auth } from "@/lib/auth";
 import { getEffectivePortalUser } from "@/lib/portal-config";
 import { hasModuleAccess } from "@/lib/access-control";
-import { readPurchaseOrdersSnapshot, savePurchaseOrdersSnapshot } from "@/lib/purchase-orders";
+import { readPurchaseOrdersSnapshot, savePurchaseOrdersSnapshot, type PurchaseOrder } from "@/lib/purchase-orders";
 import { readSentPurchaseOrders } from "@/lib/purchase-orders-sync";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+type PurchaseException = {
+  id: string;
+  nome: string;
+  unidade: PurchaseOrder["unidade"];
+  tipo: "sem_previsao" | "atrasado";
+  previsaoEntrega: string;
+};
+
+function getExceptions(orders: PurchaseOrder[]): PurchaseException[] {
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  return orders.flatMap((order) => {
+    if (!order.previsaoEntrega) {
+      return [{ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "sem_previsao" as const, previsaoEntrega: "" }];
+    }
+    const due = Date.parse(order.previsaoEntrega);
+    if (Number.isFinite(due) && due < startOfToday) {
+      return [{ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "atrasado" as const, previsaoEntrega: order.previsaoEntrega }];
+    }
+    return [];
+  });
+}
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -29,6 +52,7 @@ export async function GET(request: Request) {
     const snapshot = await readPurchaseOrdersSnapshot();
     const force = new URL(request.url).searchParams.get("refresh") === "1";
     let pedidosEnviados = snapshot?.orders;
+    let syncedAt = snapshot?.syncedAt ?? null;
     let stale = false;
 
     if (!snapshot?.fresh || force) {
@@ -37,14 +61,16 @@ export async function GET(request: Request) {
         const orders = await readSentPurchaseOrders();
         await savePurchaseOrdersSnapshot(orders, startedAt);
         pedidosEnviados = orders;
+        syncedAt = new Date().toISOString();
       } catch (error) {
         if (!snapshot) throw error;
         stale = true;
       }
     }
 
+    const orders = pedidosEnviados || [];
     return NextResponse.json(
-      { ok: true, pedidosEnviados, stale },
+      { ok: true, pedidosEnviados: orders, excecoes: getExceptions(orders), syncedAt, stale },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
