@@ -16,9 +16,19 @@ type PurchaseException = {
   previsaoEntrega: string;
 };
 
+function dateKeyInSaoPaulo(value: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(value);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value || "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
 function getExceptions(orders: PurchaseOrder[]): PurchaseException[] {
-  const today = new Date();
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const todayKey = dateKeyInSaoPaulo(new Date());
   const exceptions: PurchaseException[] = [];
 
   for (const order of orders) {
@@ -27,8 +37,8 @@ function getExceptions(orders: PurchaseOrder[]): PurchaseException[] {
       continue;
     }
 
-    const due = Date.parse(order.previsaoEntrega);
-    if (Number.isFinite(due) && due < startOfToday) {
+    const due = new Date(order.previsaoEntrega);
+    if (!Number.isNaN(due.getTime()) && dateKeyInSaoPaulo(due) < todayKey) {
       exceptions.push({ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "atrasado", previsaoEntrega: order.previsaoEntrega });
     }
   }
