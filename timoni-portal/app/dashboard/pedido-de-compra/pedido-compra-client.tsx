@@ -4,25 +4,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type RequestUnit = "rio_claro" | "araras";
 type SentOrder = { id: string; nome: string; enviadoEm: string; previsaoEntrega: string; unidade: RequestUnit };
+type PurchaseException = { id: string; nome: string; unidade: RequestUnit; tipo: "sem_previsao" | "atrasado"; previsaoEntrega: string };
 function unitLabel(unit: RequestUnit) { return unit === "araras" ? "Araras" : "Rio Claro"; }
 function dateOnly(value: string) {
   if (!value) return "Sem data";
   const d = new Date(value);
   return Number.isNaN(d.getTime())
     ? value
-    : new Intl.DateTimeFormat("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(d);
+    : new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
 }
-
 
 export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: RequestUnit[] }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
+  const [exceptions, setExceptions] = useState<PurchaseException[]>([]);
   const inFlight = useRef(false);
   const refresh = useCallback(async (force = false) => {
     if (inFlight.current) return;
@@ -34,42 +30,48 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
       const payload = await response.json();
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Falha ao carregar");
       setSentOrders(payload.pedidosEnviados || []);
+      setExceptions((payload.excecoes || []).filter((item: PurchaseException) => visibleUnits.includes(item.unidade)));
       if (payload.stale) setError("Exibindo a última atualização. Não foi possível consultar o Trello agora.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao carregar");
     } finally { inFlight.current = false; setLoading(false); }
-  }, []);
+  }, [visibleUnits]);
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, 60000);
     const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === "timoni_pedido_compra_updated" && document.visibilityState === "visible") void refresh();
-    };
+    const onStorage = (event: StorageEvent) => { if (event.key === "timoni_pedido_compra_updated" && document.visibilityState === "visible") void refresh(); };
     window.addEventListener("storage", onStorage);
     window.addEventListener("focus", onVisible);
     document.addEventListener("visibilitychange", onVisible);
     return () => { window.clearInterval(timer); window.removeEventListener("storage", onStorage); window.removeEventListener("focus", onVisible); document.removeEventListener("visibilitychange", onVisible); };
   }, [refresh]);
-  function SentOrdersSection() {
 
-    return (
+  return (
+    <div className="pb-10 space-y-5">
+      {error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">{error}</p>}
+      {!loading && exceptions.length > 0 && (
+        <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">Exceções</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-950">Pedidos que exigem atenção</h2>
+          <div className="mt-3 divide-y divide-amber-200">
+            {exceptions.map((item) => (
+              <div key={`${item.id}-${item.tipo}`} className="py-3 text-sm">
+                <p className="font-semibold text-slate-900">{item.nome} · {unitLabel(item.unidade)}</p>
+                <p className="mt-1 text-slate-600">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Acompanhamento</p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">Pedidos enviados</h2>
           </div>
-          <button
-            type="button"
-            onClick={() => void refresh(true)}
-            disabled={loading}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50"
-          >
-            Atualizar lista
-          </button>
+          <button type="button" onClick={() => void refresh(true)} disabled={loading} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50">Atualizar lista</button>
         </div>
-
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           {visibleUnits.map((currentUnit) => {
             const orders = sentOrders.filter((order) => order.unidade === currentUnit);
@@ -94,8 +96,6 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           })}
         </div>
       </section>
-    );
-  }
-
-  return <div className="pb-10 space-y-5">{error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">{error}</p>}{SentOrdersSection()}</div>;
+    </div>
+  );
 }
