@@ -1,3 +1,4 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
 import { cookies } from "next/headers";
@@ -26,6 +27,8 @@ async function authorize() {
 }
 
 export async function GET() {
+  const central = await requireModuleAuthorization("conferencia", "visualizar");
+  if (!central.current) return central.errorResponse;
   const unauthorized = await authorize();
   if (unauthorized) return unauthorized;
 
@@ -48,6 +51,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const central = await requireModuleAuthorization("conferencia", "administrar");
+  if (!central.current) return central.errorResponse;
   const unauthorized = await authorize();
   if (unauthorized) return unauthorized;
 
@@ -101,6 +106,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
+  const central = await requireModuleAuthorization("conferencia", "administrar");
+  if (!central.current) return central.errorResponse;
   const unauthorized = await authorize();
   if (unauthorized) return unauthorized;
 

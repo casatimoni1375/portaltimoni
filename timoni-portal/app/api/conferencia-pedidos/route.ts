@@ -1,3 +1,4 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
 import { cookies } from "next/headers";
@@ -369,6 +370,8 @@ function normalizeResult(value: Record<string, unknown>, pedidoFiles: File[], fo
 }
 
 export async function POST(request: Request) {
+  const central = await requireModuleAuthorization("conferencia", "visualizar");
+  if (!central.current) return central.errorResponse;
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json(

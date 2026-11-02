@@ -1,3 +1,4 @@
+import { canModuleOperation, calendarModule } from "@/lib/module-authorization";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthorizedSession } from "@/lib/auth-guard";
 import { createEvent, isCalendarKey, listEventsInRange, toApiError } from "@/lib/google-calendar";
@@ -31,6 +32,9 @@ export async function GET(request: NextRequest) {
     }
     calendarKey = requestedCalendarKey;
   }
+  const keys = (calendarKey ? [calendarKey] : ["principal", "timoni"] as CalendarKey[])
+    .filter((key) => canModuleOperation(session!.portalUser, calendarModule(key)!, "visualizar"));
+  if (!keys.length) return NextResponse.json({ error: "Acesso não autorizado à agenda." }, { status: 403 });
   try {
     const events = await listEventsInRange(
       session!.accessToken!,
@@ -39,7 +43,7 @@ export async function GET(request: NextRequest) {
         timeMax,
         maxResults: 500,
       },
-      calendarKey ? [calendarKey] : undefined
+      keys
     );
     return NextResponse.json({ events });
   } catch (error) {
@@ -66,6 +70,9 @@ export async function POST(request: NextRequest) {
   }
   if (!isCalendarKey(body.calendarKey)) {
     return NextResponse.json({ error: "Escolha em qual agenda criar o evento." }, { status: 400 });
+  }
+  if (!canModuleOperation(session!.portalUser, calendarModule(body.calendarKey)!, "criar")) {
+    return NextResponse.json({ error: "Seu acesso não permite criar eventos nesta agenda." }, { status: 403 });
   }
   if (!isValidRecurrence(body.recurrence)) {
     return NextResponse.json({ error: "Repetição inválida." }, { status: 400 });

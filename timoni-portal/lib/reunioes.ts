@@ -37,37 +37,6 @@ const HEADERS = [
   "leaders", "pautaUrl", "ataUrl", "slidesUrl", "status", "createdAt", "updatedAt", "additionalDates",
 ];
 
-const SEED: Omit<Meeting, "id" | "createdAt" | "updatedAt">[] = [
-  {
-    unit: "Araras",
-    date: "2026-09-08",
-    time: "07:40",
-    secondDate: "2026-10-09",
-    secondTime: "07:40",
-    additionalDates: [],
-    frequency: "Mensal",
-    leaders: "Ciça e Marcelo",
-    pautaUrl: "https://docs.google.com/document/d/1NoZASmMc-ptrqFy8zbvtGgCJjLJxX8GsORM-F4N799k",
-    ataUrl: "https://docs.google.com/document/d/1S9dQlOGwFE8RwNnjw1PFy08DH9a6k1_9kugQEBgmxHQ",
-    slidesUrl: "https://docs.google.com/presentation/d/1zN_tU03-tq8Y6Ewo4GasboPTjRHXnpjXB0bbSrjHaWI",
-    status: "agendada",
-  },
-  {
-    unit: "Rio Claro",
-    date: "2026-08-08",
-    time: "07:30",
-    secondDate: "2026-09-03",
-    secondTime: "07:30",
-    additionalDates: [],
-    frequency: "Mensal",
-    leaders: "Ciça, Marcelo e Jeovana",
-    pautaUrl: "https://docs.google.com/document/d/1qlgMtkqkg-LlS-LtdxDHYKcNXWbAbgWjARDtNRLHBe8",
-    ataUrl: "https://docs.google.com/document/d/1rVOOEsR4dkqj51O8iRc14X5Iy2ywCEn0hxXz_jBKmyQ",
-    slidesUrl: "https://docs.google.com/presentation/d/1VblTWAcgvrEdWBf5PMq97sr23NNdtT7vQg8Hmza_JPM",
-    status: "agendada",
-  },
-];
-
 async function sheetsClient(sessionAccessToken?: string) {
   const accessToken = sessionAccessToken || await getAccessTokenFromRefreshToken();
   const auth = new google.auth.OAuth2();
@@ -100,7 +69,7 @@ async function ensureSheet(accessToken: string) {
 function parseRows(rows: string[][]): Meeting[] {
   return rows.map((row) => ({
     id: row[0] || "",
-    unit: (row[1] || "Araras") as MeetingUnit,
+    unit: (row[1] || "") as MeetingUnit,
     date: row[2] || "",
     time: row[3] || "",
     secondDate: row[4] || "",
@@ -126,7 +95,7 @@ function valuesOf(item: Meeting) {
 }
 
 async function readRows(accessToken: string) {
-  const sheets = await ensureSheet(accessToken);
+  const sheets = await sheetsClient(accessToken);
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
     range: `${SHEET}!A2:O500`,
@@ -137,33 +106,12 @@ async function readRows(accessToken: string) {
 
 const getCachedMeetings = unstable_cache(
   async (accessToken: string) => {
-    const items = parseRows(await seedIfEmpty(accessToken)).sort((a, b) => a.date.localeCompare(b.date));
+    const items = parseRows(await readRows(accessToken)).sort((a, b) => a.date.localeCompare(b.date));
     return items;
   },
   ["reunioes-list-v2"],
   { revalidate: 60, tags: [MEETINGS_CACHE_TAG] },
 );
-
-async function seedIfEmpty(accessToken: string) {
-  const rows = await readRows(accessToken);
-  if (rows.length) return rows;
-  const sheets = await sheetsClient(accessToken);
-  const now = new Date().toISOString();
-  const values = SEED.map((item, index) => valuesOf({
-    ...item,
-    id: `meeting-seed-${index + 1}`,
-    createdAt: now,
-    updatedAt: now,
-  }));
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
-    range: `${SHEET}!A:O`,
-    valueInputOption: "RAW",
-    insertDataOption: "INSERT_ROWS",
-    requestBody: { values },
-  });
-  return values as string[][];
-}
 
 export async function listMeetings(_accessToken: string) {
   return getCachedMeetings(_accessToken);

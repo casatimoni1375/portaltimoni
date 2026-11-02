@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { requireAuthorizedSession } from "@/lib/auth-guard";
+import { requireAuthorization } from "@/lib/authorization-server";
 
 // Utilitário de configuração (não faz parte do fluxo normal do portal): mostra o
 // refresh_token da sessão atual, uma única vez, para o dono do portal copiar e colar em
@@ -10,7 +10,7 @@ import { requireAuthorizedSession } from "@/lib/auth-guard";
 // Protegida pela mesma checagem de sessão das outras rotas — só quem já está logado como
 // AUTHORIZED_EMAIL consegue chamar, e o valor devolvido é o refresh_token da própria pessoa.
 export async function GET(request: NextRequest) {
-  const { errorResponse } = await requireAuthorizedSession();
+  const { errorResponse } = await requireAuthorization("sistema", "administrar");
   if (errorResponse) return errorResponse;
 
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });

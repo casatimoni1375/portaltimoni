@@ -9,7 +9,7 @@ const { can, canEditConfigurationRecord, resolveConfiguredUser, resolveOfficialP
 const accessSource = stripTypeScriptTypes(await readFile(new URL("../lib/access-control.ts", import.meta.url), "utf8")).replace('"./authorization"', JSON.stringify(policyUrl));
 const access = await import(`data:text/javascript;base64,${Buffer.from(accessSource).toString("base64")}`);
 const actions = ["visualizar", "criar", "editar", "excluir", "administrar"];
-const user = (email, extra = {}) => ({ email, name: "Pessoa", active: true, unit: "Geral", modules: ["painel", "estoque", "compras", "leads"], requiresPassword: false, ...extra });
+const user = (email, extra = {}) => ({ email, name: "Pessoa", active: true, unit: "Geral", modules: ["painel", "estoque", "compras", "leads", "motorista"], requiresPassword: false, ...extra });
 const cica = user("mcrodini@gmail.com");
 const marcelo = user("mrodini@gmail.com");
 
@@ -102,4 +102,52 @@ test("edição cadastral não cria usuários nem altera campos de segurança", (
   assert.equal(canEditConfigurationRecord(marcelo, "collaborator", member, { ...member, name: "Outro nome", role: "Atendimento" }), true);
   for (const patch of [{ id: "m2" }, { unit: "Araras" }, { accessEmail: cica.email }, { active: false }]) assert.equal(canEditConfigurationRecord(marcelo, "collaborator", member, { ...member, ...patch }), false);
   assert.equal(canEditConfigurationRecord(cica, "user", undefined, before), true);
+});
+
+const moduleSource = stripTypeScriptTypes(await readFile(new URL("../lib/module-authorization.ts", import.meta.url), "utf8")).replace('"./authorization"', JSON.stringify(policyUrl));
+const modulePolicy = await import("data:text/javascript;base64," + Buffer.from(moduleSource).toString("base64"));
+test("1B: módulo oficial é obrigatório inclusive Motorista e Pedidos", () => {
+  for (const module of ["motorista", "pedido-de-compra", "reunioes"]) assert.equal(can(user("vendas@example.test", { modules: [] }), module, "visualizar"), false);
+});
+test("1B: módulos preservam edição de Marcelo e bloqueiam criação/exclusão/administração", () => {
+  const actor = { ...marcelo, modules: ["motorista", "estoque", "leads", "compras", "reunioes", "agenda-ct"] };
+  for (const module of actor.modules) {
+    assert.equal(modulePolicy.canModuleOperation(actor, module, "editar"), true, module);
+    for (const action of ["criar", "excluir", "administrar"]) assert.equal(modulePolicy.canModuleOperation(actor, module, action), false, module + ":" + action);
+  }
+});
+test("1B: unidade desconhecida falha para contas locais e nenhuma ação amplia módulos", () => {
+  const actor = user("vendas@example.test", { unit: "Rio Claro", modules: ["motorista", "estoque"] });
+  for (const unit of ["araras", "desconhecida", undefined]) assert.equal(modulePolicy.canReadUnit(actor, "motorista", unit), false);
+  assert.equal(modulePolicy.canReadUnit(actor, "motorista", "rio_claro"), true);
+  assert.equal(modulePolicy.canModuleOperation(actor, "leads", "criar"), false);
+});
+test("1B: Estoque preserva transições operacionais, edição restrita e proibição de exclusão", () => {
+  const actor = user("vendas@example.test", { unit: "Rio Claro" });
+  for (const op of ["criar", "em_compra", "consulta", "pedido", "observacao", "resposta_vendedor", "chegou"]) assert.equal(modulePolicy.canStockOperation(actor, op, "Rio Claro"), true, op);
+  for (const op of ["editar", "editar_observacao", "reabrir", "excluir", "inventada"]) assert.equal(modulePolicy.canStockOperation(actor, op, "Rio Claro"), false, op);
+  assert.equal(modulePolicy.canStockOperation(marcelo, "editar", "Rio Claro"), true);
+  assert.equal(modulePolicy.canStockOperation(marcelo, "excluir", "Rio Claro"), false);
+});
+test("1B: Rotativo preserva papéis operacionais, sem gestão/backup para Marcelo", () => {
+  const lucas = user("estoquetimoni@gmail.com", { unit: "Rio Claro", modules: ["estoque-rotativo"] });
+  const carolina = user("carolina@casatimoni.com.br", { modules: ["estoque-rotativo"] });
+  const manager = { ...marcelo, modules: ["estoque-rotativo"] };
+  assert.equal(modulePolicy.canRotativoOperation(lucas, "report", "criar"), true);
+  assert.equal(modulePolicy.canRotativoOperation(lucas, "conference", "editar"), false);
+  assert.equal(modulePolicy.canRotativoOperation(carolina, "conference", "editar"), true);
+  assert.equal(modulePolicy.canRotativoOperation(carolina, "manage", "administrar"), false);
+  assert.equal(modulePolicy.canRotativoOperation(manager, "conference", "editar"), true);
+  for (const action of ["criar", "excluir", "administrar"]) assert.equal(modulePolicy.canRotativoOperation(manager, "manage", action), false);
+});
+
+test("Motorista: nomes reais das lojas respeitam a unidade sem alterar o formulário", () => {
+  const rc = user("vendas@example.test", { unit: "Rio Claro" });
+  const ara = user("araras@example.test", { unit: "Araras" });
+  for (const store of ["MCR", "Rodini"]) {
+    assert.equal(modulePolicy.canReadUnit(rc, "motorista", store), true);
+    assert.equal(modulePolicy.canReadUnit(ara, "motorista", store), false);
+  }
+  assert.equal(modulePolicy.canReadUnit(ara, "motorista", "Casa Timoni"), true);
+  assert.equal(modulePolicy.canReadUnit(rc, "motorista", "Casa Timoni"), false);
 });

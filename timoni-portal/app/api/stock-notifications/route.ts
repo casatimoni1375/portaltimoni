@@ -1,3 +1,4 @@
+import { canReadUnit } from "@/lib/module-authorization";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
@@ -12,7 +13,7 @@ export async function GET() {
   if (!session || !hasModuleAccess(email, "estoque", session.portalUser) || !canReceiveStockNotice(email)) return NextResponse.json({ok:true, ids:[]}, {headers});
   try {
     const needs = await listStockAlerts(session.accessToken);
-    return NextResponse.json({ok:true, ids:pendingStockIds(email, needs)}, {headers});
+    return NextResponse.json({ok:true, ids:pendingStockIds(email, needs.filter(item => session.portalUser && canReadUnit(session.portalUser, "estoque", item.unidade)))}, {headers});
   } catch {
     return NextResponse.json({ok:false}, {status:503,headers});
   }

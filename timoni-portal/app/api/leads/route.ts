@@ -1,3 +1,4 @@
+import { canModuleOperation } from "@/lib/module-authorization";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { canAccessLeadsLocation, canViewBothLeadsLocations, hasModuleAccess, resolveLeadsLocation } from "@/lib/access-control";
@@ -5,6 +6,7 @@ import { addLead, addProspect, createLeadsReport, importLeads, listLeadActivitie
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
 
 function writeLocation(context: { email: string; portalUser?: import("@/lib/access-control").PortalUser | null }, value: unknown) {
+  if (value !== undefined && value !== "ara" && value !== "rc") return null;
   const requested = value === "ara" ? "ara" : "rc";
   if (value !== undefined && !canAccessLeadsLocation(context.email, requested, context.portalUser)) return null;
   return resolveLeadsLocation(context.email, requested, context.portalUser);
@@ -51,6 +53,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const location = writeLocation(context, body?.location);
     if (!location) return NextResponse.json({ error: "Acesso permitido somente à unidade vinculada a este usuário." }, { status: 403 });
+    if (!canModuleOperation(context.portalUser, "leads", (["reativar", "mover_para_prospectar"].includes(String(body?.action)) ? "editar" : "criar"), { unidade: location === "ara" ? "Araras" : "Rio Claro" })) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
     if (body?.action === "gerar_relatorio") {
       const result = await createLeadsReport({
         startDate: String(body?.startDate ?? "").trim(),
@@ -103,6 +106,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const location = writeLocation(context, body?.location);
     if (!location) return NextResponse.json({ error: "Acesso permitido somente à unidade vinculada a este usuário." }, { status: 403 });
+    if (!canModuleOperation(context.portalUser, "leads", "editar", { unidade: location === "ara" ? "Araras" : "Rio Claro" })) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
     const row = Number(body?.row);
     const cliente = String(body?.cliente ?? "").trim();
     const segmento = String(body?.segmento ?? "").trim();
@@ -127,6 +131,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const location = writeLocation(context, body?.location);
     if (!location) return NextResponse.json({ error: "Acesso permitido somente à unidade vinculada a este usuário." }, { status: 403 });
+    if (!canModuleOperation(context.portalUser, "leads", "criar", { unidade: location === "ara" ? "Araras" : "Rio Claro" })) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
     const result = await importLeads(body?.rows, context.accessToken, location);
     await recordModuleUpdateSafely("leads", context.email, "Lista de Leads importada.");
     return NextResponse.json({ ok: true, ...result });

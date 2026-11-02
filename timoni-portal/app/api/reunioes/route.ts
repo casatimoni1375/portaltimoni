@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { getPortalUser } from "@/lib/access-control";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { canModuleOperation, canReadUnit } from "@/lib/module-authorization";
+import type { AuthorizationAction } from "@/lib/authorization";
 import {
   archiveMeetingOccurrence,
   createMeeting,
@@ -10,20 +11,11 @@ import {
   type MeetingUnit,
 } from "@/lib/reunioes";
 
-const ADMIN_EMAIL = "mcrodini@gmail.com";
 const VALID_UNITS = new Set<MeetingUnit>(["Araras", "Rio Claro"]);
-
-function normalizeEmail(value?: string | null) {
-  return value?.trim().toLowerCase() || "";
+async function getContext(action: AuthorizationAction = "visualizar") {
+  const gate = await requireModuleAuthorization("reunioes", action);
+  return gate.current;
 }
-
-async function getContext() {
-  const session = await auth();
-  const email = normalizeEmail(session?.user?.email);
-  if (!email || !getPortalUser(email, session?.portalUser) || !session?.accessToken) return null;
-  return { email, accessToken: session.accessToken };
-}
-
 function parseInput(body: Record<string, unknown>) {
   const input = {
     unit: String(body.unit || "") as MeetingUnit,
@@ -54,8 +46,8 @@ export async function GET() {
   const context = await getContext();
   if (!context) return NextResponse.json({ error: "Acesso não autorizado." }, { status: 401 });
   try {
-    const items = await listMeetings(context.accessToken);
-    return NextResponse.json({ ok: true, items, canManage: context.email === ADMIN_EMAIL });
+    const items = (await listMeetings(context.accessToken)).filter(item => canReadUnit(context.user, "reunioes", item.unit));
+    return NextResponse.json({ ok: true, items, canManage: canModuleOperation(context.user, "reunioes", "editar"), permissions: { canCreate: canModuleOperation(context.user, "reunioes", "criar"), canEdit: canModuleOperation(context.user, "reunioes", "editar"), canDelete: canModuleOperation(context.user, "reunioes", "excluir") } });
   } catch (error) {
     console.error("[reunioes][GET]", error);
     return NextResponse.json({ error: "Não foi possível carregar as reuniões." }, { status: 500 });
@@ -63,12 +55,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const context = await getContext();
-  if (!context || context.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Acesso exclusivo da Ciça." }, { status: 403 });
+  const context = await getContext("criar");
+  if (!context) {
+    return NextResponse.json({ error: "Seu acesso não permite esta ação." }, { status: 403 });
   }
   try {
     const input = parseInput(await request.json());
+    if (!canModuleOperation(context.user, "reunioes", "criar", { unidade: input.unit })) return NextResponse.json({ error: "Unidade não autorizada." }, { status: 403 });
     const id = await createMeeting(context.accessToken, input);
     return NextResponse.json({ ok: true, id });
   } catch (error) {
@@ -77,14 +70,17 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const context = await getContext();
-  if (!context || context.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Acesso exclusivo da Ciça." }, { status: 403 });
+  const context = await getContext("editar");
+  if (!context) {
+    return NextResponse.json({ error: "Seu acesso não permite esta ação." }, { status: 403 });
   }
   try {
     const body = await request.json();
     const id = String(body.id || "");
     if (!id) throw new Error("Reunião inválida.");
+    const existing = (await listMeetings(context.accessToken)).find(item => item.id === id);
+    if (!existing) return NextResponse.json({ error: "Reunião não encontrada." }, { status: 404 });
+    if (!canModuleOperation(context.user, "reunioes", "editar", { unidade: existing.unit }) || (body.unit && !canReadUnit(context.user, "reunioes", body.unit))) return NextResponse.json({ error: "Unidade não autorizada." }, { status: 403 });
     if (body.action === "complete-occurrence") {
       await archiveMeetingOccurrence(context.accessToken, id, String(body.occurrenceDate || ""));
     } else if (body.action === "complete") {
@@ -101,14 +97,17 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const context = await getContext();
-  if (!context || context.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Acesso exclusivo da Ciça." }, { status: 403 });
+  const context = await getContext("excluir");
+  if (!context) {
+    return NextResponse.json({ error: "Seu acesso não permite esta ação." }, { status: 403 });
   }
   try {
     const body = await request.json();
     const id = String(body.id || "");
     if (!id) throw new Error("Reunião inválida.");
+    const existing = (await listMeetings(context.accessToken)).find(item => item.id === id);
+    if (!existing) return NextResponse.json({ error: "Reunião não encontrada." }, { status: 404 });
+    if (!canModuleOperation(context.user, "reunioes", "excluir", { unidade: existing.unit }) || (body.unit && !canReadUnit(context.user, "reunioes", body.unit))) return NextResponse.json({ error: "Unidade não autorizada." }, { status: 403 });
     await deleteMeeting(context.accessToken, id);
     return NextResponse.json({ ok: true });
   } catch (error) {

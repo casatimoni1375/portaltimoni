@@ -1,3 +1,5 @@
+import { canReadUnit } from "@/lib/module-authorization";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { savePurchaseOrdersSnapshot } from "@/lib/purchase-orders";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
@@ -112,6 +114,8 @@ function labelNames(card: TrelloCard) {
 }
 
 export async function GET(request: Request) {
+  const central = await requireModuleAuthorization("compras", "visualizar");
+  if (!central.current) return central.errorResponse;
   const { response: unauthorized } = await authorize();
   if (unauthorized) return unauthorized;
 
@@ -154,7 +158,12 @@ export async function GET(request: Request) {
     );
 
     const pendingCards = pendingList
-      ? cards.filter((card) => card.idList === pendingList.id)
+      ? cards.filter((card) => {
+        if (card.idList !== pendingList.id) return false;
+        const labels = labelNames(card);
+        const unit = labels.some(x => x.includes("araras")) ? "araras" : labels.some(x => x.includes("rio claro")) ? "rio_claro" : null;
+        return canReadUnit(central.current.user, "compras", unit);
+      })
       : [];
     if (summaryOnly) {
       return NextResponse.json(
@@ -210,13 +219,13 @@ export async function GET(request: Request) {
         summary: {
           pedidosParaFazer: pendingCards.length,
           urgentes: suppliers.filter((supplier) => supplier.urgent).length,
-          enviadosRioClaro: sentRioClaro.length,
-          enviadosAraras: sentAraras.length,
+          enviadosRioClaro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaro.length : 0,
+          enviadosAraras: canReadUnit(central.current.user, "compras", "araras") ? sentAraras.length : 0,
         },
         suppliers,
         destinations: {
-          rio_claro: sentRioClaroList?.id || null,
-          araras: sentArarasList?.id || null,
+          rio_claro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaroList?.id || null : null,
+          araras: canReadUnit(central.current.user, "compras", "araras") ? sentArarasList?.id || null : null,
         },
         portalDocsSync,
         updatedAt: new Date().toISOString(),

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { hasModuleAccess, isReadOnlyUser } from "@/lib/access-control";
+import { hasModuleAccess } from "@/lib/access-control";
+import { canModuleOperation } from "@/lib/module-authorization";
 import MotoristaAgenda from "./motorista-agenda";
 
 export const metadata: Metadata = {
@@ -12,7 +13,10 @@ export default async function MotoristaPage() {
   const session = await auth();
   const email = session?.user?.email || "";
   if (!email || !hasModuleAccess(email, "motorista", session?.portalUser)) redirect("/dashboard");
-  const readOnly = isReadOnlyUser(email, session?.portalUser);
+  const canCreate = canModuleOperation(session?.portalUser, "motorista", "criar");
+  const canEdit = canModuleOperation(session?.portalUser, "motorista", "editar");
+  const canDelete = canModuleOperation(session?.portalUser, "motorista", "excluir");
+  const readOnly = !canEdit;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4">
@@ -22,7 +26,7 @@ export default async function MotoristaPage() {
         <p className="mt-1 text-sm text-slate-600">Entregas, retiradas e bloqueios de horário em uma agenda única.</p>
       </header>
       <div className="motorista-agenda-controle">
-        <MotoristaAgenda readOnly={readOnly} canCreate canEdit />
+        <MotoristaAgenda readOnly={readOnly} canCreate={canCreate} canEdit={canEdit} canDelete={canDelete} />
       </div>
       <style>{`
         .motorista-agenda-controle button.bg-emerald-700,

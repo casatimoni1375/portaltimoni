@@ -1,3 +1,5 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { canReadUnit } from "@/lib/module-authorization";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -73,6 +75,8 @@ function mensagemErro(erro: unknown) {
 }
 
 export async function GET(request: NextRequest) {
+  const gate = await requireModuleAuthorization("motorista", "visualizar");
+  if (!gate.current) return gate.errorResponse;
   const inicio = request.nextUrl.searchParams.get("inicio") || "";
   const quantidadeInformada = Number(request.nextUrl.searchParams.get("dias") || "7");
   const quantidade = Number.isInteger(quantidadeInformada)
@@ -94,7 +98,7 @@ export async function GET(request: NextRequest) {
 
   const dias = resultados.map((resultado, indice) => {
     if (resultado.status === "fulfilled") {
-      return { data: datas[indice], viagens: resultado.value };
+      return { data: datas[indice], viagens: resultado.value.filter((v: { loja?: string }) => canReadUnit(gate.current.user, "motorista", v.loja)) };
     }
 
     return {

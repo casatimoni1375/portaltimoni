@@ -1,3 +1,4 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
 import {
@@ -36,6 +37,8 @@ async function authorize() {
 }
 
 export async function GET() {
+  const central = await requireModuleAuthorization("compras", "visualizar");
+  if (!central.current) return central.errorResponse;
   const { response: unauthorized } = await authorize();
   if (unauthorized) return unauthorized;
   const credentials = await getStoredTrelloCredentials();
@@ -46,6 +49,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const central = await requireModuleAuthorization("compras", "administrar");
+  if (!central.current) return central.errorResponse;
   const { response: unauthorized, session } = await authorize();
   if (unauthorized || !session) return unauthorized!;
 
@@ -84,6 +89,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
+  const central = await requireModuleAuthorization("compras", "administrar");
+  if (!central.current) return central.errorResponse;
   const { response: unauthorized, session } = await authorize();
   if (unauthorized || !session) return unauthorized!;
 

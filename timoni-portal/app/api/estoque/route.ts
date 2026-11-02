@@ -1,3 +1,4 @@
+import { canModuleOperation, canReadUnit, canStockOperation, normalizeUnit as authorizationUnit, stockAction } from "@/lib/module-authorization";
 import { pendingStockIds } from "@/lib/stock-notice-reads";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
@@ -118,11 +119,6 @@ async function getSheets() {
   return google.sheets({ version: "v4", auth: oauth });
 }
 
-async function canDeleteStockRecords() {
-  const session = await auth();
-  return session?.user?.email?.trim().toLowerCase() === "mcrodini@gmail.com";
-}
-
 async function readAll(sheets: sheets_v4.Sheets) {
   const response = await sheets.spreadsheets.values.batchGet({
     spreadsheetId: SPREADSHEET_ID,
@@ -155,6 +151,11 @@ export async function GET() {
     const sheets = await getSheets();
     const data = await readAll(sheets);
     const session = await auth();
+    const user = session!.portalUser!;
+    const storedUnits = new Map(data.needRows.slice(1).map(row => [value(row, 0), value(row, 10)]));
+    data.necessidades = data.necessidades.filter((item) => canReadUnit(user, "estoque", storedUnits.get(item.id)));
+    data.vendedores = data.vendedores.filter((item) => canReadUnit(user, "estoque", item.unidade));
+    data.summary = summarize(data.necessidades);
     let unreadIds: string[] | null = null;
     try { unreadIds = pendingStockIds(session?.user?.email || "", data.necessidades); }
     catch (error) { console.error("[stock-notifications]", error); }
@@ -175,10 +176,6 @@ async function updateCells(sheets: sheets_v4.Sheets, data: Array<{ range: string
   await sheets.spreadsheets.values.batchUpdate({ spreadsheetId: SPREADSHEET_ID, requestBody: { valueInputOption: "RAW", data } });
 }
 
-function normalizeUnit(input: unknown): "rio_claro" | "araras" {
-  return input === "araras" ? "araras" : "rio_claro";
-}
-
 async function recordStockUpdate(summary: string) {
   const session = await auth();
   await recordModuleUpdateSafely("estoque", session?.user?.email, summary);
@@ -189,11 +186,19 @@ export async function POST(request: Request) {
     const sheets = await getSheets();
     const body = (await request.json()) as Record<string, unknown>;
     const action = String(body.action ?? "");
+    const session = await auth();
+    const user = session!.portalUser!;
+    const permissionAction = stockAction(action);
+    if (!permissionAction) return NextResponse.json({ error: "Ação desconhecida." }, { status: 400 });
+    if (!canModuleOperation(user, "estoque", permissionAction)) return NextResponse.json({ error: "Ação não permitida." }, { status: 403 });
     const data = await readAll(sheets);
 
     if (action === "criar") {
       const codigo = String(body.codigo ?? "").trim();
-      const unidade = normalizeUnit(body.unidade);
+      const targetUnit = authorizationUnit(body.unidade);
+      if (!targetUnit || targetUnit === "Geral") return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
+      if (!canStockOperation(user, action, targetUnit)) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
+      const unidade = targetUnit === "Araras" ? "araras" : "rio_claro";
       const vendedor = String(body.vendedor ?? "").trim();
       const quantidade = String(body.quantidade ?? "").trim();
       const nota = String(body.nota ?? "").trim();
@@ -205,6 +210,8 @@ export async function POST(request: Request) {
       if (!produto) throw new Error(`Produto ${codigo} não encontrado.`);
       const existing = data.necessidades.find((item) => item.codigo === codigo && item.unidade === unidade && item.status !== STATUS.CHEGOU);
       if (existing) {
+        const persisted = data.needRows.slice(1).find(row => value(row, 0) === existing.id);
+        if (!persisted || authorizationUnit(value(persisted, 10)) !== targetUnit) return NextResponse.json({ error: "Unidade do registro não identificada." }, { status: 403 });
         if (cliente && !existing.clienteAguardando) {
           const index = data.needRows.slice(1).findIndex((row) => value(row, 0) === existing.id);
           if (index >= 0) await updateCells(sheets, [{ range: `Necessidades!J${index + 2}`, values: [[true]] }]);
@@ -234,11 +241,12 @@ export async function POST(request: Request) {
     if (rowIndex < 0) throw new Error("Solicitação não encontrada.");
     const currentNeed = data.necessidades.find((item) => item.id === id);
     if (!currentNeed) throw new Error("Solicitação não encontrada.");
+    const storedUnit = authorizationUnit(value(data.needRows[rowIndex + 1], 10));
+    if (!storedUnit || !canStockOperation(user, action, storedUnit)) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
     const rowNumber = rowIndex + 2;
     const now = new Date().toISOString();
 
     if (action === "excluir") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode excluir registros do Estoque.");
       const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
       const sheet = spreadsheet.data.sheets?.find((item) => item.properties?.title === "Necessidades");
       const sheetId = sheet?.properties?.sheetId;
@@ -257,7 +265,6 @@ export async function POST(request: Request) {
     }
 
     if (action === "editar") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode editar solicitações do Estoque.");
       const status = String(body.status ?? currentNeed.status);
       const statusChanged = status !== currentNeed.status;
       if (statusChanged && !([STATUS.PENDENTE, STATUS.EM_COMPRA, STATUS.PEDIDO_EXISTENTE] as string[]).includes(status)) throw new Error("Selecione uma etapa válida.");
@@ -325,7 +332,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (action === "editar_observacao") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode editar respostas do Estoque.");
       const texto = String(body.texto ?? "").trim();
       if (!texto) throw new Error("Escreva a resposta.");
       await updateCells(sheets, [
@@ -359,7 +365,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (action === "reabrir") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode reabrir solicitações do Estoque.");
       if (currentNeed.status !== STATUS.CHEGOU) throw new Error("Somente solicitações em Chegou podem ser reabertas.");
       await updateCells(sheets, [
         { range: `Necessidades!D${rowNumber}`, values: [[STATUS.PEDIDO_EXISTENTE]] },

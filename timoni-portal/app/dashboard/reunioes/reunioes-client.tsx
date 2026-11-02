@@ -84,10 +84,11 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
 }
 
 function MeetingCard({
-  meeting, canManage, onEdit, onComplete, onDelete, pendingOccurrences, onArchiveOccurrence,
+  meeting, canManage, canDelete, onEdit, onComplete, onDelete, pendingOccurrences, onArchiveOccurrence,
 }: {
   meeting: Meeting;
   canManage: boolean;
+  canDelete: boolean;
   onEdit: () => void;
   onComplete: (id: string, date: string) => void;
   onDelete: (id: string) => void;
@@ -145,7 +146,7 @@ function MeetingCard({
         <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-200/80 pt-4">
           <button onClick={onEdit} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-800">Abrir para editar</button>
           {pendingOccurrences.length === 0 && <button onClick={() => onComplete(meeting.id, meeting.date)} className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-800">Arquivar manualmente</button>}
-          <button onClick={() => onDelete(meeting.id)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700">Excluir</button>
+          {canDelete && <button onClick={() => onDelete(meeting.id)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700">Excluir</button>}
         </div>
       )}
     </article>
@@ -153,10 +154,12 @@ function MeetingCard({
 }
 
 export default function ReunioesClient({
-  isGestao, canManage,
+  isGestao, canManage, canCreate, canDelete,
 }: {
   isGestao: boolean;
   canManage: boolean;
+  canCreate: boolean;
+  canDelete: boolean;
 }) {
   const [items, setItems] = useState<Meeting[]>([]);
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -261,7 +264,7 @@ export default function ReunioesClient({
             <p className="mt-2 text-sm leading-6 text-slate-600">Pautas, atas, apresentações e datas futuras por loja.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {canManage && <button onClick={startNew} className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white">+ Nova reunião</button>}
+            {canCreate && <button onClick={startNew} className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white">+ Nova reunião</button>}
             <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white">Abrir pasta oficial</a>
           </div>
         </div>
@@ -337,6 +340,7 @@ export default function ReunioesClient({
                   key={meeting.id}
                   meeting={meeting}
                   canManage={canManage}
+                  canDelete={canDelete}
                   onEdit={() => edit(sourceMeeting)}
                   onComplete={(id, date) => void mutate(id, "complete-occurrence", date)}
                   pendingOccurrences={pendingOccurrences}
@@ -357,7 +361,7 @@ export default function ReunioesClient({
               {canManage && (
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => void mutate(meeting.id, "reopen")} className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-800">Desarquivar</button>
-                  <button onClick={() => void mutate(meeting.id, "delete")} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700">Excluir</button>
+                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700">Excluir</button>}
                 </div>
               )}
             </div>

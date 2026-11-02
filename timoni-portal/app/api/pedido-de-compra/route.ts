@@ -1,3 +1,4 @@
+import { canReadUnit } from "@/lib/module-authorization";
 import { auth } from "@/lib/auth";
 import { getEffectivePortalUser } from "@/lib/portal-config";
 import { hasModuleAccess } from "@/lib/access-control";
@@ -83,7 +84,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const orders = pedidosEnviados || [];
+    const orders = (pedidosEnviados || []).filter(order => canReadUnit(portalUser!, "pedido-de-compra", order.unidade));
     return NextResponse.json(
       { ok: true, pedidosEnviados: orders, excecoes: getExceptions(orders), syncedAt, stale },
       { headers: { "Cache-Control": "no-store" } },

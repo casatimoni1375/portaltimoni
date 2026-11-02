@@ -32,7 +32,7 @@ const EXISTING_PROFILES: Readonly<Record<string, AuthorizationProfile>> = {
   "balcaotimoni@gmail.com": "vendedores-rio-claro",
   "caixarctimoni@gmail.com": "vendedores-rio-claro",
   "marketplacerc.mcr@gmail.com": "vendedores-rio-claro",
-  "comercialrc@casatimoni.com.br": "vendedores-rio-claro",
+  "comercialrc@casatimoni.com.br": "gestao-rio-claro",
   "carolina@casatimoni.com.br": "vendedores-rio-claro",
   "estoquetimoni@gmail.com": "estoque-rio-claro",
   "comercialara@casatimoni.com.br": "gestao-araras",
@@ -118,10 +118,8 @@ export function can(
     return false;
   }
   if (profile === "motorista-leitura") return resource === "motorista" && action === "visualizar";
-  // Explicit 1A compatibility exception: preserve universal module entry.
-  // This grants VIEW only, never a write or administrative permission.
-  const moduleAllowed = resource === "motorista" || resource === "pedido-de-compra"
-    || user.modules.includes(resource as PortalModule);
+  // 1B: entry now requires the saved module; cards/menu never grant access.
+  const moduleAllowed = user.modules.includes(resource as PortalModule);
   if (!moduleAllowed) return false;
   if (action === "visualizar") return true;
   if (profile === "administracao-marcelo") return action === "editar";

@@ -2,14 +2,12 @@ import { applyOfficialRotativoModel } from "@/lib/rotativo-official-model";
 import { withStandardizationLock } from "@/lib/rotativo-standardization-lock";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { hasModuleAccess, normalizeEmail } from "@/lib/access-control";
-import { deleteSupplierStandardization, ROTATING_STOCK_EMAILS } from "@/lib/rotating-stock";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { deleteSupplierStandardization } from "@/lib/rotating-stock";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MANAGEMENT_EMAILS = new Set<string>([ROTATING_STOCK_EMAILS.cica, ROTATING_STOCK_EMAILS.marcelo]);
 const BACKUP_PREFIX = "BKP_ROTATIVO_";
 
 function backupTitle(sheetName: string) {
@@ -18,13 +16,10 @@ function backupTitle(sheetName: string) {
 }
 
 async function context() {
-  const session = await auth();
-  const email = normalizeEmail(session?.user?.email);
-  if (!email || !hasModuleAccess(email, "estoque-rotativo", session?.portalUser)) throw new Error("Acesso não autorizado ao Rotativo.");
-  if (!MANAGEMENT_EMAILS.has(email)) throw new Error("Seu acesso não permite esta ação.");
-  if (!session?.accessToken || session.error === "RefreshAccessTokenError") throw new Error("Sessão expirada. Saia e entre novamente no Portal.");
+  const gate = await requireModuleAuthorization("estoque-rotativo", "administrar");
+  if (!gate.current) throw new Error("Seu acesso não permite esta ação.");
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: session.accessToken });
+  oauth.setCredentials({ access_token: gate.current.accessToken });
   return { sheets: google.sheets({ version: "v4", auth: oauth }) };
 }
 

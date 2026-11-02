@@ -1,3 +1,5 @@
+import { canModuleOperation, normalizeUnit } from "@/lib/module-authorization";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
 import {
@@ -140,6 +142,8 @@ async function attachFile(cardId: string, file: FormDataEntryValue | null) {
 }
 
 export async function POST(request: Request) {
+  const central = await requireModuleAuthorization("compras", "criar");
+  if (!central.current) return central.errorResponse;
   const unauthorized = await authorize();
   if (unauthorized) return unauthorized;
 
@@ -148,6 +152,7 @@ export async function POST(request: Request) {
     let cardId = String(formData.get("cardId") || "").trim();
     const finalTitle = String(formData.get("finalTitle") || "").trim();
     const unit = String(formData.get("unit") || "rio_claro");
+    if (unit !== "rio_claro" && unit !== "araras") return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
     const company = String(formData.get("empresa") || "MCR") as Company;
     const dataEnvio = String(formData.get("dataEnvio") || "").trim();
     const dataEntrega = String(formData.get("dataEntrega") || "").trim();
@@ -185,11 +190,21 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!canModuleOperation(central.current.user, "compras", "criar", { unidade: normalizeUnit(unit)! })) return NextResponse.json({ error: "Unidade fora do seu acesso." }, { status: 403 });
     let card: TrelloCard;
     if (cardId) {
-      card = await trelloFetch<TrelloCard>(`/cards/${encodeURIComponent(cardId)}`, {
-        params: { fields: "name,url,idLabels" },
+      const source = await trelloFetch<TrelloCard & { idBoard: string; idList: string; labels?: TrelloLabel[] }>(`/cards/${encodeURIComponent(cardId)}`, {
+        params: { fields: "name,url,idLabels,idBoard,idList,labels" },
       });
+      if (source.idBoard !== board.id) return NextResponse.json({ error: "Cartão fora do quadro autorizado." }, { status: 403 });
+      const pending = board.lists?.find(list => hasAllTokens(list.name, ["pedidos", "pendentes"]));
+      if (source.idList !== destination.id && source.idList !== pending?.id) return NextResponse.json({ error: "Cartão fora das listas autorizadas." }, { status: 403 });
+      if (central.current.user.unit !== "Geral") {
+        const labels = (source.labels || []).map(label => normalizeTrelloText(label.name));
+        const sourceUnit = source.idList === destination.id ? normalizeUnit(unit) : labels.some(x => x.includes("araras")) ? "Araras" : labels.some(x => x.includes("rio claro")) ? "Rio Claro" : null;
+        if (!sourceUnit || sourceUnit !== normalizeUnit(unit)) return NextResponse.json({ error: "Unidade do cartão não autorizada." }, { status: 403 });
+      }
+      card = source;
     } else {
       card = await trelloFetch<TrelloCard>("/cards", {
         method: "POST",

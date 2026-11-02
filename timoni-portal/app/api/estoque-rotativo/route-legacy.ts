@@ -1,10 +1,12 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { canRotativoOperation, rotativoAction, type RotativoRole } from "@/lib/module-authorization";
+import type { PortalUser } from "@/lib/access-control";
+import type { AuthorizationAction } from "@/lib/authorization";
 import { applyOfficialRotativoModel } from "@/lib/rotativo-official-model";
 import { withStandardizationLock } from "@/lib/rotativo-standardization-lock";
 import { createHash, randomUUID } from "node:crypto";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { hasModuleAccess, normalizeEmail } from "@/lib/access-control";
 import { createChatMessage, ensureConversation } from "@/lib/internal-chat";
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
 import { getStoredTrelloCredentials, normalizeTrelloText, trelloFetch, TRELLO_BOARD_SHORT_LINK } from "@/lib/trello";
@@ -38,7 +40,6 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MANAGEMENT_EMAILS = new Set<string>([ROTATING_STOCK_EMAILS.cica, ROTATING_STOCK_EMAILS.marcelo]);
 const SUPPLIER_SPREADSHEETS = [
   {
     "id": "1UPHFWbuwksxNYUXMFZpLqlpSj_Ebm6Auz4eR-Ni8M6k",
@@ -606,26 +607,16 @@ function fingerprint(sourceRows: unknown[][], targetRows: unknown[][]) {
 }
 
 async function context() {
-  const session = await auth();
-  const email = normalizeEmail(session?.user?.email);
-  if (!email || !hasModuleAccess(email, "estoque-rotativo", session?.portalUser)) throw new Error("Acesso não autorizado ao Rotativo.");
-  if (!session?.accessToken || session.error === "RefreshAccessTokenError") throw new Error("Sessão expirada. Saia e entre novamente no Portal.");
+  const gate = await requireModuleAuthorization("estoque-rotativo", "visualizar");
+  if (!gate.current) throw new Error("Acesso não autorizado ao Rotativo.");
+  const { user, email, accessToken } = gate.current;
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: session.accessToken });
-  return {
-    email,
-    sheets: google.sheets({ version: "v4", auth: oauth }),
-  };
+  oauth.setCredentials({ access_token: accessToken });
+  return { user, email, sheets: google.sheets({ version: "v4", auth: oauth }) };
 }
-
-function requireRole(email: string, role: "report" | "conference" | "manage") {
-  const manager = MANAGEMENT_EMAILS.has(email);
-  if (role === "report" && (manager || email === ROTATING_STOCK_EMAILS.lucas)) return;
-  if (role === "conference" && (manager || email === ROTATING_STOCK_EMAILS.carolina)) return;
-  if (role === "manage" && manager) return;
-  throw new Error("Seu acesso não permite esta ação.");
+function requireRole(user: PortalUser, role: RotativoRole, action: AuthorizationAction) {
+  if (!canRotativoOperation(user, role, action)) throw new Error("Seu acesso não permite esta ação.");
 }
-
 function columnIndex(letter: string) {
   const normalized = letter.trim().toUpperCase();
   if (!/^[A-Z]+$/.test(normalized)) throw new Error(`Coluna inválida: ${letter}.`);
@@ -1053,8 +1044,8 @@ export async function GET(request: Request) {
   try {
     const searchParams = new URL(request.url).searchParams;
     const summaryOnly = searchParams.get("summary") === "1";
-    const { email, sheets } = await context();
-    if (!summaryOnly) await clearExpiredHighlights(sheets);
+    const { user, sheets } = await context();
+    if (!summaryOnly && canRotativoOperation(user, "manage", "administrar")) await clearExpiredHighlights(sheets);
     const openUpdateId = searchParams.get("openUpdateId")?.trim() || "";
     if (openUpdateId) {
       const update = await getRotatingStockUpdate(openUpdateId);
@@ -1095,9 +1086,9 @@ export async function GET(request: Request) {
       items: id ? await listConferenceItems(id) : [],
       currentUpdate: id ? await getRotatingStockUpdate(id) : null,
       permissions: {
-        canReport: MANAGEMENT_EMAILS.has(email) || email === ROTATING_STOCK_EMAILS.lucas,
-        canConference: MANAGEMENT_EMAILS.has(email) || email === ROTATING_STOCK_EMAILS.carolina,
-        canManage: MANAGEMENT_EMAILS.has(email),
+        canReport: canRotativoOperation(user, "report", "criar"),
+        canConference: canRotativoOperation(user, "conference", "editar"),
+        canManage: canRotativoOperation(user, "manage", "administrar"),
       },
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
@@ -1107,12 +1098,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { email, sheets } = await context();
+    const { user, email, sheets } = await context();
     const body = await request.json() as Record<string, unknown>;
     const action = String(body.action || "");
+    const permissionAction = rotativoAction(action);
+    if (!permissionAction) throw new Error("Ação inválida.");
 
     if (action === "padronizar_proxima_planilha") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const snapshot = await listRotatingStockData();
       const requestedSpreadsheetId = String(body.spreadsheetId || "").trim();
       const requestedSheetName = String(body.sheetName || "").trim();
@@ -1141,7 +1134,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "confirmar_planilha_fornecedor") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const spreadsheetId = String(body.spreadsheetId || "").trim();
       if (!spreadsheetId) throw new Error("Planilha não identificada.");
       const snapshot = await listRotatingStockData();
@@ -1173,7 +1166,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "excluir_fornecedor_padronizado") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const spreadsheetId = String(body.spreadsheetId || "").trim();
       if (!spreadsheetId) throw new Error("Planilha não identificada.");
       if (!(await deleteSupplierStandardization(spreadsheetId, String(body.sheetName || "")))) {
@@ -1183,7 +1176,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "registrar") {
-      requireRole(email, "report");
+      requireRole(user, "report", permissionAction);
       let supplierName = String(body.supplierName || "").trim();
       const spreadsheetReference = String(body.spreadsheetReference || "").trim();
       const note = String(body.note || "").trim();
@@ -1237,7 +1230,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "salvar_padrao_fornecedor") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const name = String(body.name || "").trim();
       const spreadsheetId = extractSpreadsheetId(String(body.spreadsheetId || ""));
       const sheetName = String(body.sheetName || "").trim();
@@ -1266,7 +1259,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "salvar_padroes_fornecedores") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const patterns = Array.isArray(body.patterns) ? body.patterns as Array<Record<string, unknown>> : [];
       let saved = 0;
       for (const pattern of patterns) {
@@ -1298,7 +1291,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "salvar_mapeamento") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const name = String(body.name || "").trim();
       const spreadsheetId = extractSpreadsheetId(String(body.spreadsheetId || ""));
       const sheetName = String(body.sheetName || "").trim();
@@ -1317,7 +1310,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "editar_registro") {
-      requireRole(email, "report");
+      requireRole(user, "report", permissionAction);
       const id = String(body.id || "");
       const supplierNameInput = String(body.supplierName || "").trim();
       const spreadsheetReference = String(body.spreadsheetReference || "").trim();
@@ -1346,7 +1339,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "resolver_nao_encontrado") {
-      requireRole(email, "conference");
+      requireRole(user, "conference", permissionAction);
       const itemId = String(body.itemId || "");
       if (!itemId || !(await resolveNotFoundItem(itemId, email))) throw new Error("Pendência não encontrada ou já resolvida.");
       return NextResponse.json({ ok: true });
@@ -1367,7 +1360,7 @@ export async function POST(request: Request) {
     const maxSourceColumn = Math.max(codeColumn, purchaseCodeColumn ?? 0, descriptionColumn, stockColumn);
 
     if (action === "conferir") {
-      requireRole(email, "conference");
+      requireRole(user, "conference", permissionAction);
       if (update.status === "atualizado") throw new Error("Esta atualização já foi concluída.");
       await ensurePendingStatuses(sheets);
       if (!(await acquireRotatingStockLock(id, email))) throw new Error("Esta conferência está aberta por outro usuário. Tente novamente em alguns minutos.");
@@ -1380,7 +1373,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "corrigir_item_conferencia") {
-      requireRole(email, "conference");
+      requireRole(user, "conference", permissionAction);
       if (update.status !== "em_conferencia" || update.locked_by !== email) throw new Error("Reabra a conferência antes de corrigir itens.");
       const itemId = String(body.itemId || "").trim();
       const saleCode = cleanCode(body.saleCode);
@@ -1425,7 +1418,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "atualizar") {
-      requireRole(email, "conference");
+      requireRole(user, "conference", permissionAction);
       if (update.status !== "em_conferencia" || update.locked_by !== email) throw new Error("Reabra a conferência antes de atualizar.");
       const storedItems = await listConferenceItems(id);
       const unresolved = storedItems.filter((item) => item.situation === "nao_encontrado");
@@ -1486,7 +1479,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "excluir_atualizacao") {
-      requireRole(email, "manage");
+      requireRole(user, "manage", permissionAction);
       const id = String(body.id || "").trim();
       if (!id) throw new Error("Atualização não identificada.");
       const removed = await deleteRotatingStockUpdate(id);

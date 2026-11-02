@@ -1,3 +1,4 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { google } from "googleapis";
 import { auth } from "@/lib/auth";
 import { normalizeEmail } from "@/lib/access-control";
@@ -104,6 +105,8 @@ async function alignSupplierMapping(spreadsheetId: string, sheetName: string) {
 }
 
 export async function POST(request: Request) {
+  const gate = await requireModuleAuthorization("estoque-rotativo", "visualizar");
+  if (!gate.current) return gate.errorResponse;
   const copy = request.clone();
   const body = await copy.json().catch(() => ({})) as Record<string, unknown>;
   const action = String(body.action || "");

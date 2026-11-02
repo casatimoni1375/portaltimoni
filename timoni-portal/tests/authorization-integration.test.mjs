@@ -10,12 +10,12 @@ const cica = person("mcrodini@gmail.com");
 const marcelo = person("mrodini@gmail.com");
 const member = { id: "m1", name: "Pessoa", unit: "Rio Claro", accessEmail: "vendas@example.test", active: true, noticeRequired: true, chatEnabled: true, role: "Vendas", updatedAt: "2026-01-01" };
 
-async function harness({ actor = marcelo, realConfig = false, realAuth = false, registryFetch } = {}) {
+async function harness({ actor = marcelo, realConfig = false, realAuth = false, registryFetch, extraMocks = {} } = {}) {
   const writes = [];
   const configuration = { users: [cica, marcelo, person("vendas@example.test")], collaborators: [{ ...member }], history: [] };
   let currentActor = actor;
   let authOptions;
-  const context = vm.createContext({ Response, Request, URL, Headers, FormData, File, Uint8Array, Date, JSON, console, process: { env: {} }, setTimeout, clearTimeout, fetch: registryFetch ?? (() => { throw Error("Rede não permitida nos testes"); }) });
+  const context = vm.createContext({ Response, Request, URL, URLSearchParams, AbortController, Headers, FormData, File, Uint8Array, Date, JSON, console, process: { env: {} }, setTimeout, clearTimeout, fetch: registryFetch ?? (() => { throw Error("Rede não permitida nos testes"); }) });
   const cache = new Map();
   function synthetic(id, exports) {
     return new vm.SyntheticModule(Object.keys(exports), function () { for (const [key, value] of Object.entries(exports)) this.setExport(key, value); }, { context, identifier: id });
@@ -37,7 +37,7 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
     recordPortalAccess: async () => writes.push(["access"]),
   };
   const mocks = {
-    "next/server": { NextResponse: class extends Response {
+    "next/server": { NextRequest: Request, NextResponse: class extends Response {
       static json(value, options) { return Response.json(value, options); }
       static redirect(url) { return Response.redirect(url); }
       static next() { return new Response(null, { status: 200 }); }
@@ -54,6 +54,7 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
     "next-auth": { default: options => { authOptions = options; return { handlers: {}, auth: fn => fn, signIn() {}, signOut() {} }; } },
     "next-auth/providers/google": { default: options => options },
   };
+  Object.assign(mocks, extraMocks);
   if (realConfig) delete mocks["@/lib/portal-config"];
   if (realAuth) delete mocks["@/lib/auth"];
   async function load(id) {
@@ -189,4 +190,211 @@ test("middleware real: sessão sem cadastro oficial não entra no dashboard", as
   const response = middleware.default({ nextUrl: new URL("https://portal.test/dashboard"), url: "https://portal.test/dashboard", auth: { user: { email: cica.email }, portalUser: null } });
   assert.equal(response.status, 302);
   assert.equal(response.headers.get("location"), "https://portal.test/login");
+});
+
+const moduleActor = (email = "vendas@example.test", patch = {}) => person(email, { unit: "Rio Claro", modules: ["motorista", "estoque", "leads", "compras", "agenda-ct", "reunioes", "estoque-rotativo"], ...patch });
+const urlRequest = (params) => ({ nextUrl: new URL("https://portal.test/api?" + params) });
+const motorPost = body => new Request("https://portal.test/api/agenda-motorista", { method: "POST", body: new URLSearchParams(body) });
+function motorHarness(actor, trips = [{ id: "rc", loja: "rio_claro" }, { id: "ara", loja: "araras" }]) {
+  const calls = [];
+  return harness({ actor, registryFetch: async (url, init) => {
+    calls.push({ url: String(url), method: init.method, body: init.body });
+    return Response.json(init.method === "GET" ? { ok: true, viagens: trips } : { ok: true });
+  }, extraMocks: { "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} } } }).then(h => ({ ...h, calls }));
+}
+test("Motorista: anônimo, removido e módulo não atribuído não consultam a origem", async () => {
+  for (const actor of [null, moduleActor(undefined, { active: false }), moduleActor(undefined, { modules: [] })]) {
+    const h = await motorHarness(actor);
+    const route = await h.evaluate("app/api/agenda-motorista/route.ts");
+    assert.ok([401, 403].includes((await route.GET(urlRequest("action=dia&data=2026-11-02"))).status));
+    assert.equal(h.calls.length, 0);
+  }
+});
+test("Motorista: leitura filtra a unidade e não encaminha ações ou parâmetros arbitrários", async () => {
+  const h = await motorHarness(moduleActor());
+  const route = await h.evaluate("app/api/agenda-motorista/route.ts");
+  const response = await route.GET(urlRequest("action=dia&data=2026-11-02&callback=malicioso"));
+  assert.deepEqual((await response.json()).viagens.map(v => v.id), ["rc"]);
+  assert.equal(new URL(h.calls[0].url).searchParams.has("callback"), false);
+  assert.equal((await route.GET(urlRequest("action=excluir&id=ara"))).status, 400);
+  assert.equal((await route.GET(urlRequest("action=mes&mes=2026-11"))).status, 403);
+  assert.equal(h.calls.length, 1);
+});
+test("Motorista: somente leitura e Marcelo não criam/excluem via chamada direta", async () => {
+  for (const actor of [moduleActor(undefined, { readOnly: true }), moduleActor("mrodini@gmail.com", { unit: "Geral" })]) {
+    const h = await motorHarness(actor);
+    const route = await h.evaluate("app/api/agenda-motorista/route.ts");
+    for (const action of ["criar", "excluir"]) assert.equal((await route.POST(motorPost({ action, id: "rc", data: "2026-11-02", loja: "rio_claro" }))).status, 403);
+    assert.equal(h.calls.length, 0);
+  }
+});
+test("Motorista: ID de outra unidade, data forjada, unidade alterada e ID ausente não gravam", async () => {
+  const h = await motorHarness(moduleActor());
+  const route = await h.evaluate("app/api/agenda-motorista/route.ts");
+  for (const input of [
+    { action: "atualizar", id: "ara", data: "2026-11-02", loja: "rio_claro" },
+    { action: "excluir", id: "desconhecido", data: "2026-11-02" },
+    { action: "atualizar", id: "rc", data: "2026-11-02", loja: "araras" },
+    { action: "atualizar", id: "rc" }
+  ]) assert.ok((await route.POST(motorPost(input))).status >= 400);
+  assert.equal(h.calls.filter(c => c.method === "POST").length, 0);
+});
+test("Motorista: edição autorizada e Ciça criando preservam o fluxo operacional", async () => {
+  const h = await motorHarness(moduleActor("mrodini@gmail.com", { unit: "Geral" }));
+  const route = await h.evaluate("app/api/agenda-motorista/route.ts");
+  assert.equal((await route.POST(motorPost({ action: "atualizar", id: "rc", dataOrigem: "2026-11-02", data: "2026-11-03", loja: "rio_claro" }))).status, 200);
+  assert.equal(h.calls.filter(c => c.method === "POST").length, 1);
+  assert.equal(new URLSearchParams(h.calls.at(-1).body).has("dataOrigem"), false);
+  h.setActor(cica);
+  assert.equal((await route.POST(motorPost({ action: "criar", data: "2026-11-03", loja: "araras" }))).status, 200);
+});
+test("Motorista leitura: POST não encaminha nem conclui viagem", async () => {
+  const h = await motorHarness(cica);
+  const route = await h.evaluate("app/api/motorista-leitura/route.ts");
+  assert.equal((await route.POST(motorPost({ action: "atualizar" }))).status, 405);
+  assert.equal(h.calls.length, 0);
+});
+test("Reuniões: exige módulo e filtra a unidade; Marcelo edita sem criar/excluir", async () => {
+  const operations = [];
+  const h = await harness({ actor: moduleActor(), extraMocks: { "@/lib/reunioes": {
+    listMeetings: async () => [{ id: "rc", unit: "Rio Claro" }, { id: "ara", unit: "Araras" }],
+    createMeeting: async () => { operations.push("create"); return "new"; },
+    updateMeeting: async () => operations.push("edit"),
+    archiveMeetingOccurrence: async () => operations.push("archive"),
+    deleteMeeting: async () => operations.push("delete")
+  } } });
+  const route = await h.evaluate("app/api/reunioes/route.ts");
+  assert.deepEqual((await (await route.GET()).json()).items.map(v => v.id), ["rc"]);
+  h.setActor(moduleActor("mrodini@gmail.com", { unit: "Geral" }));
+  const req = body => new Request("https://portal.test/api/reunioes", { method: "POST", body: JSON.stringify(body) });
+  assert.equal((await route.POST(req({}))).status, 403);
+  assert.equal((await route.DELETE(req({ id: "rc" }))).status, 403);
+  assert.equal((await route.PATCH(req({ id: "rc", action: "complete" }))).status, 200);
+  assert.deepEqual(operations, ["edit"]);
+  h.setActor(moduleActor(undefined, { modules: [] }));
+  assert.ok((await route.GET()).status >= 400);
+});
+
+test("Dashboard Motorista: usuário selecionado cria, edita e exclui viagens da própria unidade", async () => {
+  const h = await motorHarness(moduleActor(), [{ id: "rc", loja: "MCR" }, { id: "ara", loja: "Casa Timoni" }]);
+  const route = await h.evaluate("app/api/agenda-motorista/route.ts");
+  for (const action of ["criar", "atualizar", "excluir"]) {
+    const response = await route.POST(motorPost({ action, id: "rc", data: "2026-11-02", loja: "MCR" }));
+    assert.equal(response.status, 200, action);
+  }
+  assert.equal(h.calls.filter(c => c.method === "POST").length, 3);
+});
+
+test("Estoque: leitura, resumo e mutação usam unidade persistida, ignorando unidade forjada", async () => {
+  const calls = [];
+  const row = (id, unit) => [id, "produto", "Descrição", "Pendente", "", "", "", "", "", false, unit, "Vendedor"];
+  const sheets = { spreadsheets: { values: {
+    batchGet: async () => ({ data: { valueRanges: [{ values: [["id"], row("rc", "rio_claro"), row("ara", "araras"), row("unknown", "")] }, { values: [["codigo"], ["produto", "Descrição", "UN"]] }, { values: [["nome"], ["RC", "rio_claro"], ["ARA", "araras"]] }] } }),
+    batchUpdate: async value => calls.push(value), append: async value => calls.push(value)
+  }, batchUpdate: async value => calls.push(value) } };
+  const h = await harness({ actor: moduleActor(), extraMocks: {
+    googleapis: { google: { auth: { OAuth2: class { setCredentials() {} } }, sheets: () => sheets } },
+    "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} },
+    "@/lib/stock-notice-reads": { pendingStockIds: (_email, needs) => needs.map(v => v.id) }
+  } });
+  const route = await h.evaluate("app/api/estoque/route.ts");
+  const data = await (await route.GET()).json();
+  assert.deepEqual(data.necessidades.map(v => v.id), ["rc"]);
+  assert.deepEqual(data.unreadIds, ["rc"]);
+  const req = body => new Request("https://portal.test/api/estoque", { method: "POST", body: JSON.stringify(body) });
+  assert.equal((await route.POST(req({ action: "chegou", id: "ara", unidade: "rio_claro" }))).status, 403);
+  assert.equal((await route.POST(req({ action: "chegou", id: "unknown", unidade: "rio_claro" }))).status, 403);
+  assert.equal(calls.length, 0);
+  assert.equal((await route.POST(req({ action: "chegou", id: "rc" }))).status, 200);
+  assert.equal(calls.length, 1);
+  h.setActor(moduleActor("mrodini@gmail.com", { unit: "Geral" }));
+  for (const action of ["criar", "excluir"]) assert.equal((await route.POST(req({ action, id: "rc", unidade: "rio_claro" }))).status, 403);
+  assert.equal(calls.length, 1);
+  h.setActor(moduleActor(undefined, { unit: "Araras" }));
+  const existing = await route.POST(req({ action: "criar", codigo: "produto", unidade: "Araras", vendedor: "Vendedor" }));
+  assert.equal(existing.status, 200);
+  assert.equal((await existing.json()).id, "ara");
+});
+test("Agenda: GET limita calendários; Marcelo não cria/exclui e preserva edição da CT", async () => {
+  const calls = [];
+  const actor = moduleActor("mrodini@gmail.com", { unit: "Geral" });
+  const h = await harness({ actor, extraMocks: {
+    "@/lib/auth-guard": { requireAuthorizedSession: async () => ({ session: { portalUser: actor, accessToken: "token", user: { email: actor.email } }, errorResponse: null }) },
+    "@/lib/google-calendar": {
+      isCalendarKey: key => ["principal", "timoni"].includes(key),
+      listEventsInRange: async (_token, _range, keys) => { calls.push(["read", Array.from(keys)]); return []; },
+      createEvent: async () => { calls.push(["create"]); return {}; },
+      updateEvent: async () => { calls.push(["edit"]); return {}; },
+      deleteEvent: async () => calls.push(["delete"]),
+      toApiError: () => ({ message: "Falhou", status: 500 })
+    },
+    "@/lib/week": { getWeekRange: () => ({ start: new Date(), end: new Date() }) },
+    "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} }
+  } });
+  const route = await h.evaluate("app/api/events/route.ts");
+  assert.equal((await route.GET(new Request("https://portal.test/api/events"))).status, 200);
+  assert.deepEqual(calls, [["read", ["timoni"]]]);
+  const body = { summary: "Evento", start: "2026-11-02T09:00:00Z", end: "2026-11-02T10:00:00Z", calendarKey: "timoni" };
+  const req = new Request("https://portal.test/api/events", { method: "POST", body: JSON.stringify(body) });
+  assert.equal((await route.POST(req)).status, 403);
+  const item = await h.evaluate("app/api/events/[eventId]/route.ts");
+  const context = { params: Promise.resolve({ eventId: "evento" }) };
+  assert.equal((await item.DELETE(new Request("https://portal.test/api/events/evento?calendarKey=timoni"), context)).status, 403);
+  assert.equal((await item.PATCH(new Request("https://portal.test/api/events/evento?calendarKey=timoni", { method: "PATCH", body: JSON.stringify(body) }), context)).status, 200);
+  assert.deepEqual(calls.map(c => c[0]), ["read", "edit"]);
+});
+test("Leads: Marcelo não cria/importa/gera relatório; unidade forjada não grava", async () => {
+  const calls = [];
+  const methods = ["addLead", "addProspect", "createLeadsReport", "importLeads", "listLeadActivities", "listLeads", "listProspects", "moveLeadToProspects", "reactivateProspect", "updateLeadFollowUp"];
+  const h = await harness({ actor: moduleActor("mrodini@gmail.com", { unit: "Geral" }), extraMocks: {
+    "@/lib/leads": Object.fromEntries(methods.map(name => [name, async () => { calls.push(name); return []; }])),
+    "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} }
+  } });
+  const route = await h.evaluate("app/api/leads/route.ts");
+  const req = body => new Request("https://portal.test/api/leads", { method: "POST", body: JSON.stringify(body) });
+  for (const action of ["novo", "gerar_relatorio"]) assert.equal((await route.POST(req({ action, location: "rc" }))).status, 403);
+  assert.equal((await route.PUT(req({ rows: [], location: "rc" }))).status, 403);
+  h.setActor(moduleActor());
+  assert.equal((await route.POST(req({ action: "novo", location: "ara" }))).status, 403);
+  assert.equal((await route.PATCH(req({ row: 2, location: "ara" }))).status, 403);
+  assert.equal(calls.length, 0);
+});
+
+test("Compras: Marcelo não finaliza pedido; usuário local não move cartão de outro quadro/unidade", async () => {
+  const calls = [];
+  const board = { id: "board", lists: [{ id: "pending", name: "PEDIDOS PENDENTES" }, { id: "sent-rc", name: "PEDIDOS ENVIADO RIO CLARO" }], labels: [] };
+  let card = { id: "card", name: "Fornecedor", idBoard: "other", idList: "pending", labels: [{ name: "Rio Claro" }] };
+  const h = await harness({ actor: moduleActor("mrodini@gmail.com", { unit: "Geral" }), extraMocks: {
+    "@/lib/trello": {
+      normalizeTrelloText: value => String(value).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(),
+      TRELLO_BOARD_SHORT_LINK: "board",
+      trelloFetch: async (url, options = {}) => { calls.push([url, options.method || "GET"]); return url.startsWith("/boards/") ? board : card; }
+    },
+    "@/lib/purchase-orders": { upsertPurchaseOrder: async () => calls.push(["snapshot", "POST"]) },
+    "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} }
+  } });
+  const route = await h.evaluate("app/api/compras/finalizar/route.ts");
+  const req = () => {
+    const data = new FormData();
+    for (const [key, value] of Object.entries({ cardId: "card", finalTitle: "Fornecedor", unit: "rio_claro", empresa: "MCR", dataEnvio: "2026-11-02", dataEntrega: "2026-11-03", items: JSON.stringify([{ codigo: "1", descricao: "Produto", quantidade: "1" }]) })) data.set(key, value);
+    return new Request("https://portal.test/api/compras/finalizar", { method: "POST", body: data });
+  };
+  assert.equal((await route.POST(req())).status, 403);
+  assert.equal(calls.length, 0);
+  h.setActor(moduleActor());
+  assert.equal((await route.POST(req())).status, 403);
+  card = { ...card, idBoard: "board", labels: [{ name: "Araras" }] };
+  assert.equal((await route.POST(req())).status, 403);
+  assert.equal(calls.filter(c => c[1] !== "GET").length, 0);
+});
+
+test("Rotativo: padronização/restauração nega Marcelo antes de ler corpo ou acionar legado", async () => {
+  let writes = 0;
+  const h = await harness({ actor: moduleActor("mrodini@gmail.com", { unit: "Geral" }), extraMocks: { "./route-legacy": { POST: async () => { writes++; return Response.json({ ok: true }); } } } });
+  const route = await h.evaluate("app/api/estoque-rotativo/padronizacao/route.ts");
+  assert.equal((await route.POST(new Request("https://portal.test/api", { method: "POST", body: "inválido" }))).status, 403);
+  assert.equal(writes, 0);
+  h.setActor(cica);
+  assert.equal((await route.POST(new Request("https://portal.test/api", { method: "POST" }))).status, 200);
+  assert.equal(writes, 1);
 });
