@@ -7,7 +7,6 @@ export type PurchaseOrder = {
   activityAt?: string;
 };
 
-// Shared read model: no collaborator needs a personal Trello connection or Stock sheet.
 function database() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL não configurada.");
   return neon(process.env.DATABASE_URL);
@@ -39,6 +38,15 @@ export function normalizePurchaseOrders(orders: PurchaseOrder[]) {
   }
   return [...unique.values()];
 }
+function comparable(orders: PurchaseOrder[]) {
+  return JSON.stringify(normalizePurchaseOrders(orders).map((order) => ({
+    id: order.id,
+    nome: order.nome,
+    enviadoEm: order.enviadoEm,
+    previsaoEntrega: order.previsaoEntrega,
+    unidade: order.unidade,
+  })));
+}
 export async function readPurchaseOrdersSnapshot() {
   await ensureSchema();
   const rows = await database()`SELECT orders, synced_at FROM portal_purchase_orders_snapshot WHERE id = 1`;
@@ -46,16 +54,31 @@ export async function readPurchaseOrdersSnapshot() {
   return {
     orders: normalizePurchaseOrders(Object.values(rows[0].orders) as PurchaseOrder[]),
     fresh: Date.now() - new Date(rows[0].synced_at || 0).getTime() < 60000,
+    syncedAt: rows[0].synced_at ? new Date(rows[0].synced_at).toISOString() : null,
   };
 }
 export async function savePurchaseOrdersSnapshot(orders: PurchaseOrder[], startedAt: string) {
   await ensureSchema();
-  const data = JSON.stringify(Object.fromEntries(orders.map((order) => [order.id, order])));
-  // Never overwrite a purchase finalized while the Trello read was in flight.
-  await database()`INSERT INTO portal_purchase_orders_snapshot (id, orders, synced_at)
-    VALUES (1, ${data}::jsonb, NOW())
-    ON CONFLICT (id) DO UPDATE SET orders = EXCLUDED.orders, synced_at = NOW(), updated_at = NOW()
-    WHERE portal_purchase_orders_snapshot.updated_at <= ${startedAt}::timestamptz`;
+  const normalized = normalizePurchaseOrders(orders);
+  const rows = await database()`SELECT orders FROM portal_purchase_orders_snapshot WHERE id = 1`;
+  const current = rows.length ? normalizePurchaseOrders(Object.values(rows[0].orders) as PurchaseOrder[]) : [];
+  const changed = comparable(current) !== comparable(normalized);
+  const data = JSON.stringify(Object.fromEntries(normalized.map((order) => [order.id, order])));
+
+  if (!rows.length) {
+    await database()`INSERT INTO portal_purchase_orders_snapshot (id, orders, synced_at)
+      VALUES (1, ${data}::jsonb, NOW())`;
+    return { changed: true };
+  }
+
+  if (changed) {
+    await database()`UPDATE portal_purchase_orders_snapshot
+      SET orders = ${data}::jsonb, synced_at = NOW(), updated_at = NOW()
+      WHERE id = 1 AND updated_at <= ${startedAt}::timestamptz`;
+  } else {
+    await database()`UPDATE portal_purchase_orders_snapshot SET synced_at = NOW() WHERE id = 1`;
+  }
+  return { changed };
 }
 export async function upsertPurchaseOrder(order: PurchaseOrder) {
   await ensureSchema();
