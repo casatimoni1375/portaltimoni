@@ -5,6 +5,9 @@ on:
     paths:
       - 'timoni-portal/lib/authorization*.ts'
       - 'timoni-portal/lib/module-authorization.ts'
+      - 'timoni-portal/lib/trello*.ts'
+      - 'timoni-portal/lib/purchase-orders*.ts'
+      - 'timoni-portal/app/dashboard/compras/**'
       - 'timoni-portal/lib/reunioes.ts'
       - 'timoni-portal/app/api/**'
       - 'timoni-portal/app/dashboard/motorista/**'

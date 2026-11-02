@@ -1,3 +1,4 @@
+import { readSharedTrelloCredentials, saveSharedTrelloCredentials, deleteSharedTrelloCredentials } from "./trello-shared-credentials";
 import { auth } from "@/lib/auth";
 import { google } from "googleapis";
 import { cookies } from "next/headers";
@@ -95,7 +96,13 @@ async function deleteDriveTrelloCredentials(accessToken?: string) {
   }
 }
 
+export async function getSharedTrelloCredentials(): Promise<TrelloCredentials | null> {
+  return getServerTrelloCredentials() || await readSharedTrelloCredentials();
+}
+
 export async function getStoredTrelloCredentials(): Promise<TrelloCredentials | null> {
+  const shared = await getSharedTrelloCredentials();
+  if (shared) return shared;
   const cookieStore = await cookies();
   const key = cookieStore.get("timoni_trello_key")?.value?.trim();
   const token = cookieStore.get("timoni_trello_token")?.value?.trim();
@@ -105,9 +112,6 @@ export async function getStoredTrelloCredentials(): Promise<TrelloCredentials | 
     return { key, token };
   }
 
-  const serverCredentials = getServerTrelloCredentials();
-  if (serverCredentials) return serverCredentials;
-
   return getDriveTrelloCredentials();
 }
 
@@ -115,6 +119,9 @@ export async function persistTrelloCredentials(
   credentials: TrelloCredentials,
   accessToken?: string,
 ) {
+  const managed = getServerTrelloCredentials();
+  if (managed && (managed.key !== credentials.key || managed.token !== credentials.token)) throw new Error("A conexão é gerenciada no ambiente do servidor. Altere-a na Vercel.");
+  await saveSharedTrelloCredentials(credentials);
   const cookieStore = await cookies();
   const cookieOptions = {
     httpOnly: true,
@@ -126,10 +133,12 @@ export async function persistTrelloCredentials(
   cookieStore.set("timoni_trello_key", credentials.key, cookieOptions);
   cookieStore.set("timoni_trello_token", credentials.token, cookieOptions);
   const cloudSaved = await saveDriveTrelloCredentials(credentials, accessToken);
-  return { cloudSaved };
+  return { cloudSaved, sharedSaved: true };
 }
 
 export async function clearStoredTrelloCredentials(accessToken?: string) {
+  if (getServerTrelloCredentials()) throw new Error("A conexão é gerenciada no ambiente do servidor. Altere-a na Vercel.");
+  await deleteSharedTrelloCredentials();
   const cookieStore = await cookies();
   const clearOptions = {
     httpOnly: true,
@@ -151,18 +160,6 @@ function buildUrl(
   const url = new URL(`https://api.trello.com/1${path}`);
   url.searchParams.set("key", credentials.key);
   url.searchParams.set("token", credentials.token);
-  Object.entries(params || {}).forEach(([name, value]) => {
-    if (value !== undefined) url.searchParams.set(name, String(value));
-  });
-  return url;
-}
-
-function buildPublicReadUrl(
-  path: string,
-  params?: Record<string, string | number | boolean | undefined>,
-) {
-  const url = new URL(`https://api.trello.com/1${path}`);
-  url.searchParams.set("key", (process.env.TRELLO_API_KEY || TRELLO_API_KEY).trim());
   Object.entries(params || {}).forEach(([name, value]) => {
     if (value !== undefined) url.searchParams.set(name, String(value));
   });
@@ -196,43 +193,39 @@ export async function trelloFetch<T>(
     credentials?: TrelloCredentials;
   } = {},
 ): Promise<T> {
-  const credentials = options.credentials || (await getStoredTrelloCredentials());
-  const sharedPurchaseOrderRead = isPurchaseOrderSharedRead(path, options.method, options.params);
 
-  const response = await fetch(
-    credentials
-      ? buildUrl(path, credentials, options.params)
-      : sharedPurchaseOrderRead
-        ? buildPublicReadUrl(path, options.params)
-        : (() => {
-            throw new Error("Trello ainda não configurado no Portal.");
-          })(),
-    {
-      method: options.method || "GET",
-      body: options.body,
-      cache: "no-store",
-    },
-  );
-
-  const text = await response.text();
-  let payload: unknown = null;
-  try {
-    payload = text ? JSON.parse(text) : null;
-  } catch {
-    payload = text;
+  const sharedRead = isPurchaseOrderSharedRead(path, options.method, options.params);
+  const credentials = options.credentials || (sharedRead ? await getSharedTrelloCredentials() : await getStoredTrelloCredentials());
+  if (!credentials) throw new Error("A administração precisa configurar a conexão compartilhada do Trello.");
+  const method = options.method || "GET";
+  const attempts = method === "GET" ? 2 : 1;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(buildUrl(path, credentials, options.params), {
+        method, body: options.body, cache: "no-store", signal: AbortSignal.timeout(10000),
+      });
+    } catch {
+      if (attempt + 1 < attempts) continue;
+      throw new Error("Conexão com o Trello temporariamente indisponível. Tente novamente.");
+    }
+    if (attempt + 1 < attempts && (response.status === 429 || response.status >= 500)) {
+      await response.body?.cancel();
+      const delay = Math.min(2000, Math.max(250, Number(response.headers.get("retry-after") || 0) * 1000));
+      await new Promise(resolve => setTimeout(resolve, delay));
+      continue;
+    }
+    if (!response.ok) {
+      await response.body?.cancel();
+      if (response.status === 401 || response.status === 403) throw new Error("A conexão Trello expirou ou perdeu permissão. A administração precisa reconectar.");
+      if (response.status === 429) throw new Error("O Trello está limitando as consultas. A última atualização permanece disponível.");
+      throw new Error("Trello respondeu HTTP " + response.status + ".");
+    }
+    try { return await response.json() as T; }
+    catch { throw new Error("O Trello retornou uma resposta inválida."); }
   }
+  throw new Error("Não foi possível consultar o Trello.");
 
-  if (!response.ok) {
-    const message =
-      typeof payload === "string"
-        ? payload
-        : (payload as { message?: string; error?: string } | null)?.message ||
-          (payload as { message?: string; error?: string } | null)?.error ||
-          `Trello respondeu HTTP ${response.status}.`;
-    throw new Error(message);
-  }
-
-  return payload as T;
 }
 
 export async function validateTrelloCredentials(credentials: TrelloCredentials) {

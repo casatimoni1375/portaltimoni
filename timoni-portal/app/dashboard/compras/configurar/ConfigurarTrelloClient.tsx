@@ -13,6 +13,7 @@ const TRELLO_AUTHORIZE_URL =
 export default function ConfigurarTrelloClient() {
   const [token, setToken] = useState("");
   const [configured, setConfigured] = useState(false);
+  const [legacyAvailable, setLegacyAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -23,6 +24,7 @@ export default function ConfigurarTrelloClient() {
         const payload = await response.json();
         if (!response.ok) throw new Error(payload?.error || "Falha ao verificar o Trello.");
         setConfigured(Boolean(payload.configured));
+        setLegacyAvailable(Boolean(payload.legacyAvailable));
       })
       .catch((caught) =>
         setError(caught instanceof Error ? caught.message : "Falha ao verificar o Trello."),
@@ -30,11 +32,11 @@ export default function ConfigurarTrelloClient() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function save() {
+  async function save(useExisting = false) {
     setError("");
     setMessage("");
     const value = token.replace(/\s/g, "");
-    if (!value) {
+    if (!value && !useExisting) {
       setError("Cole o código de autorização gerado pelo Trello.");
       return;
     }
@@ -44,12 +46,12 @@ export default function ConfigurarTrelloClient() {
       const response = await fetch("/api/compras/trello-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: value }),
+        body: JSON.stringify({ token: value, useExisting }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || "A chave não foi aceita.");
       setConfigured(true);
-      setMessage(`Trello conectado ao quadro ${payload.boardName || "Compras"}.`);
+      setMessage(`Conexão compartilhada ativa no quadro ${payload.boardName || "Compras"}.`);
       setToken("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Falha ao conectar o Trello.");
@@ -58,21 +60,11 @@ export default function ConfigurarTrelloClient() {
     }
   }
 
-  async function reconfigure() {
+  function reconfigure() {
     setError("");
     setMessage("");
-    setLoading(true);
-    try {
-      const response = await fetch("/api/compras/trello-config", { method: "DELETE" });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || "Não foi possível liberar a reconfiguração.");
-      setConfigured(false);
-      setToken("");
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Falha ao liberar a reconfiguração.");
-    } finally {
-      setLoading(false);
-    }
+    setConfigured(false);
+    setToken("");
   }
 
   return (
@@ -83,7 +75,7 @@ export default function ConfigurarTrelloClient() {
           Trello — Módulo Compras
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          O Portal já possui a API Key pública. Você só precisa gerar a autorização do Trello, copiar o código exibido e colar abaixo.
+          A Ciça conecta uma única vez para todos os usuários autorizados. Trocar a chave mantém a conexão atual até a nova ser validada.
         </p>
 
         {configured ? (
@@ -110,6 +102,7 @@ export default function ConfigurarTrelloClient() {
           </div>
         ) : (
           <div className="mt-5 space-y-5">
+            {legacyAvailable && <button type="button" disabled={loading} onClick={() => void save(true)} className="min-h-12 rounded-xl bg-blue-800 px-5 text-sm font-semibold text-white disabled:opacity-50">Usar conexão atual para todos</button>}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <p className="text-sm font-semibold text-slate-950">Gerar a chave do Trello</p>
               <ol className="mt-2 space-y-2 text-sm leading-6 text-slate-600">
@@ -164,7 +157,7 @@ export default function ConfigurarTrelloClient() {
             <button
               type="button"
               disabled={loading || !token.trim()}
-              onClick={save}
+              onClick={() => void save()}
               className="min-h-12 rounded-xl bg-blue-800 px-6 text-sm font-semibold text-white disabled:opacity-50"
             >
               {loading ? "Validando..." : "Salvar e conectar"}

@@ -39,6 +39,8 @@ export async function readSentPurchaseOrders(): Promise<PurchaseOrder[]> {
   const rioClaro = lists.find((list) => hasAllTokens(list.name, ["pedidos", "enviado", "rio", "claro"]));
   const araras = lists.find((list) => hasAllTokens(list.name, ["pedidos", "enviado", "araras"]));
 
+  if (!rioClaro || !araras) throw new Error("As listas de pedidos enviados não foram encontradas. A última atualização foi preservada.");
+
   const [rioClaroCards, ararasCards] = await Promise.all([
     rioClaro ? readListCards(rioClaro.id) : Promise.resolve([]),
     araras ? readListCards(araras.id) : Promise.resolve([]),

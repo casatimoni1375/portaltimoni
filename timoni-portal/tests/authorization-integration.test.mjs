@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import vm from "node:vm";
+import * as crypto from "node:crypto";
 
 const root = new URL("../", import.meta.url);
 const person = (email, patch = {}) => ({ email, name: "Pessoa", accessLabel: "Acesso", unit: "Geral", modules: ["painel", "estoque"], boxes: ["painel"], mobileModules: [], requiresPassword: false, readOnly: false, active: true, directPainel: false, lastAccess: "", noticeRequired: false, ...patch });
@@ -10,12 +11,12 @@ const cica = person("mcrodini@gmail.com");
 const marcelo = person("mrodini@gmail.com");
 const member = { id: "m1", name: "Pessoa", unit: "Rio Claro", accessEmail: "vendas@example.test", active: true, noticeRequired: true, chatEnabled: true, role: "Vendas", updatedAt: "2026-01-01" };
 
-async function harness({ actor = marcelo, realConfig = false, realAuth = false, registryFetch, extraMocks = {} } = {}) {
+async function harness({ actor = marcelo, realConfig = false, realAuth = false, registryFetch, extraMocks = {}, env = {} } = {}) {
   const writes = [];
   const configuration = { users: [cica, marcelo, person("vendas@example.test")], collaborators: [{ ...member }], history: [] };
   let currentActor = actor;
   let authOptions;
-  const context = vm.createContext({ Response, Request, URL, URLSearchParams, AbortController, Headers, FormData, File, Uint8Array, Date, JSON, console, process: { env: {} }, setTimeout, clearTimeout, fetch: registryFetch ?? (() => { throw Error("Rede não permitida nos testes"); }) });
+  const context = vm.createContext({ Response, Request, URL, URLSearchParams, AbortController, AbortSignal, Buffer, Headers, FormData, File, Uint8Array, Date, JSON, console, process: { env }, setTimeout, clearTimeout, fetch: registryFetch ?? (() => { throw Error("Rede não permitida nos testes"); }) });
   const cache = new Map();
   function synthetic(id, exports) {
     return new vm.SyntheticModule(Object.keys(exports), function () { for (const [key, value] of Object.entries(exports)) this.setExport(key, value); }, { context, identifier: id });
@@ -397,4 +398,115 @@ test("Rotativo: padronização/restauração nega Marcelo antes de ler corpo ou 
   h.setActor(cica);
   assert.equal((await route.POST(new Request("https://portal.test/api", { method: "POST" }))).status, 200);
   assert.equal(writes, 1);
+});
+
+function trelloMocks(shared = null, cookieReads = []) {
+  return {
+    "./trello-shared-credentials": { readSharedTrelloCredentials: async () => shared, saveSharedTrelloCredentials: async () => {}, deleteSharedTrelloCredentials: async () => {} },
+    "next/headers": { cookies: async () => ({ get: name => { cookieReads.push(name); return { value: name.includes("token") ? "personal-token" : "personal-key" }; } }) },
+    googleapis: { google: {} }
+  };
+}
+test("Trello: conexão central tem prioridade e Pedidos não usa cookie pessoal", async () => {
+  const reads = [], calls = [];
+  const h = await harness({ extraMocks: trelloMocks({ key: "central-key", token: "central-token" }, reads), registryFetch: async url => { calls.push(new URL(url)); return Response.json({ ok: true }); } });
+  const lib = await h.evaluate("lib/trello.ts");
+  const credentials = await lib.getStoredTrelloCredentials();
+  assert.equal(credentials.token, "central-token");
+  await lib.trelloFetch("/boards/UfPrTr1H", { params: { fields: "name", lists: "open", list_fields: "name,closed" } });
+  assert.equal(calls[0].searchParams.get("token"), "central-token");
+  assert.equal(reads.length, 0);
+});
+test("Trello: Pedidos sem conexão central não tenta consulta pública nem credencial individual", async () => {
+  const reads = [], calls = [];
+  const h = await harness({ extraMocks: trelloMocks(null, reads), registryFetch: async () => { calls.push(1); return Response.json({}); } });
+  const lib = await h.evaluate("lib/trello.ts");
+  await assert.rejects(lib.trelloFetch("/boards/UfPrTr1H", { params: { fields: "name", lists: "open", list_fields: "name,closed" } }), /compartilhada/);
+  assert.equal(calls.length, 0);
+  assert.equal(reads.length, 0);
+});
+test("Trello: falha transitória repete somente GET, nunca POST; 401 não repete nem expõe token", async () => {
+  let attempts = 0, mode = "transient";
+  const h = await harness({ extraMocks: trelloMocks({ key: "key", token: "secret-token" }), registryFetch: async () => {
+    attempts++;
+    if (mode === "auth") return new Response("secret-token", { status: 401 });
+    if (mode === "write" || attempts === 1) throw Error("falha de rede com secret-token");
+    return Response.json({ ok: true });
+  } });
+  const lib = await h.evaluate("lib/trello.ts");
+  assert.equal((await lib.trelloFetch("/boards/UfPrTr1H")).ok, true);
+  assert.equal(attempts, 2);
+  attempts = 0; mode = "write";
+  await assert.rejects(lib.trelloFetch("/cards", { method: "POST" }), error => !error.message.includes("secret-token"));
+  assert.equal(attempts, 1);
+  attempts = 0; mode = "auth";
+  await assert.rejects(lib.trelloFetch("/boards/UfPrTr1H"), error => /reconectar/.test(error.message) && !error.message.includes("secret-token"));
+  assert.equal(attempts, 1);
+});
+test("Trello: segredo é criptografado, autenticado, com nonce aleatório; leitura não cria tabela", async () => {
+  let stored = null; const writes = [];
+  const env = { DATABASE_URL: "mock-database", NEXTAUTH_SECRET: "mock-server-key" };
+  const h = await harness({ env, extraMocks: {
+    "node:crypto": crypto,
+    "@neondatabase/serverless": { neon: () => async (strings, ...values) => {
+      const query = strings.join("?");
+      if (query.includes("SELECT")) return stored ? [{ encrypted_credentials: stored }] : [];
+      writes.push(query);
+      if (query.includes("INSERT")) stored = values[0];
+      if (query.includes("DELETE")) stored = null;
+      return [];
+    } }
+  } });
+  const lib = await h.evaluate("lib/trello-shared-credentials.ts");
+  assert.equal(await lib.readSharedTrelloCredentials(), null);
+  assert.equal(writes.length, 0);
+  await lib.saveSharedTrelloCredentials({ key: "key", token: "private-token" });
+  const first = stored;
+  assert.equal(stored.includes("private-token"), false);
+  assert.equal((await lib.readSharedTrelloCredentials()).token, "private-token");
+  await lib.saveSharedTrelloCredentials({ key: "key", token: "private-token" });
+  assert.notEqual(first, stored);
+  env.NEXTAUTH_SECRET = "different-key";
+  await assert.rejects(lib.readSharedTrelloCredentials(), /reconectar/);
+  env.NEXTAUTH_SECRET = "mock-server-key";
+  await lib.deleteSharedTrelloCredentials();
+  assert.equal(await lib.readSharedTrelloCredentials(), null);
+});
+test("Trello: somente Ciça salva conexão compartilhada; pode migrar a própria conexão existente", async () => {
+  let saved = 0;
+  const h = await harness({ extraMocks: { "@/lib/trello": {
+    clearStoredTrelloCredentials: async () => { saved++; },
+    getSharedTrelloCredentials: async () => null,
+    getStoredTrelloCredentials: async () => ({ key: "key", token: "private-token" }),
+    persistTrelloCredentials: async value => { assert.equal(value.token, "private-token"); saved++; return { sharedSaved: true }; },
+    TRELLO_API_KEY: "key",
+    validateTrelloCredentials: async () => ({ id: "board", name: "Compras" })
+  } } });
+  const route = await h.evaluate("app/api/compras/trello-config/route.ts");
+  const request = () => new Request("https://portal.test/api/compras/trello-config", { method: "POST", body: JSON.stringify({ useExisting: true }) });
+  assert.equal((await route.POST(request())).status, 403);
+  assert.equal(saved, 0);
+  h.setActor(cica);
+  const result = await route.POST(request());
+  assert.equal(result.status, 200);
+  assert.equal(saved, 1);
+  assert.equal(JSON.stringify(await result.json()).includes("private-token"), false);
+});
+
+test("Pedidos: lista ausente não transforma falha de configuração em snapshot vazio", async () => {
+  const h = await harness({ extraMocks: {
+    "@/lib/trello": { normalizeTrelloText: value => value.toLowerCase(), TRELLO_BOARD_SHORT_LINK: "board", trelloFetch: async () => ({ lists: [{ id: "rc", name: "PEDIDOS ENVIADO RIO CLARO" }] }) },
+    "@/lib/purchase-orders": { normalizePurchaseOrders: value => value }
+  } });
+  const lib = await h.evaluate("lib/purchase-orders-sync.ts");
+  await assert.rejects(lib.readSentPurchaseOrders(), /preservada/);
+});
+test("Trello: falta de chave do servidor impede gravação de credencial em texto aberto", async () => {
+  let writes = 0;
+  const h = await harness({ env: { DATABASE_URL: "mock" }, extraMocks: {
+    "node:crypto": crypto, "@neondatabase/serverless": { neon: () => async () => { writes++; return []; } }
+  } });
+  const lib = await h.evaluate("lib/trello-shared-credentials.ts");
+  await assert.rejects(lib.saveSharedTrelloCredentials({ key: "key", token: "token" }), /Segredo/);
+  assert.equal(writes, 0);
 });
