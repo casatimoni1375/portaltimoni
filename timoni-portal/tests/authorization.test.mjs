@@ -107,13 +107,13 @@ test("edição cadastral não cria usuários nem altera campos de segurança", (
 const moduleSource = stripTypeScriptTypes(await readFile(new URL("../lib/module-authorization.ts", import.meta.url), "utf8")).replace('"./authorization"', JSON.stringify(policyUrl));
 const modulePolicy = await import("data:text/javascript;base64," + Buffer.from(moduleSource).toString("base64"));
 test("1B: módulo oficial é obrigatório inclusive Motorista e Pedidos", () => {
-  for (const module of ["motorista", "pedido-de-compra", "reunioes"]) assert.equal(can(user("vendas@example.test", { modules: [] }), module, "visualizar"), false);
+  for (const resource of ["motorista", "pedido-de-compra", "reunioes"]) assert.equal(can(user("vendas@example.test", { modules: [] }), resource, "visualizar"), false);
 });
 test("1B: módulos preservam edição de Marcelo e bloqueiam criação/exclusão/administração", () => {
   const actor = { ...marcelo, modules: ["motorista", "estoque", "leads", "compras", "reunioes", "agenda-ct"] };
-  for (const module of actor.modules) {
-    assert.equal(modulePolicy.canModuleOperation(actor, module, "editar"), true, module);
-    for (const action of ["criar", "excluir", "administrar"]) assert.equal(modulePolicy.canModuleOperation(actor, module, action), false, module + ":" + action);
+  for (const resource of actor.modules) {
+    assert.equal(modulePolicy.canModuleOperation(actor, resource, "editar"), true, resource);
+    for (const action of ["criar", "excluir", "administrar"]) assert.equal(modulePolicy.canModuleOperation(actor, resource, action), false, resource + ":" + action);
   }
 });
 test("1B: unidade desconhecida falha para contas locais e nenhuma ação amplia módulos", () => {
