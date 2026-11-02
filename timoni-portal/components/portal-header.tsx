@@ -7,6 +7,7 @@ import ChatButton from "@/components/chat-button";
 import PortalNotifications from "@/components/portal-notifications";
 import type { UpdateModule } from "@/lib/module-updates";
 import type { PortalIconName } from "@/components/portal-icon";
+import { can } from "@/lib/authorization";
 import { getEffectivePortalUser } from "@/lib/portal-config";
 
 const navItems: Array<{ href: string; label: string; module: PortalModule; updateModule?: UpdateModule; icon: PortalIconName; color: string; external?: boolean }> = [
@@ -23,10 +24,10 @@ const navItems: Array<{ href: string; label: string; module: PortalModule; updat
   { href: "/espaco-equipe", label: "Equipe", module: "painel", updateModule: "espaco-equipe", icon: "team", color: "text-indigo-800" },
 ];
 
-export default async function PortalHeader({ email, portalUser }: { email: string; portalUser?: PortalUser | null }) {
+export default async function PortalHeader({ email }: { email: string; portalUser?: PortalUser | null }) {
   const session = await auth();
-  const effectivePortalUser = await getEffectivePortalUser(session?.accessToken, email) ?? portalUser ?? null;
-  const isManagement = ["mcrodini@gmail.com", "mrodini@gmail.com"].includes(email.trim().toLowerCase());
+  const effectivePortalUser = await getEffectivePortalUser(session?.accessToken, email);
+  const isManagement = can(effectivePortalUser, "configuracoes", "visualizar");
   const canViewUpdates = isManagement;
   const canUseChat = hasModuleAccess(email, "chat", effectivePortalUser);
   const mobileVisible = (module: PortalModule) => module === "motorista" || module === "pedido-de-compra" || effectivePortalUser?.mobileModules === undefined || effectivePortalUser.mobileModules.includes(module);

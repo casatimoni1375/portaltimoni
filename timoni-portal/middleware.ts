@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasModuleAccess, type PortalModule } from "@/lib/access-control";
+import { getPortalUser, hasModuleAccess, type PortalModule } from "@/lib/access-control";
+
+import { can } from "@/lib/authorization";
 
 const protectedRoutes: Array<{ prefix: string; module: PortalModule }> = [
   { prefix: "/agenda-ct", module: "agenda-ct" },
@@ -44,11 +46,11 @@ export default auth((request) => {
     return NextResponse.next();
   }
 
-  if (!request.auth?.user?.email) {
+  if (!getPortalUser(request.auth?.user?.email, configuredUser)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (pathname.startsWith("/configuracoes") && !["mcrodini@gmail.com", "mrodini@gmail.com"].includes(request.auth.user.email.trim().toLowerCase())) {
+  if (pathname.startsWith("/configuracoes") && !can(configuredUser, "configuracoes", "visualizar")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -56,7 +58,7 @@ export default auth((request) => {
   // The JWT may still contain the permissions from before the last edit.
   const protectedRoute = protectedRoutes.find(({ prefix }) => pathname.startsWith(prefix));
 
-  if (protectedRoute && !hasModuleAccess(request.auth.user.email, protectedRoute.module, configuredUser)) {
+  if (protectedRoute && !hasModuleAccess(request.auth?.user?.email, protectedRoute.module, configuredUser)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

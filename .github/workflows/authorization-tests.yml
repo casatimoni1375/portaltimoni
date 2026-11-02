@@ -1,0 +1,37 @@
+name: Testar base central de autorização
+
+on:
+  pull_request:
+    paths:
+      - 'timoni-portal/lib/authorization*.ts'
+      - 'timoni-portal/lib/access-control.ts'
+      - 'timoni-portal/lib/auth.ts'
+      - 'timoni-portal/lib/portal-config.ts'
+      - 'timoni-portal/middleware.ts'
+      - 'timoni-portal/app/api/configuracoes/**'
+      - 'timoni-portal/app/configuracoes/**'
+      - 'timoni-portal/components/portal-header.tsx'
+      - 'timoni-portal/app/api/public/agenda-resumo/route.ts'
+      - 'timoni-portal/tests/**'
+      - 'timoni-portal/package*.json'
+      - '.github/workflows/authorization-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  authorization:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: timoni-portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: timoni-portal/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npx tsc --noEmit --incremental false

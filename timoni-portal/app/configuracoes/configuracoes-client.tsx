@@ -62,7 +62,7 @@ function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
-export default function ConfiguracoesClient() {
+export default function ConfiguracoesClient({ canAdministerPermissions = false }: { canAdministerPermissions?: boolean }) {
   const [data, setData] = useState<ConfigurationResponse>({ users: [], collaborators: [] });
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState("");
@@ -225,7 +225,16 @@ export default function ConfiguracoesClient() {
     try {
       let access = member.accessEmail ? usersByEmail.get(member.accessEmail) : undefined;
 
-      if (member.accessEmail) {
+      if (!canAdministerPermissions && member.accessEmail) {
+        const sameModules = (a: PortalModule[], b: PortalModule[]) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+        if (!access || !sameModules(access.modules, draft.modules)
+          || !sameModules(access.mobileModules ?? access.modules, draft.mobileModules)
+          || Boolean(access.noticeRequired) !== draft.noticeRequired) {
+          throw new Error("Seu acesso não permite criar acessos ou alterar permissões. Apenas dados cadastrais existentes podem ser editados.");
+        }
+      }
+
+      if (member.accessEmail && canAdministerPermissions) {
         const boxes = draft.modules.filter((module) => DASHBOARD_MODULES.has(module));
         if (access) {
           access = await putUser({

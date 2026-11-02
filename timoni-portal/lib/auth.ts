@@ -4,9 +4,9 @@ import Google from "next-auth/providers/google";
 import type { PortalUser } from "@/lib/access-control";
 import { getEffectivePortalUser, recordPortalAccess } from "@/lib/portal-config";
 import { getPortalConfigurationRevisionSafely } from "@/lib/portal-config-revision";
+import { resolveConfiguredUser } from "@/lib/authorization";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
-const PORTAL_CONFIG_REFRESH_MS = 15_000;
 export const AUTH_SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.GOOGLE_CLIENT_SECRET;
 
 declare module "next-auth" {
@@ -107,7 +107,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account) {
         const portalConfigRevision = await getPortalConfigurationRevisionSafely();
         const configured = await getEffectivePortalUser(account.access_token, token.email);
-        if (account.access_token && token.email) await recordPortalAccess(account.access_token, token.email);
+        if (configured && account.access_token && token.email) await recordPortalAccess(account.access_token, token.email);
         return {
           ...token,
           accessToken: account.access_token,
@@ -125,28 +125,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         current = await refreshAccessToken(token);
       }
 
-      if (current.accessToken) {
-        const currentRevision = await getPortalConfigurationRevisionSafely();
-        const changed = currentRevision !== null && currentRevision !== current.portalConfigRevision;
-        const refreshDue = !current.portalConfigAt || Date.now() - current.portalConfigAt > PORTAL_CONFIG_REFRESH_MS;
-
-        if (changed || refreshDue) {
-          const portalUser = await getEffectivePortalUser(current.accessToken, current.email);
-          current = {
-            ...current,
-            portalUser,
-            portalConfigAt: Date.now(),
-            portalConfigRevision: currentRevision ?? current.portalConfigRevision,
-          };
-        }
-      }
+      // Never keep an old permission snapshot after a missing/failed official lookup.
+      const portalUser = await getEffectivePortalUser(current.accessToken, current.email);
+      const revision = await getPortalConfigurationRevisionSafely();
+      current = { ...current, portalUser, portalConfigAt: Date.now(), portalConfigRevision: revision ?? current.portalConfigRevision };
 
       return current;
     },
     async session({ session, token }) {
+      const portalUser = resolveConfiguredUser(token.email, token.portalUser);
+      if (!portalUser) {
+        // Legacy endpoints that only check session.user.email must also reject a revoked account.
+        return { ...session, user: undefined, accessToken: undefined, portalUser: null };
+      }
       session.accessToken = token.accessToken;
       session.error = token.error;
-      session.portalUser = token.portalUser;
+      session.portalUser = portalUser;
       session.portalConfigRevision = token.portalConfigRevision;
       return session;
     },
