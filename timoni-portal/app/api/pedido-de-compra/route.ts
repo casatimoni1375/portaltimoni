@@ -19,16 +19,21 @@ type PurchaseException = {
 function getExceptions(orders: PurchaseOrder[]): PurchaseException[] {
   const today = new Date();
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-  return orders.flatMap((order) => {
+  const exceptions: PurchaseException[] = [];
+
+  for (const order of orders) {
     if (!order.previsaoEntrega) {
-      return [{ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "sem_previsao" as const, previsaoEntrega: "" }];
+      exceptions.push({ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "sem_previsao", previsaoEntrega: "" });
+      continue;
     }
+
     const due = Date.parse(order.previsaoEntrega);
     if (Number.isFinite(due) && due < startOfToday) {
-      return [{ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "atrasado" as const, previsaoEntrega: order.previsaoEntrega }];
+      exceptions.push({ id: order.id, nome: order.nome, unidade: order.unidade, tipo: "atrasado", previsaoEntrega: order.previsaoEntrega });
     }
-    return [];
-  });
+  }
+
+  return exceptions;
 }
 
 export async function GET(request: Request) {
