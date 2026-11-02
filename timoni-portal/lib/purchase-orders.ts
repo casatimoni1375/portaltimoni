@@ -39,7 +39,13 @@ export function normalizePurchaseOrders(orders: PurchaseOrder[]) {
   return [...unique.values()];
 }
 function comparable(orders: PurchaseOrder[]) {
-  return JSON.stringify(normalizePurchaseOrders(orders).map(({ activityAt: _activityAt, ...order }) => order));
+  return JSON.stringify(normalizePurchaseOrders(orders).map((order) => ({
+    id: order.id,
+    nome: order.nome,
+    enviadoEm: order.enviadoEm,
+    previsaoEntrega: order.previsaoEntrega,
+    unidade: order.unidade,
+  })));
 }
 export async function readPurchaseOrdersSnapshot() {
   await ensureSchema();
