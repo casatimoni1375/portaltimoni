@@ -79,7 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             "https://www.googleapis.com/auth/drive.appdata",
           ].join(" "),
           access_type: "offline",
-          prompt: "consent",
+          // O Google pede consentimento quando necessário, sem forçar a repetição em cada login.
           include_granted_scopes: "true",
         },
       },

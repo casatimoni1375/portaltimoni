@@ -83,6 +83,16 @@ async function authHarness(fetcher = async () => success()) {
   });
   return { options, mod, setState: next => { state = next; } };
 }
+test('Google usa autorização automática sem forçar consentimento em cada entrada', async () => {
+  const h = await authHarness();
+  const params = h.options.providers[0].authorization.params;
+  assert.equal(params.prompt, undefined);
+  assert.equal(params.access_type, 'offline');
+  assert.equal(params.include_granted_scopes, 'true');
+  assert.ok(params.scope.includes('openid'));
+  assert.ok(params.scope.includes('https://www.googleapis.com/auth/spreadsheets'));
+});
+
 test('sessão mantém 365 dias e saída original; falha de cadastro bloqueia sem descartar identidade JWT', async () => {
   const h = await authHarness();
   assert.equal(h.options.session.maxAge, 365*24*60*60); assert.equal(h.mod.signOut, 'saida-original');

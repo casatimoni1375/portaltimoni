@@ -48,6 +48,7 @@ export default function ModuleUpdatesNav({
         ) : (
           <Link
             href={item.targetHref}
+            aria-current={pathname === item.targetHref || pathname.startsWith(`${item.targetHref}/`) ? "page" : undefined}
             target={item.external ? "_blank" : undefined}
             rel={item.external ? "noopener noreferrer" : undefined}
             onClick={() => pending && void markRead(pending.module, true)}
