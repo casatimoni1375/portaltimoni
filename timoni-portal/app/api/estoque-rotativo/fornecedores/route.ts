@@ -1,3 +1,4 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
 import { getStoredTrelloCredentials, trelloFetch } from "@/lib/trello";
@@ -14,6 +15,8 @@ const headers = { "Cache-Control": "no-store, max-age=0" };
 type TrelloCard = { id: string; name: string; url?: string; closed?: boolean; dueComplete?: boolean; isTemplate?: boolean };
 
 export async function GET() {
+  const gate = await requireModuleAuthorization("estoque-rotativo", "visualizar");
+  if (!gate.current) return gate.errorResponse;
   const session = await auth();
   if (!session?.user?.email) return NextResponse.json({ error: "Sessão expirada." }, { status: 401, headers });
   if (!hasModuleAccess(session.user.email, "estoque-rotativo", session.portalUser)) return NextResponse.json({ error: "Acesso não autorizado ao Rotativo." }, { status: 403, headers });

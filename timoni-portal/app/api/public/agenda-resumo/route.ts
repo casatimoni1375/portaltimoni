@@ -26,7 +26,7 @@ export async function GET() {
   if (!email) {
     return respond({ ok: false, erro: "Sessão expirada. Entre novamente no Portal." }, 401);
   }
-  if (!hasModuleAccess(email, "painel")) {
+  if (!hasModuleAccess(email, "painel", session.portalUser)) {
     return respond({ ok: false, erro: "Acesso não autorizado ao Painel Timoni." }, 403);
   }
   if (!session.accessToken || session.error === "RefreshAccessTokenError") {

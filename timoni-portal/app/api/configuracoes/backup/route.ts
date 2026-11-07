@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { auth } from "@/lib/auth";
+import { requireAuthorization } from "@/lib/authorization-server";
 import { normalizeEmail, type PortalUser } from "@/lib/access-control";
 import { listComunicados, replaceComunicados, type Comunicado } from "@/lib/comunicados";
 import { listAvisoLeituras, replaceAvisoLeituras, type AvisoLeitura } from "@/lib/aviso-leituras";
@@ -17,7 +17,6 @@ import { bumpPortalConfigurationRevisionSafely } from "@/lib/portal-config-revis
 
 export const runtime = "nodejs";
 const SCHEMA_VERSION = 1;
-const MANAGEMENT_EMAILS = new Set([CICA_EMAIL, "mrodini@gmail.com"]);
 
 type PortalBackup = {
   schemaVersion: number;
@@ -29,13 +28,6 @@ type PortalBackup = {
   noticeReads: AvisoLeitura[];
   teamMessages: TeamMessage[];
 };
-
-async function adminContext() {
-  const session = await auth();
-  const email = normalizeEmail(session?.user?.email);
-  if (!MANAGEMENT_EMAILS.has(email) || !session?.accessToken) return null;
-  return { email, accessToken: session.accessToken };
-}
 
 async function createBackup(accessToken: string): Promise<PortalBackup> {
   const [configuration, notices, noticeReads, teamMessages] = await Promise.all([
@@ -66,8 +58,8 @@ function validateBackup(value: unknown): asserts value is PortalBackup {
 }
 
 export async function GET() {
-  const current = await adminContext();
-  if (!current) return Response.json({ error: "Acesso exclusivo da gestão." }, { status: 403 });
+  const { current, errorResponse } = await requireAuthorization("configuracoes", "visualizar");
+  if (!current) return errorResponse;
   try {
     const backup = await createBackup(current.accessToken);
     const zip = new JSZip();
@@ -89,8 +81,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const current = await adminContext();
-  if (!current) return Response.json({ error: "Acesso exclusivo da gestão." }, { status: 403 });
+  const { current, errorResponse } = await requireAuthorization("sistema", "administrar", { operation: "restaurar-backup" });
+  if (!current) return errorResponse;
   try {
     const formData = await request.formData();
     const file = formData.get("backup");

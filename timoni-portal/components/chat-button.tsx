@@ -1,9 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const InternalChatPanel = dynamic(() => import("@/components/internal-chat-panel"), { ssr: false });
+
+
 
 function InternalChatMark({ className = "h-6 w-6" }: { className?: string }) {
   return (
@@ -19,29 +19,11 @@ function InternalChatMark({ className = "h-6 w-6" }: { className?: string }) {
 }
 
 export default function ChatButton({ mobile = false, mobileHeader = false, onOpen }: { mobile?: boolean; mobileHeader?: boolean; onOpen?: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [unread, setUnread] = useState(0);
-
-  const badge = unread > 0 ? <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[.65rem] font-bold text-white ring-2 ring-white">{unread > 99 ? "99+" : unread}</span> : null;
-  const openChat = () => { onOpen?.(); setOpen(true); };
-
-  return (
-    <>
-      {mobileHeader ? (
-        <button type="button" onClick={openChat} className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition active:bg-white/10" aria-label={unread ? `Chat: ${unread} mensagens não lidas` : "Abrir chat interno"} title="Chat">
-          <InternalChatMark className="h-8 w-8" />{badge}
-        </button>
-      ) : mobile ? (
-        <button type="button" onClick={openChat} className="relative mt-1 flex min-h-9 w-full items-center border-t border-slate-200 px-2.5 pt-1 text-left text-sm font-normal text-slate-800">
-          <span className="flex-1">Chat</span>
-          {unread > 0 ? <span className="ml-2 min-w-5 rounded-full bg-red-500 px-1.5 text-center text-[11px] font-bold leading-5 text-white">{unread > 99 ? "99+" : unread}</span> : null}
-        </button>
-      ) : (
-        <button type="button" onClick={openChat} className="relative order-2 inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-1.5 transition hover:bg-white/10 sm:order-none" aria-label={unread ? `Chat: ${unread} mensagens não lidas` : "Abrir chat interno"} title="Chat">
-          <InternalChatMark className="h-9 w-9" />{badge}
-        </button>
-      )}
-      {open ? <InternalChatPanel open onClose={() => setOpen(false)} onUnreadChange={setUnread} /> : null}
-    </>
-  );
+  const router = useRouter();
+  const className = mobileHeader ? "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition active:bg-white/10"
+    : mobile ? "mt-1 flex min-h-9 w-full items-center border-t border-slate-200 px-2.5 pt-1 text-left text-sm text-slate-800"
+      : "order-2 inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-1.5 transition hover:bg-white/10 sm:order-none";
+  return <button type="button" className={className} aria-label="Abrir chat" title="Chat" onClick={() => { onOpen?.(); router.push("/dashboard/chat"); }}>
+    {mobile && !mobileHeader ? <span>Chat</span> : <InternalChatMark className={mobileHeader ? "h-8 w-8" : "h-9 w-9"} />}
+  </button>;
 }

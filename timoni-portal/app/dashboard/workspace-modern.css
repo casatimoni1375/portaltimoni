@@ -1,0 +1,55 @@
+/* Modernização limitada às telas que aderem a ct-modern-workspace. */
+.ct-modern-workspace {
+  --ct-font-body: 16px;
+  --ct-font-page-title: 32px;
+  --ct-font-section-title: 21px;
+  --ct-font-subtitle: 17px;
+  color: #24243c;
+  font-size: 16px;
+  line-height: 1.5;
+}
+main .ct-modern-workspace :is(h1, h2, h3) { color: #14038d; }
+main .ct-modern-workspace h1 { font-size: 32px !important; line-height: 1.2 !important; }
+main .ct-modern-workspace h2 { font-size: 21px !important; line-height: 1.3 !important; }
+main .ct-modern-workspace h3 { font-size: 17px !important; line-height: 1.4 !important; }
+.ct-modern-workspace :is(p, label, li) { font-size: 15px; line-height: 1.5; }
+.ct-modern-workspace :is(section, article).rounded-3xl {
+  border-color: #e4e6ef;
+  border-radius: 16px !important;
+}
+.ct-modern-workspace :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  min-height: 44px;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.ct-modern-workspace :is(button, a[role="button"]) {
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 1.4 !important;
+}
+.ct-modern-workspace :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #a898ff;
+  outline-offset: 3px;
+}
+.ct-modern-workspace table { font-size: 15px; line-height: 1.5; }
+.ct-modern-workspace th { font-size: 12px; letter-spacing: .03em; }
+.ct-modern-workspace td { font-size: 15px; }
+.ct-modern-workspace :is(td, th) { padding: 14px 18px !important; }
+.ct-modern-workspace .overflow-x-auto { max-width: 100%; }
+/* Calendários recebem apenas hierarquia de títulos, mantendo a geometria dos dias. */
+.ct-modern-calendar h1 { color: #14038d; font-size: 32px !important; line-height: 1.2 !important; }
+.ct-modern-calendar :is(h2, h3) { color: #14038d; }
+.ct-modern-calendar :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #a898ff;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .ct-modern-calendar h1 { font-size: 28px !important; }
+  main .ct-modern-workspace h1 { font-size: 28px !important; }
+  main .ct-modern-workspace h2 { font-size: 20px !important; }
+  .ct-modern-workspace :is(button, a[role="button"]) { padding: 10px 12px !important; }
+  .ct-modern-workspace :is(section, article).rounded-3xl { padding: 16px !important; }
+  .ct-modern-workspace :is(td, th) { padding: 12px 14px !important; }
+}

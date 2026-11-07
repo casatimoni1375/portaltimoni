@@ -36,7 +36,7 @@ const checklist = [
 
 export default function FinanceiroPage() {
   return (
-    <div className="pb-8">
+    <div className="ct-modern-workspace pb-8">
       <section className="rounded-2xl border border-lime-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wider text-lime-700">Módulo operacional</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Financeiro</h1>

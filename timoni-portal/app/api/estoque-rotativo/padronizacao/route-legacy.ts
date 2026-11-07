@@ -1,15 +1,14 @@
+import { planRotativoRestore } from "@/lib/rotativo-restore";
 import { applyOfficialRotativoModel } from "@/lib/rotativo-official-model";
 import { withStandardizationLock } from "@/lib/rotativo-standardization-lock";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { hasModuleAccess, normalizeEmail } from "@/lib/access-control";
-import { deleteSupplierStandardization, ROTATING_STOCK_EMAILS } from "@/lib/rotating-stock";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { deleteSupplierStandardization } from "@/lib/rotating-stock";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MANAGEMENT_EMAILS = new Set<string>([ROTATING_STOCK_EMAILS.cica, ROTATING_STOCK_EMAILS.marcelo]);
 const BACKUP_PREFIX = "BKP_ROTATIVO_";
 
 function backupTitle(sheetName: string) {
@@ -18,13 +17,10 @@ function backupTitle(sheetName: string) {
 }
 
 async function context() {
-  const session = await auth();
-  const email = normalizeEmail(session?.user?.email);
-  if (!email || !hasModuleAccess(email, "estoque-rotativo", session?.portalUser)) throw new Error("Acesso não autorizado ao Rotativo.");
-  if (!MANAGEMENT_EMAILS.has(email)) throw new Error("Seu acesso não permite esta ação.");
-  if (!session?.accessToken || session.error === "RefreshAccessTokenError") throw new Error("Sessão expirada. Saia e entre novamente no Portal.");
+  const gate = await requireModuleAuthorization("estoque-rotativo", "administrar");
+  if (!gate.current) throw new Error("Seu acesso não permite esta ação.");
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: session.accessToken });
+  oauth.setCredentials({ access_token: gate.current.accessToken });
   return { sheets: google.sheets({ version: "v4", auth: oauth }) };
 }
 
@@ -87,28 +83,24 @@ async function restoreBackup(sheets: sheets_v4.Sheets, spreadsheetId: string, sh
   if (sourceId === undefined || sourceId === null) throw new Error("A aba padronizada não foi encontrada.");
   if (backupId === undefined || backupId === null) return false;
 
-  const temporaryTitle = `TMP_ROTATIVO_${Date.now()}`.slice(0, 100);
-  const originalIndex = Number(source?.properties?.index || 0);
-  await sheets.spreadsheets.batchUpdate({
+  const snapshot = await sheets.spreadsheets.get({
     spreadsheetId,
-    requestBody: {
-      requests: [
-        {
-          updateSheetProperties: {
-            properties: { sheetId: sourceId, title: temporaryTitle },
-            fields: "title",
-          },
-        },
-        {
-          updateSheetProperties: {
-            properties: { sheetId: backupId, title: sheetName, hidden: false, index: originalIndex },
-            fields: "title,hidden,index",
-          },
-        },
-        { deleteSheet: { sheetId: sourceId } },
-      ],
-    },
+    ranges: [sheetName, backupTitle(sheetName)].map(title => `'${title.replace(/'/g, "''")}'`),
+    includeGridData: true,
   });
+  const original = snapshot.data.sheets?.find(sheet => sheet.properties?.sheetId === sourceId);
+  const saved = snapshot.data.sheets?.find(sheet => sheet.properties?.sheetId === backupId);
+  if (!original || !saved) throw new Error("Não foi possível ler a aba original e o backup.");
+  const requests = planRotativoRestore(original, saved);
+  try {
+    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } }, { retry: false });
+  } catch (cause) {
+    const status = (cause as { response?: { status?: number } }).response?.status;
+    if (status && [400, 401, 403, 404].includes(status)) throw cause;
+    const error = new Error("Não foi possível confirmar a reversão. Não repita agora; confira a aba original e o backup antes de continuar.");
+    error.name = "RotativoUncertainWriteError";
+    throw error;
+  }
   return true;
 }
 
@@ -142,8 +134,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (action === "reverter") {
-      const restored = await withStandardizationLock(spreadsheetId, () => restoreBackup(sheets, spreadsheetId, sheetName));
-      await deleteSupplierStandardization(spreadsheetId, sheetName);
+      const restored = await withStandardizationLock(spreadsheetId, async () => {
+        const restored = await restoreBackup(sheets, spreadsheetId, sheetName);
+        if (restored) await deleteSupplierStandardization(spreadsheetId, sheetName);
+        return restored;
+      });
       return NextResponse.json({ ok: true, restored });
     }
     throw new Error("Ação de padronização inválida.");
@@ -151,4 +146,3 @@ export async function POST(request: Request) {
     return apiError(error);
   }
 }
-

@@ -96,16 +96,8 @@ async function ensureSchema() {
           applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `;
-      const cleanupKey = "clear-test-chat-2026-09-16";
-      const cleanupRows = await sql`
-        SELECT key FROM portal_chat_maintenance WHERE key = ${cleanupKey} LIMIT 1
-      ` as Array<{ key: string }>;
-      if (!cleanupRows[0]) {
-        await sql`DELETE FROM portal_chat_messages`;
-        await sql`DELETE FROM portal_chat_user_clears`;
-        await sql`DELETE FROM portal_chat_conversations`;
-        await sql`INSERT INTO portal_chat_maintenance (key) VALUES (${cleanupKey}) ON CONFLICT DO NOTHING`;
-      }
+      // A inicialização nunca remove conversas ou mensagens existentes.
+
     })().catch((error) => {
       schemaReady = null;
       throw error;

@@ -1,8 +1,10 @@
-import { auth } from "@/lib/auth";
-import { hasModuleAccess, portalUsers } from "@/lib/access-control";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { canReadUnit } from "@/lib/module-authorization";
+import type { PortalUser } from "@/lib/access-control";
 import { loadPortalConfiguration } from "@/lib/portal-config";
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
+import { getPortalCentralIntegrationToken } from "@/lib/collaborator-auth.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,39 +53,27 @@ function dedupeSellers(vendedores: Seller[]) {
   });
 }
 
-function responsaveisFallback(): Responsible[] {
-  return Object.values(portalUsers)
-    .filter((user) => user.active !== false && user.readOnly !== true && user.modules.includes("motorista"))
-    .map((user) => ({ email: user.email, name: user.name, unit: user.unit || "Geral" }))
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
-}
-
-function resposta(vendedores: Seller[], responsaveis: Responsible[], fallback = false) {
+function resposta(vendedores: Seller[], responsaveis: Responsible[], fallback = false, actor: PortalUser) {
   return NextResponse.json(
-    { ok: true, vendedores: dedupeSellers(vendedores), responsaveis, fallback },
+    { ok: true, vendedores: dedupeSellers(vendedores).filter(v => canReadUnit(actor, "motorista", v.unidade)), responsaveis: responsaveis.filter(v => canReadUnit(actor, "motorista", v.unit)), fallback },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email || !hasModuleAccess(session.user.email, "motorista", session.portalUser)) {
-    return NextResponse.json({ ok: false, erro: "Acesso não autorizado." }, { status: 403 });
-  }
-
-  if (!session.accessToken || session.error === "RefreshAccessTokenError") {
-    return resposta(fallbackSellers, responsaveisFallback(), true);
-  }
-
+  const gate = await requireModuleAuthorization("motorista", "visualizar");
+  if (!gate.current) return gate.errorResponse;
+  const { user: actor } = gate.current;
   try {
-    const configuration = await loadPortalConfiguration(session.accessToken);
-    const responsaveis: Responsible[] = configuration.users
+    const accessToken = actor.collaboratorAccess ? await getPortalCentralIntegrationToken() : gate.current.accessToken;
+    const configuration = actor.collaboratorAccess ? null : await loadPortalConfiguration(accessToken);
+    const responsaveis: Responsible[] = actor.collaboratorAccess ? [{ email: actor.email, name: actor.name, unit: actor.unit || "" }] : configuration!.users
       .filter((user) => user.active !== false && user.readOnly !== true && user.modules.includes("motorista"))
       .map((user) => ({ email: user.email, name: user.name, unit: user.unit || "Geral" }))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
 
     const oauth = new google.auth.OAuth2();
-    oauth.setCredentials({ access_token: session.accessToken });
+    oauth.setCredentials({ access_token: accessToken });
     const sheets = google.sheets({ version: "v4", auth: oauth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
@@ -97,9 +87,9 @@ export async function GET() {
       .map((row) => ({ nome: String(row[0] ?? "").trim(), unidade: String(row[1] ?? "").trim().toLowerCase() }))
       .filter((item) => item.nome);
 
-    return resposta([...vendedores, ...fixedSellers], responsaveis);
+    return resposta([...vendedores, ...fixedSellers], responsaveis, false, actor);
   } catch (error) {
     console.error("[Agenda Motorista] Falha ao carregar vendedores; usando fallback.", error);
-    return resposta(fallbackSellers, responsaveisFallback(), true);
+    return resposta(fallbackSellers, [], true, actor);
   }
 }

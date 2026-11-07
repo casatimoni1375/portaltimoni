@@ -2,41 +2,21 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { createPortalRevisionChecker } from "@/lib/portal-revision-checker";
 
 const CHANGE_CHECK_MS = 60_000;
-
-type RevisionResponse = { revision?: string; sessionRevision?: string };
 
 export default function PortalPermissionsSync() {
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname === "/login" || pathname === "/dashboard/estoque-rotativo") return;
+    if (pathname === "/login" || pathname.startsWith("/acesso/") || pathname === "/dashboard/estoque-rotativo") return;
 
-    let checking = false;
-    let lastSeenRevision: string | null = null;
-
-    const checkForChanges = async () => {
-      if (checking || document.visibilityState !== "visible") return;
-      checking = true;
-      try {
-        const response = await fetch("/api/configuracoes/version", { cache: "no-store" });
-        if (!response.ok) return;
-        const result = await response.json() as RevisionResponse;
-        if (!result.revision) return;
-
-        const changed = lastSeenRevision === null
-          ? result.sessionRevision !== result.revision
-          : lastSeenRevision !== result.revision;
-        lastSeenRevision = result.revision;
-
-        if (changed) router.refresh();
-      } catch {
-        // A falha temporária na checagem não deve interromper o uso do Portal.
-      } finally {
-        checking = false;
-      }
+    const checker = createPortalRevisionChecker(() => router.refresh());
+    const checkForChanges = () => {
+      if (document.visibilityState !== "visible" || !navigator.onLine) return;
+      return checker.run();
     };
 
     void checkForChanges();
@@ -47,11 +27,14 @@ export default function PortalPermissionsSync() {
     };
 
     window.addEventListener("focus", onFocus);
+    window.addEventListener("online", onFocus);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
+      checker.dispose();
       window.clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("online", onFocus);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [pathname, router]);

@@ -3,6 +3,8 @@ import { getPortalSession as auth } from "@/lib/portal-session";
 import { redirect } from "next/navigation";
 import StoreSwitcher from "./store-switcher";
 import PortalHeader from "@/components/portal-header";
+import Link from "next/link";
+import { canCollaboratorAction, resolveCollaboratorAccess } from "@/lib/collaborator-access";
 
 const STORE_SWITCHER_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
 
@@ -12,6 +14,32 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  if (session?.collaboratorSubject) {
+    if (session.error === "SessionTemporarilyUnavailable") return <main className="p-6"><p role="alert">Conexão temporariamente indisponível. Atualize esta página em instantes.</p></main>;
+    const access = resolveCollaboratorAccess(session.collaboratorSubject.collaboratorId, session.collaboratorAccess ?? null);
+    if (!access || session.error) redirect("/login");
+    const motorista = canCollaboratorAction(access, "motorista", "visualizar");
+    const pedidos = canCollaboratorAction(access, "pedido-de-compra", "visualizar");
+    const reunioes = canCollaboratorAction(access, "reunioes", "visualizar");
+    const estoque = canCollaboratorAction(access, "estoque", "visualizar");
+    const chat = canCollaboratorAction(access, "chat", "visualizar");
+    if (!motorista && !pedidos && !reunioes && !estoque && !chat) redirect("/acesso/inicio");
+    return <div className="min-h-screen bg-slate-50">
+      <header className="border-b border-blue-950/50 bg-[#14038D] px-4 py-4 text-white">
+        <nav aria-label="Menu do acesso individual" className="mx-auto flex max-w-6xl flex-wrap items-center gap-4">
+          <Link href="/acesso/inicio" className="font-semibold">Meus acessos</Link>
+          {motorista && <Link href="/dashboard/motorista">Motorista</Link>}
+          {motorista && <Link href="/motorista">Consulta do motorista</Link>}
+          {pedidos && <Link href="/dashboard/pedido-de-compra">Pedidos de Compra</Link>}
+          {reunioes && <Link href="/dashboard/reunioes">Reuniões</Link>}
+          {estoque && <Link href="/dashboard/estoque">Estoque</Link>}
+          {chat && <Link href="/dashboard/chat">Chat</Link>}
+          <span className="text-sm sm:ml-auto">{access.name} · {access.unit}</span>
+        </nav>
+      </header>
+      <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6">{children}</main>
+    </div>;
+  }
 
   if (!session?.user?.email) {
     redirect("/login");

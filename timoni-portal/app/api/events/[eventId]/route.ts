@@ -1,3 +1,4 @@
+import { canModuleOperation, calendarModule } from "@/lib/module-authorization";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthorizedSession } from "@/lib/auth-guard";
 import { deleteEvent, isCalendarKey, toApiError, updateEvent } from "@/lib/google-calendar";
@@ -17,6 +18,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Agenda do evento não informada." }, { status: 400 });
   }
 
+  if (!canModuleOperation(session!.portalUser, calendarModule(calendarKey)!, "editar")) return NextResponse.json({ error: "Ação não permitida." }, { status: 403 });
   const body = (await request.json().catch(() => null)) as Partial<CalendarEventInput> | null;
   if (!body) {
     return NextResponse.json({ error: "Corpo da requisição inválido." }, { status: 400 });
@@ -48,6 +50,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Agenda do evento não informada." }, { status: 400 });
   }
 
+  if (!canModuleOperation(session!.portalUser, calendarModule(calendarKey)!, "excluir")) return NextResponse.json({ error: "Ação não permitida." }, { status: 403 });
   try {
     await deleteEvent(session!.accessToken!, calendarKey, eventId);
     await recordModuleUpdateSafely("agenda", session?.user?.email, "Evento removido da agenda.");

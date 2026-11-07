@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1cESMTRx98e6AbY5vxPCcT7VrqYAbgH0xGUk87ybqHUo/edit";
 
@@ -31,6 +32,7 @@ type EstoqueClientProps = {
   isManager?: boolean;
   canDelete?: boolean;
   canEdit?: boolean;
+  canRespond?: boolean;
   showRequestForm?: boolean;
   showManagerResponseField?: boolean;
   defaultUnit?: RequestUnit;
@@ -106,8 +108,8 @@ function canUseNotifications() {
   return typeof window !== "undefined" && "Notification" in window;
 }
 
-export default function EstoqueClient({ isManager = false, canDelete = false, canEdit = false, showRequestForm = true, showManagerResponseField = true, defaultUnit = "rio_claro", allowedUnits = ["rio_claro", "araras"] }: EstoqueClientProps) {
-  const safeAllowedUnits = allowedUnits.length ? allowedUnits : [defaultUnit];
+export default function EstoqueClient({ isManager = false, canDelete = false, canEdit = false, canRespond = false, showRequestForm = true, showManagerResponseField = true, defaultUnit = "rio_claro", allowedUnits = ["rio_claro", "araras"] }: EstoqueClientProps) {
+  const safeAllowedUnits = useMemo(() => allowedUnits, [allowedUnits]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -143,7 +145,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
 
   useEffect(() => {
     if (!safeAllowedUnits.includes(newUnit)) {
-      setNewUnit(safeAllowedUnits[0]);
+      if (safeAllowedUnits[0]) setNewUnit(safeAllowedUnits[0]);
       setSeller("");
     }
   }, [newUnit, safeAllowedUnits]);
@@ -152,34 +154,42 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
     if (canUseNotifications()) setNotificationPermission(Notification.permission);
   }, []);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch("/api/estoque", { cache: "no-store" });
-      const payload = (await response.json()) as Data;
-      if (!response.ok || !payload.ok) throw new Error(payload.error || "Falha ao carregar");
-      setNeeds(payload.necessidades);
-      if (Array.isArray(payload.unreadIds)) setUnreadIds(new Set(payload.unreadIds));
-      setProducts(payload.produtos);
-      setSellers(payload.vendedores);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  const request = useRef<{ run: (options?: { urgent?: boolean }) => Promise<void> } | null>(null);
+  const refresh = useCallback(() => request.current?.run({ urgent: true }), []);
+  const unitKey = safeAllowedUnits.join("|");
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      void refresh();
-    }, 60000);
-    return () => window.clearInterval(timer);
-  }, [refresh]);
+    const units = unitKey.split("|");
+    setNeeds([]); setEditingNeed(null);
+    const loader = createScreenRequest({
+      load: async signal => {
+        const response = await fetch("/api/estoque", { cache: "no-store", signal });
+        const payload = await response.json() as Data;
+        if (!response.ok || !payload.ok) throw new ScreenRequestError(payload.error || "Falha ao carregar", response.status);
+        return payload;
+      },
+      onData: payload => {
+        setNeeds(payload.necessidades.filter(item => units.includes(item.unidade)));
+        setUnreadIds(new Set(payload.unreadIds || []));
+        setProducts(payload.produtos);
+        setSellers(payload.vendedores.filter(item => units.includes(item.unidade)));
+        setError("");
+      },
+      onError: error => {
+        setError(error instanceof Error ? error.message : "Falha ao carregar");
+        if (error instanceof ScreenRequestError && [401, 403].includes(error.status)) { setNeeds([]); setUnreadIds(new Set()); setProducts([]); setSellers([]); setEditingNeed(null); }
+      },
+      onBusy: setLoading,
+    });
+    request.current = loader;
+    const check = (urgent = false) => { if (document.visibilityState === "visible" && navigator.onLine) void loader.run({ urgent }); };
+    check();
+    const timer = window.setInterval(() => check(), 60000);
+    const onVisible = () => check();
+    const onOnline = () => check(true);
+    window.addEventListener("focus", onVisible); window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { loader.dispose(); request.current = null; window.clearInterval(timer); window.removeEventListener("focus", onVisible); window.removeEventListener("online", onOnline); document.removeEventListener("visibilitychange", onVisible); };
+  }, [unitKey]);
 
   useEffect(() => {
     if (!isManager) return;
@@ -435,7 +445,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
         {need.observacao && <p className="mt-3 text-sm font-medium text-amber-700">{need.observacao}</p>}
         {need.status === "pedido_existente" && <p className="mt-3 text-sm">Pedido <strong>{need.numeroPedido}</strong> · previsão {need.previsaoEntrega || "não informada"}</p>}
         <p className="mt-3 text-xs text-slate-400">{date(need.criadoEm)}</p>
-        {need.status !== "chegou" && isManager && (
+        {need.status !== "chegou" && isManager && canRespond && (
           <div className="mt-4 space-y-3">
             {(showManagerResponseField || !need.observacao || editingResponseIds.has(need.id)) && (
               <label className="block">
@@ -459,7 +469,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
             </div>
           </div>
         )}
-        {need.status !== "chegou" && !isManager && (
+        {need.status !== "chegou" && !isManager && canRespond && (
           <div className="mt-4 border-t border-slate-100 pt-4">
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-wider text-blue-700">Responder à consulta</span>
@@ -562,7 +572,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
               <h2 className="text-xl font-semibold">{title}</h2>
               {isManager && index === 0 && (
                 <div className="flex rounded-xl bg-slate-100 p-1">
-                  {(["todas", "rio_claro", "araras"] as Unit[]).map((item) => <button key={item} onClick={() => setUnit(item)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${unit === item ? "bg-white shadow-sm" : "text-slate-500"}`}>{item === "todas" ? "Todas" : unitLabel(item)}</button>)}
+                  {(["todas", ...safeAllowedUnits] as Unit[]).map((item) => <button key={item} onClick={() => setUnit(item)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${unit === item ? "bg-white shadow-sm" : "text-slate-500"}`}>{item === "todas" ? "Todas" : unitLabel(item)}</button>)}
                 </div>
               )}
             </div>
@@ -578,7 +588,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
 
 
   return (
-    <div ref={stockRoot} className="pb-10">
+    <div ref={stockRoot} className="ct-modern-workspace pb-10">
       {isManager && (
         <section className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

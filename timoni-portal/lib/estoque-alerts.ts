@@ -13,6 +13,7 @@ export type StockAlert = {
   respondidoEm: string;
   observacao: string;
   unidade: "rio_claro" | "araras";
+  unidadeOriginal?: string;
   vendedor: string;
   quantidade: string;
 };
@@ -51,6 +52,7 @@ export async function listStockAlerts(sessionAccessToken?: string): Promise<Stoc
       respondidoEm: value(row, 5),
       observacao: value(row, 8),
       unidade: normalizeUnit(row[10]),
+      unidadeOriginal: value(row, 10),
       vendedor: value(row, 11),
       quantidade: value(row, 12),
     }))

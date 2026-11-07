@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAuthorization } from "@/lib/authorization-server";
+import { can, canEditConfigurationRecord } from "@/lib/authorization";
 import { normalizeEmail, type PortalBox, type PortalModule, type PortalUser } from "@/lib/access-control";
 import {
   appendAudit,
@@ -9,6 +10,8 @@ import {
   loadPortalConfiguration,
   upsertCollaborator,
   upsertPortalUser,
+  updatePortalUserMetadata,
+  updateCollaboratorMetadata,
   type ConfiguredCollaborator,
 } from "@/lib/portal-config";
 import { bumpPortalConfigurationRevisionSafely } from "@/lib/portal-config-revision";
@@ -19,18 +22,9 @@ const VALID_MODULES = new Set<PortalModule>([
 const VALID_BOXES = new Set<PortalBox>([
   "painel", "agenda", "compras", "pedido-de-compra", "conferencia", "estoque", "estoque-rotativo", "motorista", "reunioes", "leads", "espaco-equipe",
 ]);
-const MANAGEMENT_EMAILS = new Set([CICA_EMAIL, "mrodini@gmail.com"]);
-
-async function adminContext() {
-  const session = await auth();
-  const email = normalizeEmail(session?.user?.email);
-  if (!MANAGEMENT_EMAILS.has(email) || !session?.accessToken) return null;
-  return { email, accessToken: session.accessToken };
-}
-
 export async function DELETE(request: Request) {
-  const current = await adminContext();
-  if (!current) return NextResponse.json({ error: "Acesso exclusivo da gestão." }, { status: 403 });
+  const { current, errorResponse } = await requireAuthorization("configuracoes", "excluir", { operation: "permissoes" });
+  if (!current) return errorResponse;
   try {
     const body = await request.json();
     if (body.kind === "user") {
@@ -106,16 +100,16 @@ function cleanCollaborator(value: Record<string, unknown>, users: PortalUser[]):
     name,
     unit,
     active: value.active !== false,
-    noticeRequired: true,
-    chatEnabled: true,
+    noticeRequired: value.noticeRequired === undefined ? true : Boolean(value.noticeRequired),
+    chatEnabled: value.chatEnabled !== false,
     role: String(value.role || "").trim().slice(0, 80),
     updatedAt: new Date().toISOString(),
   };
 }
 
 export async function GET() {
-  const current = await adminContext();
-  if (!current) return NextResponse.json({ error: "Acesso exclusivo da gestão." }, { status: 403 });
+  const { current, errorResponse } = await requireAuthorization("configuracoes", "visualizar");
+  if (!current) return errorResponse;
   try {
     return NextResponse.json({ ok: true, ...(await loadPortalConfiguration(current.accessToken)) });
   } catch (error) {
@@ -125,26 +119,42 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const current = await adminContext();
-  if (!current) return NextResponse.json({ error: "Acesso exclusivo da gestão." }, { status: 403 });
+  const { current, errorResponse } = await requireAuthorization("configuracoes", "editar");
+  if (!current) return errorResponse;
   try {
     const body = await request.json();
+    const configuration = await loadPortalConfiguration(current.accessToken);
     if (body.section === "user") {
       const item = cleanUser(body.item || {});
-      await upsertPortalUser(current.accessToken, item);
+      const existing = configuration.users.find((user) => user.email === item.email);
+      if (!canEditConfigurationRecord(current.user, "user", existing, item)) {
+        return NextResponse.json({ error: "Seu acesso permite somente editar dados cadastrais existentes, sem alterar permissões." }, { status: 403 });
+      }
+      if (can(current.user, "configuracoes", "administrar", { operation: "permissoes" })) {
+        await upsertPortalUser(current.accessToken, item);
+      } else {
+        await updatePortalUserMetadata(current.accessToken, item);
+      }
       await bumpPortalConfigurationRevisionSafely();
       await appendAudit(current.accessToken, "Acesso atualizado", `${item.accessLabel || item.name} · ${item.email}`, current.email);
       return NextResponse.json({ ok: true, item });
     } else if (body.section === "collaborator") {
-      const configuration = await loadPortalConfiguration(current.accessToken);
       const item = cleanCollaborator(body.item || {}, configuration.users);
+      const existing = configuration.collaborators.find((member) => member.id === item.id);
+      if (!canEditConfigurationRecord(current.user, "collaborator", existing, item)) {
+        return NextResponse.json({ error: "Seu acesso permite somente editar nome e função de colaboradores existentes." }, { status: 403 });
+      }
       const duplicate = configuration.collaborators.find((member) =>
         member.id !== item.id &&
         member.unit === item.unit &&
         member.name.localeCompare(item.name, "pt-BR", { sensitivity: "base" }) === 0
       );
       if (duplicate) throw new Error("Este colaborador já está cadastrado nesta unidade.");
-      await upsertCollaborator(current.accessToken, item);
+      if (can(current.user, "configuracoes", "administrar", { operation: "permissoes" })) {
+        await upsertCollaborator(current.accessToken, item);
+      } else {
+        await updateCollaboratorMetadata(current.accessToken, item);
+      }
       await bumpPortalConfigurationRevisionSafely();
       await appendAudit(current.accessToken, "Colaborador atualizado", `${item.name} · ${item.unit} · ${item.accessEmail}`, current.email);
       return NextResponse.json({ ok: true, item });

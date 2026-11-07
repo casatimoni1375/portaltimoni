@@ -257,18 +257,7 @@ export async function ensureRotatingStockSchema() {
           applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `;
-      const cleanup = (await sql`
-        INSERT INTO portal_rotating_stock_migrations (key)
-        VALUES ('2026-09-22-limpa-testes-iniciais')
-        ON CONFLICT (key) DO NOTHING
-        RETURNING key
-      `) as unknown as Array<{ key: string }>;
-      if (cleanup.length) {
-        await sql`DELETE FROM portal_rotating_stock_highlights`;
-        await sql`DELETE FROM portal_rotating_stock_items`;
-        await sql`DELETE FROM portal_rotating_stock_updates`;
-        await sql`DELETE FROM portal_rotating_stock_suppliers`;
-      }
+      // Limpezas históricas não devem executar durante a inicialização.
       const highlightBackfill = (await sql`
         INSERT INTO portal_rotating_stock_migrations (key)
         VALUES ('2026-09-22-destaques-conferidos')
@@ -481,25 +470,27 @@ export async function acquireRotatingStockLock(id: string, actor: string) {
 
 export async function saveConference(id: string, actor: string, fingerprint: string, items: Omit<RotatingStockItem, "id" | "update_id" | "applied">[]) {
   const sql = getDatabase();
-  await sql`DELETE FROM portal_rotating_stock_items WHERE update_id = ${id}::UUID`;
-  for (const item of items) {
-    await sql`
+  const found = items.filter((item) => item.situation === "encontrado").length;
+  const notFound = items.filter((item) => item.situation === "nao_encontrado").length;
+  const unchanged = items.filter((item) => item.situation === "sem_alteracao").length;
+  // O bloqueio serializa conferências do mesmo registro; qualquer falha desfaz o conjunto.
+  await sql.transaction([
+    sql`SELECT id FROM portal_rotating_stock_updates WHERE id = ${id}::UUID FOR UPDATE`,
+    sql`DELETE FROM portal_rotating_stock_items WHERE update_id = ${id}::UUID`,
+    ...items.map((item) => sql`
       INSERT INTO portal_rotating_stock_items
         (update_id, source_row, target_row, code, source_sale_code, purchase_code, suggested_code, suggestion_reason,
          description, old_stock, new_stock, situation)
       VALUES (${id}::UUID, ${item.source_row}, ${item.target_row}, ${item.code}, ${item.source_sale_code},
         ${item.purchase_code}, ${item.suggested_code}, ${item.suggestion_reason}, ${item.description},
         ${item.old_stock}, ${item.new_stock}, ${item.situation})
-    `;
-  }
-  const found = items.filter((item) => item.situation === "encontrado").length;
-  const notFound = items.filter((item) => item.situation === "nao_encontrado").length;
-  const unchanged = items.filter((item) => item.situation === "sem_alteracao").length;
-  await sql`
+    `),
+    sql`
     UPDATE portal_rotating_stock_updates SET fingerprint = ${fingerprint}, locked_by = ${actor}, locked_at = NOW(),
       items_read = ${items.length}, found_count = ${found}, not_found_count = ${notFound}, unchanged_count = ${unchanged}
     WHERE id = ${id}::UUID
-  `;
+  `,
+  ]);
 }
 
 export async function listConferenceItems(id: string) {

@@ -37,37 +37,6 @@ const HEADERS = [
   "leaders", "pautaUrl", "ataUrl", "slidesUrl", "status", "createdAt", "updatedAt", "additionalDates",
 ];
 
-const SEED: Omit<Meeting, "id" | "createdAt" | "updatedAt">[] = [
-  {
-    unit: "Araras",
-    date: "2026-09-08",
-    time: "07:40",
-    secondDate: "2026-10-09",
-    secondTime: "07:40",
-    additionalDates: [],
-    frequency: "Mensal",
-    leaders: "Ciça e Marcelo",
-    pautaUrl: "https://docs.google.com/document/d/1NoZASmMc-ptrqFy8zbvtGgCJjLJxX8GsORM-F4N799k",
-    ataUrl: "https://docs.google.com/document/d/1S9dQlOGwFE8RwNnjw1PFy08DH9a6k1_9kugQEBgmxHQ",
-    slidesUrl: "https://docs.google.com/presentation/d/1zN_tU03-tq8Y6Ewo4GasboPTjRHXnpjXB0bbSrjHaWI",
-    status: "agendada",
-  },
-  {
-    unit: "Rio Claro",
-    date: "2026-08-08",
-    time: "07:30",
-    secondDate: "2026-09-03",
-    secondTime: "07:30",
-    additionalDates: [],
-    frequency: "Mensal",
-    leaders: "Ciça, Marcelo e Jeovana",
-    pautaUrl: "https://docs.google.com/document/d/1qlgMtkqkg-LlS-LtdxDHYKcNXWbAbgWjARDtNRLHBe8",
-    ataUrl: "https://docs.google.com/document/d/1rVOOEsR4dkqj51O8iRc14X5Iy2ywCEn0hxXz_jBKmyQ",
-    slidesUrl: "https://docs.google.com/presentation/d/1VblTWAcgvrEdWBf5PMq97sr23NNdtT7vQg8Hmza_JPM",
-    status: "agendada",
-  },
-];
-
 async function sheetsClient(sessionAccessToken?: string) {
   const accessToken = sessionAccessToken || await getAccessTokenFromRefreshToken();
   const auth = new google.auth.OAuth2();
@@ -100,7 +69,7 @@ async function ensureSheet(accessToken: string) {
 function parseRows(rows: string[][]): Meeting[] {
   return rows.map((row) => ({
     id: row[0] || "",
-    unit: (row[1] || "Araras") as MeetingUnit,
+    unit: (row[1] || "") as MeetingUnit,
     date: row[2] || "",
     time: row[3] || "",
     secondDate: row[4] || "",
@@ -126,7 +95,7 @@ function valuesOf(item: Meeting) {
 }
 
 async function readRows(accessToken: string) {
-  const sheets = await ensureSheet(accessToken);
+  const sheets = await sheetsClient(accessToken);
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
     range: `${SHEET}!A2:O500`,
@@ -137,36 +106,20 @@ async function readRows(accessToken: string) {
 
 const getCachedMeetings = unstable_cache(
   async (accessToken: string) => {
-    const items = parseRows(await seedIfEmpty(accessToken)).sort((a, b) => a.date.localeCompare(b.date));
+    const items = parseRows(await readRows(accessToken)).sort((a, b) => a.date.localeCompare(b.date));
     return items;
   },
   ["reunioes-list-v2"],
   { revalidate: 60, tags: [MEETINGS_CACHE_TAG] },
 );
 
-async function seedIfEmpty(accessToken: string) {
-  const rows = await readRows(accessToken);
-  if (rows.length) return rows;
-  const sheets = await sheetsClient(accessToken);
-  const now = new Date().toISOString();
-  const values = SEED.map((item, index) => valuesOf({
-    ...item,
-    id: `meeting-seed-${index + 1}`,
-    createdAt: now,
-    updatedAt: now,
-  }));
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
-    range: `${SHEET}!A:O`,
-    valueInputOption: "RAW",
-    insertDataOption: "INSERT_ROWS",
-    requestBody: { values },
-  });
-  return values as string[][];
-}
-
 export async function listMeetings(_accessToken: string) {
   return getCachedMeetings(_accessToken);
+}
+
+// Gravações conferem o estado atual, sem depender do cache de apresentação.
+export async function listMeetingsFresh(accessToken: string) {
+  return parseRows(await readRows(accessToken));
 }
 
 export async function createMeeting(
@@ -193,17 +146,17 @@ export async function createMeeting(
   return item.id;
 }
 
-async function findRow(accessToken: string, id: string) {
+async function findCurrent(accessToken: string, id: string, expectedUnit?: MeetingUnit) {
   const rows = await readRows(accessToken);
   const index = rows.findIndex((row) => row[0] === id);
-  return index < 0 ? null : index + 2;
+  const current = parseRows(rows).find(item => item.id === id);
+  if (index < 0 || !current) throw new Error("Reunião não encontrada.");
+  if (expectedUnit && current.unit !== expectedUnit) throw new Error("A reunião mudou de unidade. Atualize a lista antes de continuar.");
+  return { current, rowNumber: index + 2 };
 }
 
-export async function updateMeeting(accessToken: string, id: string, input: Partial<Meeting>) {
-  const rowNumber = await findRow(accessToken, id);
-  if (!rowNumber) throw new Error("Reunião não encontrada.");
-  const current = (await listMeetings(accessToken)).find((item) => item.id === id);
-  if (!current) throw new Error("Reunião não encontrada.");
+export async function updateMeeting(accessToken: string, id: string, input: Partial<Meeting>, expectedUnit?: MeetingUnit) {
+  const { current, rowNumber } = await findCurrent(accessToken, id, expectedUnit);
   const sheets = await sheetsClient(accessToken);
   const updated: Meeting = { ...current, ...input, id, updatedAt: new Date().toISOString() };
   await sheets.spreadsheets.values.update({
@@ -219,11 +172,13 @@ export async function archiveMeetingOccurrence(
   accessToken: string,
   id: string,
   occurrenceDate: string,
+  expectedUnit?: MeetingUnit,
 ) {
   const rawRows = await readRows(accessToken);
   const rows = parseRows(rawRows);
   const current = rows.find((item) => item.id === id);
   if (!current || current.status !== "agendada") throw new Error("Reunião não encontrada ou já arquivada.");
+  if (expectedUnit && current.unit !== expectedUnit) throw new Error("A reunião mudou de unidade. Atualize a lista antes de continuar.");
 
   const occurrences = [
     { date: current.date, time: current.time },
@@ -248,16 +203,6 @@ export async function archiveMeetingOccurrence(
     status: "concluida",
     updatedAt: now,
   };
-  if (!rows.some((item) => item.id === archived.id)) {
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
-      range: `${SHEET}!A:O`,
-      valueInputOption: "RAW",
-      insertDataOption: "INSERT_ROWS",
-      requestBody: { values: [valuesOf(archived)] },
-    });
-  }
-
   const remaining = occurrences.filter((_, index) => index !== occurrenceIndex);
   const updated: Meeting = {
     ...current,
@@ -269,18 +214,23 @@ export async function archiveMeetingOccurrence(
     status: remaining.length ? "agendada" : "concluida",
     updatedAt: now,
   };
-  await sheets.spreadsheets.values.update({
+  const book = await sheets.spreadsheets.get({ spreadsheetId: COMUNICADOS_SPREADSHEET_ID, fields: "sheets.properties" });
+  const sheetId = book.data.sheets?.find(sheet => sheet.properties?.title === SHEET)?.properties?.sheetId;
+  if (sheetId === undefined) throw new Error("Aba de reuniões não encontrada.");
+  const cells = (item: Meeting) => ({ values: valuesOf(item).map(value => ({ userEnteredValue: { stringValue: String(value) } })) });
+  // Histórico e atualização da reunião são aplicados no mesmo lote atômico.
+  await sheets.spreadsheets.batchUpdate({
     spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
-    range: `${SHEET}!A${rowNumber}:O${rowNumber}`,
-    valueInputOption: "RAW",
-    requestBody: { values: [valuesOf(updated)] },
+    requestBody: { requests: [
+      ...(!rows.some(item => item.id === archived.id) ? [{ appendCells: { sheetId, rows: [cells(archived)], fields: "userEnteredValue" } }] : []),
+      { updateCells: { range: { sheetId, startRowIndex: rowNumber - 1, endRowIndex: rowNumber, startColumnIndex: 0, endColumnIndex: HEADERS.length }, rows: [cells(updated)], fields: "userEnteredValue" } },
+    ] },
   });
   invalidateMeetingsCache();
 }
 
-export async function deleteMeeting(accessToken: string, id: string) {
-  const rowNumber = await findRow(accessToken, id);
-  if (!rowNumber) throw new Error("Reunião não encontrada.");
+export async function deleteMeeting(accessToken: string, id: string, expectedUnit?: MeetingUnit) {
+  const { rowNumber } = await findCurrent(accessToken, id, expectedUnit);
   const sheets = await sheetsClient(accessToken);
   const book = await sheets.spreadsheets.get({
     spreadsheetId: COMUNICADOS_SPREADSHEET_ID,

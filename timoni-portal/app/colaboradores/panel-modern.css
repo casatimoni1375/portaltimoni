@@ -1,0 +1,21 @@
+.ct-modern-panel .ct-people-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1.25rem !important;
+}
+.ct-modern-panel .ct-people-grid article {
+  background: #fff;
+  border: 1px solid #e4e6ef;
+  border-top: 3px solid #ffda43;
+  border-radius: 1rem;
+}
+.ct-modern-panel .ct-people-grid article > p:first-child {
+  font-size: 1.125rem;
+  color: #14038d;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.ct-modern-panel .ct-people-grid li { background: #f6f5fc; }
+.ct-modern-panel .ct-people-grid li > p:first-child { font-size: 1rem; }
+@media (max-width: 639px) {
+  .ct-modern-panel .ct-people-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+}

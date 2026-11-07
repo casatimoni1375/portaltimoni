@@ -1,3 +1,4 @@
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
 import { getStoredTrelloCredentials } from "@/lib/trello";
@@ -7,7 +8,9 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function POST() {
+  const central = await requireModuleAuthorization("compras", "administrar");
+  if (!central.current) return central.errorResponse;
   const session = await auth();
   const email = session?.user?.email;
 

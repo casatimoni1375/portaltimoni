@@ -1,3 +1,6 @@
+import { ADMIN_IDENTITIES, can, resolveConfiguredUser, type AuthorizationProfile } from "./authorization";
+import type { CollaboratorAccess } from "./collaborator-access";
+
 export type PortalModule =
   | "painel"
   | "agenda"
@@ -17,6 +20,9 @@ export type PortalModule =
 export type PortalBox = PortalModule | "espaco-equipe";
 
 export type PortalUser = {
+  collaboratorAccess?: CollaboratorAccess;
+  /** Resolved from the official registry/central identity adapter, never a display label. */
+  profile?: AuthorizationProfile;
   name: string;
   accessLabel?: string;
   email: string;
@@ -47,23 +53,13 @@ const allModules: PortalModule[] = [
 
 const modulesWithoutCicaAgenda = allModules.filter((module) => module !== "agenda");
 const operationalModules: PortalModule[] = ["painel", "chat", "estoque", "motorista"];
-const CICA_EMAIL = "mcrodini@gmail.com";
-const MARCELO_EMAIL = "mrodini@gmail.com";
-const RETIRED_PORTAL_EMAILS = new Set([
-  "fotoscasatimoni@gmail.com",
-  "reginaldo@casatimoni.com.br",
-  "casatimoniararas@gmail.com",
-  "comercialtimoniararas@gmail.com",
-]);
+const CICA_EMAIL = ADMIN_IDENTITIES.cica;
+const MARCELO_EMAIL = ADMIN_IDENTITIES.marcelo;
 const ESTOQUE_TIMONI_EMAIL = "estoquetimoni@gmail.com";
 const DIRECT_PAINEL_TIMONI_EMAILS = new Set([
   "balcaotimoni@gmail.com",
   "marketplacerc.mcr@gmail.com",
   ESTOQUE_TIMONI_EMAIL,
-]);
-const MANAGEMENT_MOTORISTA_EMAILS = new Set([
-  "mrodini@gmail.com",
-  "margareth@casatimoni.com.br",
 ]);
 const COLLABORATOR_MOTORISTA_CONTROL_EMAILS = new Set([
   "estoqueararascasatimoni@gmail.com",
@@ -159,36 +155,26 @@ export const portalUsers: Record<string, PortalUser> = {
 export function normalizeEmail(email?: string | null) { return email?.trim().toLowerCase() ?? ""; }
 export function isAuthorizedUser(email?: string | null, configured?: PortalUser | null) { return Boolean(getPortalUser(email, configured)); }
 export function getPortalUser(email?: string | null, configured?: PortalUser | null) {
-  const normalized = normalizeEmail(email);
-  if (RETIRED_PORTAL_EMAILS.has(normalized)) return null;
-  if (configured && normalizeEmail(configured.email) === normalized) {
-    if (configured.active === false) return null;
-    if (normalized === MARCELO_EMAIL) {
-      return { ...configured, modules: configured.modules.filter((module) => module !== "agenda") };
-    }
-    return configured;
-  }
-  const fallback = portalUsers[normalized] ?? null;
-  return fallback?.active === false ? null : fallback;
+  return resolveConfiguredUser(email, configured);
 }
-export function hasModuleAccess(email: string | null | undefined, module: PortalModule, configured?: PortalUser | null) { const user = getPortalUser(email, configured); return Boolean(user && (module === "pedido-de-compra" || module === "motorista" || user.modules.includes(module))); }
+export function hasModuleAccess(email: string | null | undefined, module: PortalModule, configured?: PortalUser | null) {
+  return can(getPortalUser(email, configured), module, "visualizar");
+}
 export function isCicaAccess(email?: string | null) { return normalizeEmail(email) === CICA_EMAIL; }
 export function entersDirectlyInPainelTimoni(email?: string | null, configured?: PortalUser | null) {
   if (configured && normalizeEmail(configured.email) === normalizeEmail(email)) return configured.directPainel ?? false;
   return DIRECT_PAINEL_TIMONI_EMAILS.has(normalizeEmail(email));
 }
 export function canManageMotorista(email?: string | null, configured?: PortalUser | null) {
-  if (configured && normalizeEmail(configured.email) === normalizeEmail(email)) return configured.readOnly !== true;
-  const normalized = normalizeEmail(email);
-  if (normalized === CICA_EMAIL) return true;
-  if (MANAGEMENT_MOTORISTA_EMAILS.has(normalized)) return true;
-  return COLLABORATOR_MOTORISTA_CONTROL_EMAILS.has(normalized);
+  const user = getPortalUser(email, configured);
+  return can(user, "motorista", "editar", { legacyAllowed: user?.readOnly !== true });
 }
 export function isReadOnlyUser(email?: string | null, configured?: PortalUser | null) { return !canManageMotorista(email, configured); }
 
 export function isBoxVisible(email: string | null | undefined, box: PortalBox, configured?: PortalUser | null) {
   const user = getPortalUser(email, configured);
   if (!user) return false;
+  if (!can(user, box === "espaco-equipe" ? "painel" : box, "visualizar")) return false;
   if (box === "motorista") return true;
   if (box === "espaco-equipe") {
     if (!user.modules.includes("painel")) return false;

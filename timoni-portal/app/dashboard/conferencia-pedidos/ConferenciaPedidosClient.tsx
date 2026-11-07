@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type ConferenciaResult, downloadWorkbook } from "./xlsx";
+import { createScreenRequest } from "@/lib/screen-request";
 
 const ACCEPTED_TYPES = new Set([
   "application/pdf",
@@ -65,27 +66,29 @@ export default function ConferenciaPedidosClient() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [result, setResult] = useState<ConferenciaResult | null>(null);
-  const [geminiStatus, setGeminiStatus] = useState<"checking" | "ready" | "missing">("checking");
+  const [geminiStatus, setGeminiStatus] = useState<"checking" | "ready" | "missing" | "unavailable">("checking");
+  const checkerRef = useRef<{ run: (options?: { urgent?: boolean }) => Promise<void> } | null>(null);
+  const geminiReady = useRef(false);
 
-  const checkGemini = useCallback(async () => {
-    try {
-      const response = await fetch("/api/configurar-gemini", { cache: "no-store" });
-      const payload = await response.json();
-      const ready = Boolean(response.ok && payload?.configured);
-      setGeminiStatus(ready ? "ready" : "missing");
-      return ready;
-    } catch {
-      setGeminiStatus("missing");
-      return false;
-    }
-  }, []);
+  const checkGemini = async () => { await checkerRef.current?.run({ urgent: true }); return geminiReady.current; };
 
   useEffect(() => {
-    void checkGemini();
-    const refresh = () => void checkGemini();
+    const checker = createScreenRequest({
+      load: async signal => {
+        const response = await fetch("/api/configurar-gemini", { cache: "no-store", signal });
+        const payload = await response.json();
+        if (!response.ok || typeof payload.configured !== "boolean") throw Error("Integração indisponível");
+        return payload.configured as boolean;
+      },
+      onData: ready => { geminiReady.current = ready; setGeminiStatus(ready ? "ready" : "missing"); },
+      onError: () => { geminiReady.current = false; setGeminiStatus("unavailable"); },
+    });
+    checkerRef.current = checker;
+    void checker.run();
+    const refresh = () => { if (document.visibilityState === "visible" && navigator.onLine) void checker.run(); };
     window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
-  }, [checkGemini]);
+    return () => { checker.dispose(); checkerRef.current = null; window.removeEventListener("focus", refresh); };
+  }, []);
 
   function addFiles(incoming: File[]) {
     setError("");
@@ -108,7 +111,7 @@ export default function ConferenciaPedidosClient() {
     setStatus("Preparando documentos...");
     if (!(await checkGemini())) {
       setStatus("");
-      return setError("A conferência precisa ser liberada uma única vez. Clique em Configurar agora.");
+      return setError("Não foi possível confirmar a integração central. Tente novamente ou avise a administração.");
     }
     setLoading(true);
     try {
@@ -147,9 +150,10 @@ export default function ConferenciaPedidosClient() {
     <div className="space-y-4">
       {geminiStatus === "missing" && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
-          <a href="/dashboard/conferencia-pedidos/configurar" target="_blank" rel="noreferrer" className="inline-flex items-center rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800">Configurar agora</a>
+          <p role="status" className="text-sm text-amber-900">A administração precisa concluir a configuração central da Conferência de Preços. Não é necessário informar uma chave neste navegador.</p>
         </div>
       )}
+      {geminiStatus === "unavailable" && <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"><p>Não foi possível verificar a integração. Tente novamente em instantes.</p><button type="button" onClick={() => void checkGemini()} className="mt-2 min-h-11 rounded-lg border border-amber-400 px-4 font-medium">Tentar novamente</button></div>}
 
       <section className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
         <div className="flex items-start gap-3">

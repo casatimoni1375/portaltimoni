@@ -1,8 +1,11 @@
 "use client";
 
+import { escapePrintHtml, safePrintUrl } from "@/lib/motorista-print";
+import { createMotoristaReadLoader } from "@/lib/motorista-read-loader";
+
 // MOTORISTA DASHBOARD: manter Dia, Semana e Mês. A rota /motorista (relatório/leitura) não deve ser alterada nesta reestruturação.
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
 
 type Viagem = {
@@ -428,7 +431,7 @@ function formatarCep(value: string) {
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
 }
 
-export default function MotoristaAgenda({ readOnly = false, canCreate = false, canEdit = false }: { readOnly?: boolean; canCreate?: boolean; canEdit?: boolean }) {
+export default function MotoristaAgenda({ readOnly = false, canCreate = false, canEdit = false, canDelete = false, actorName }: { readOnly?: boolean; canCreate?: boolean; canEdit?: boolean; canDelete?: boolean; actorName?: string }) {
   const hoje = localDateString();
   const [modo, setModo] = useState<Modo>("dia");
   const [selecionado, setSelecionado] = useState(hoje);
@@ -444,6 +447,13 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   const [invalidos, setInvalidos] = useState<Set<keyof FormState>>(new Set());
   const [opcoesVendedores, setOpcoesVendedores] = useState<VendedorOption[]>([]);
   const [layoutViewport, setLayoutViewport] = useState<"mobile" | "tablet" | "desktop">("desktop");
+  const leituraAtual = useRef<ReturnType<typeof createMotoristaReadLoader> | null>(null);
+  const ativo = useRef(false);
+
+  useEffect(() => {
+    ativo.current = true;
+    return () => { ativo.current = false; leituraAtual.current?.dispose(); };
+  }, []);
 
   const diasMes = useMemo(() => monthDays(mesBase), [mesBase]);
   const diasSemana = useMemo(() => weekDays(selecionado), [selecionado]);
@@ -502,68 +512,33 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       ativo = false;
     };
   }, []);
-  async function carregarDia(data = selecionado) {
+  const carregarDias = useCallback(async (datas: string[]) => {
+    if (!ativo.current) return;
+    leituraAtual.current?.dispose();
+    const loader = createMotoristaReadLoader(fetch, 30_000, "/api/agenda-motorista");
+    leituraAtual.current = loader;
     setLoading(true);
     setErro("");
-    try {
-      const response = await fetch(`/api/agenda-motorista?action=dia&data=${data}`, { cache: "no-store" });
-      const body = await parseResponse(response);
-      setViagens((current) => ({ ...current, [data]: body.viagens || [] }));
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não foi possível carregar a agenda.");
-    } finally {
-      setLoading(false);
-    }
+    await loader.run(datas, {
+      success: pares => setViagens(current => ({ ...current, ...Object.fromEntries(pares) as Record<string, Viagem[]> })),
+      error: error => setErro(error instanceof Error ? error.message : "Não foi possível carregar a agenda."),
+      done: () => setLoading(false),
+    });
+  }, []);
+
+  async function carregarDia(data = selecionado) {
+    await carregarDias([data]);
   }
 
   async function carregarMes() {
-    setLoading(true);
-    setErro("");
-    try {
-      const pares = await Promise.all(
-        diasMes.map(async (d) => {
-          const data = localDateString(d);
-          const response = await fetch(`/api/agenda-motorista?action=dia&data=${data}`, { cache: "no-store" });
-          const body = await parseResponse(response);
-          return [data, body.viagens || []] as const;
-        }),
-      );
-      setViagens(Object.fromEntries(pares));
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não foi possível carregar a agenda.");
-    } finally {
-      setLoading(false);
-    }
+    await carregarDias(diasMes.map(localDateString));
   }
 
   useEffect(() => {
-    if (modo === "dia") {
-      void carregarDia(selecionado);
-    } else if (modo === "semana") {
-      void (async () => {
-        setLoading(true);
-        setErro("");
-        try {
-          const pares = await Promise.all(
-            diasSemana.map(async (d) => {
-              const data = localDateString(d);
-              const response = await fetch(`/api/agenda-motorista?action=dia&data=${data}`, { cache: "no-store" });
-              const body = await parseResponse(response);
-              return [data, body.viagens || []] as const;
-            }),
-          );
-          setViagens((current) => ({ ...current, ...Object.fromEntries(pares) }));
-        } catch (e) {
-          setErro(e instanceof Error ? e.message : "Não foi possível carregar a semana.");
-        } finally {
-          setLoading(false);
-        }
-      })();
-    } else {
-      void carregarMes();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo, selecionado, mesBase, diasSemana]);
+    const datas = modo === "dia" ? [selecionado] : (modo === "semana" ? diasSemana : diasMes).map(localDateString);
+    void carregarDias(datas);
+    return () => leituraAtual.current?.dispose();
+  }, [modo, selecionado, diasSemana, diasMes, carregarDias]);
 
   function abrirNova(data = selecionado) {
     setEditandoId(null);
@@ -641,6 +616,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     REQUIRED.forEach((key) => {
       if (!String(form[key] ?? "").trim()) faltando.add(key);
     });
+    if (actorName) faltando.delete("preenchidoPor");
     if (form.bloquear && (!form.bloqueioInicio || !form.bloqueioFim)) {
       faltando.add("bloqueioInicio");
       faltando.add("bloqueioFim");
@@ -660,7 +636,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       const detalhesEndereco = `${enderecoBase}\nLink: ${linkMaps}`;
       const payload = new URLSearchParams({
         action: editandoId ? "atualizar" : "criar",
-        ...(editandoId ? { id: editandoId } : {}),
+        ...(editandoId ? { id: editandoId, dataOrigem: Object.values(viagens).flat().find((v) => v.id === editandoId)?.data || form.data } : {}),
         data: form.data,
         loja: form.loja,
         tipoHorario: form.bloquear ? "Bloqueio" : "Entrega",
@@ -713,6 +689,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       const payload = new URLSearchParams({
         action: "atualizar",
         id: v.id,
+        data: v.data,
         notasJson: notasComConclusao(v.notasJson, observacao),
       });
       const response = await fetch("/api/agenda-motorista", {
@@ -734,7 +711,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setSaving(true);
     setErro("");
     try {
-      const payload = new URLSearchParams({ action: "excluir", id: v.id });
+      const payload = new URLSearchParams({ action: "excluir", id: v.id, data: v.data });
       const response = await fetch("/api/agenda-motorista", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
@@ -769,15 +746,15 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     const linhas = itens.map((v, index) => {
       const tipo = lerMetaMotorista(v.notasJson).tipo;
       const endereco = formatarEnderecoExibicao(v.endereco, v.numero, v.complemento);
-      const link = separarEndereco(v.endereco).link;
+      const link = safePrintUrl(separarEndereco(v.endereco).link);
       const linha1 = linhaPrincipalRelatorio(v, index);
       const empresa = (v.clienteFornecedor || "").toUpperCase();
       const documento = documentoTexto(v.numeroPedido);
       const linha2 = [documento, empresa ? `${v.contatoNome ? "CLIENTE " : ""}${empresa}` : "", v.contatoNome ? `A/C: ${v.contatoNome.toUpperCase()}` : "", !v.contatoNome && v.volumes ? `VOLUME: ${String(v.volumes).toUpperCase()}` : ""].filter(Boolean).join(" | ");
-      const volume = v.contatoNome && v.volumes ? `<p><strong>VOLUME: ${String(v.volumes).toUpperCase()}</strong></p>` : "";
-      const detalhe = v.info ? `<p>${"Observação"}: ${String(v.info).replace(/^[\r\n]+/, "")}</p>` : "";
-      const maps = link ? ` | <a href="${link}" target="_blank"><strong>Google Maps</strong></a>` : "";
-      return `<div class="item"><p><strong>${linha1}</strong></p><p><strong>${linha2}</strong></p>${endereco ? `<p>End.: ${endereco}${maps}</p>` : ""}${volume}${detalhe}<p><strong>Preenchido por:</strong>${v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} | <strong>Forma de pagamento:</strong>${pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p></div>`;
+      const volume = v.contatoNome && v.volumes ? `<p><strong>VOLUME: ${escapePrintHtml(String(v.volumes).toUpperCase())}</strong></p>` : "";
+      const detalhe = v.info ? `<p>${"Observação"}: ${escapePrintHtml(String(v.info).replace(/^[\r\n]+/, ""))}</p>` : "";
+      const maps = link ? ` | <a href="${escapePrintHtml(link)}" target="_blank" rel="noopener noreferrer"><strong>Google Maps</strong></a>` : "";
+      return `<div class="item"><p><strong>${escapePrintHtml(linha1)}</strong></p><p><strong>${escapePrintHtml(linha2)}</strong></p>${endereco ? `<p>End.: ${escapePrintHtml(endereco)}${maps}</p>` : ""}${volume}${detalhe}<p><strong>Preenchido por:</strong>${v.preenchidoPor ? ` ${escapePrintHtml(v.preenchidoPor)}` : ""} | <strong>Forma de pagamento:</strong>${pagamentoTexto(v.notasJson) ? ` ${escapePrintHtml(pagamentoTexto(v.notasJson))}` : ""}</p></div>`;
     }).join("");
 
     const popup = window.open("", "_blank", "width=850,height=900");
@@ -794,7 +771,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            {(canCreate || !readOnly) && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
+            {canCreate && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
             <button type="button" onClick={imprimirDia} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Imprimir dia</button>
             <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "dia" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
             <button type="button" onClick={() => setModo("semana")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "semana" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Semana</button>
@@ -865,8 +842,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         <p className="mt-1 text-xs text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Concluir</button>}
-                          <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button><button type="button" onClick={() => duplicarViagem(v)} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Duplicar</button>
-                          {!readOnly && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
+                          <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button>{canCreate && <button type="button" onClick={() => duplicarViagem(v)} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Duplicar</button>}
+                          {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
                         {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-xs text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
                       </article>
@@ -896,10 +873,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     {v.info && <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
                     <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
-                  {(canEdit || !readOnly) && <div className="flex flex-wrap gap-2">
+                  {canEdit && <div className="flex flex-wrap gap-2">
                     {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">Concluir</button>}
-                    <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button><button type="button" onClick={() => duplicarViagem(v)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Duplicar</button>
-                    {!readOnly && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
+                    <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>{canCreate && <button type="button" onClick={() => duplicarViagem(v)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Duplicar</button>}
+                    {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                   </div>}
                 </div>
               </article>
@@ -976,7 +953,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="block min-w-0 text-sm font-medium text-slate-700">Preenchido por:<select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && ![...RESPONSAVEIS_RIO_CLARO, ...RESPONSAVEIS_ARARAS].includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}<optgroup label="Rio Claro">{RESPONSAVEIS_RIO_CLARO.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup><optgroup label="Araras">{RESPONSAVEIS_ARARAS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup></select></label>
+              <label className="block min-w-0 text-sm font-medium text-slate-700">Preenchido por:{actorName ? <input readOnly value={editandoId ? form.preenchidoPor : actorName} className={fieldClass("preenchidoPor")} /> : <select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && ![...RESPONSAVEIS_RIO_CLARO, ...RESPONSAVEIS_ARARAS].includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}<optgroup label="Rio Claro">{RESPONSAVEIS_RIO_CLARO.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup><optgroup label="Araras">{RESPONSAVEIS_ARARAS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup></select>}</label>
               <label className="block min-w-0 text-sm font-medium text-slate-700">Forma de pagamento:<select value={form.pagamento} onChange={(e) => set("pagamento", e.target.value as FormState["pagamento"])} className={fieldClass("pagamento")}><option value="">Selecione</option><option value="Boleto">Boleto</option><option value="Debite">Debite</option><option value="Pago">Pago</option><option value="Receber">Receber</option></select></label>
             </div>
 

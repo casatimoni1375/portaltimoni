@@ -7,6 +7,15 @@ import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 // mantém as integrações Google funcionando sem encerrar o acesso do colaborador.
 export async function requireAuthorizedSession() {
   const session = await auth();
+  if (session?.collaboratorSubject) {
+    return { session: null, errorResponse: NextResponse.json({ error: "Este módulo ainda não está disponível na prévia individual." }, { status: 403 }) };
+  }
+  if (session?.error === "SessionTemporarilyUnavailable") {
+    return { session: null, errorResponse: NextResponse.json({ error: "Conexão temporariamente indisponível. Tente novamente." }, { status: 503, headers: { "Retry-After": "15", "Cache-Control": "no-store" } }) };
+  }
+  if (session?.error === "RefreshAccessTokenError") {
+    return { session: null, errorResponse: NextResponse.json({ error: "Entre novamente para renovar sua autorização." }, { status: 401 }) };
+  }
   const email = session?.user?.email;
 
   if (!email || !isAuthorizedUser(email, session?.portalUser)) {
@@ -16,7 +25,7 @@ export async function requireAuthorizedSession() {
     };
   }
 
-  if (session.error === "RefreshAccessTokenError" || !session.accessToken) {
+  if (!session.accessToken) {
     try {
       session.accessToken = await getAccessTokenFromRefreshToken();
       session.error = undefined;

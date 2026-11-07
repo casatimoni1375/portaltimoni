@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth";
-import { getEffectivePortalUser } from "@/lib/portal-config";
-import { hasModuleAccess } from "@/lib/access-control";
+import { canReadUnit } from "@/lib/module-authorization";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { readPurchaseOrdersSnapshot, savePurchaseOrdersSnapshot, type PurchaseOrder } from "@/lib/purchase-orders";
 import { readSentPurchaseOrders } from "@/lib/purchase-orders-sync";
 import { NextResponse } from "next/server";
@@ -47,23 +46,10 @@ function getExceptions(orders: PurchaseOrder[]): PurchaseException[] {
 }
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json(
-      { ok: false, error: "Sessão expirada. Entre novamente no Portal." },
-      { status: 401 },
-    );
-  }
+  const gate = await requireModuleAuthorization("pedido-de-compra", "visualizar");
+  if (!gate.current) return gate.errorResponse;
 
   try {
-    const portalUser = await getEffectivePortalUser(session.accessToken, session.user.email);
-    if (!hasModuleAccess(session.user.email, "pedido-de-compra", portalUser)) {
-      return NextResponse.json(
-        { ok: false, error: "Acesso não autorizado a Pedidos de Compra." },
-        { status: 403 },
-      );
-    }
-
     const snapshot = await readPurchaseOrdersSnapshot();
     const force = new URL(request.url).searchParams.get("refresh") === "1";
     let pedidosEnviados = snapshot?.orders;
@@ -83,9 +69,9 @@ export async function GET(request: Request) {
       }
     }
 
-    const orders = pedidosEnviados || [];
+    const orders = (pedidosEnviados || []).filter(order => canReadUnit(gate.current.user, "pedido-de-compra", order.unidade));
     return NextResponse.json(
-      { ok: true, pedidosEnviados: orders, excecoes: getExceptions(orders), syncedAt, stale },
+      { ok: true, pedidosEnviados: orders.map(({ id, nome, enviadoEm, previsaoEntrega, unidade }) => ({ id, nome, enviadoEm, previsaoEntrega, unidade })), excecoes: getExceptions(orders), syncedAt, stale },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
@@ -94,4 +80,8 @@ export async function GET(request: Request) {
       { status: 502 },
     );
   }
+}
+
+export async function POST() {
+  return NextResponse.json({ ok: false, error: "Pedidos de Compra é somente leitura." }, { status: 405, headers: { Allow: "GET" } });
 }

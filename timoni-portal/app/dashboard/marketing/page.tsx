@@ -12,7 +12,7 @@ const frentes = [
 
 export default function MarketingPage() {
   return (
-    <div className="pb-10">
+    <div className="ct-modern-workspace pb-10">
       <section className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div>

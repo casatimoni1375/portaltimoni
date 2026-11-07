@@ -1,6 +1,8 @@
-import { pendingStockIds } from "@/lib/stock-notice-reads";
-import { auth } from "@/lib/auth";
-import { hasModuleAccess } from "@/lib/access-control";
+import { canModuleOperation, canReadUnit, canStockOperation, normalizeUnit as authorizationUnit, stockAction } from "@/lib/module-authorization";
+import { pendingStockIdsForUser } from "@/lib/stock-notice-reads";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { getPortalCentralIntegrationToken } from "@/lib/collaborator-auth.server";
+import type { PortalUser } from "@/lib/access-control";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
@@ -105,22 +107,16 @@ function summarize(needs: Need[]) {
 }
 
 
-async function getSheets() {
-  const session = await auth();
-  if (!session?.user?.email || !hasModuleAccess(session.user.email, "estoque", session.portalUser)) {
-    throw new Error("Acesso não autorizado ao módulo Estoque.");
-  }
-  if (!session.accessToken || session.error === "RefreshAccessTokenError") {
-    throw new Error("Sessão expirada. Saia e entre novamente no Portal.");
+class StockIntegrationUnavailable extends Error {}
+async function getSheets(context: { user: PortalUser; accessToken: string }) {
+  let accessToken = context.accessToken;
+  if (context.user.collaboratorAccess) {
+    try { accessToken = await getPortalCentralIntegrationToken(); }
+    catch { throw new StockIntegrationUnavailable("Integração do Estoque temporariamente indisponível. Tente novamente."); }
   }
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: session.accessToken });
+  oauth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth: oauth });
-}
-
-async function canDeleteStockRecords() {
-  const session = await auth();
-  return session?.user?.email?.trim().toLowerCase() === "mcrodini@gmail.com";
 }
 
 async function readAll(sheets: sheets_v4.Sheets) {
@@ -140,10 +136,13 @@ async function readAll(sheets: sheets_v4.Sheets) {
 }
 
 
-function apiError(error: unknown) {
+function apiError(error: unknown, individual = false) {
   const message = error instanceof Error ? error.message : "Falha ao acessar o Estoque.";
   const unauthorized = /não autorizado/i.test(message);
   const needsNewConsent = /insufficient|permission|scope|forbidden|403/i.test(message);
+  if (error instanceof StockIntegrationUnavailable || (individual && needsNewConsent)) {
+    return NextResponse.json({ ok: false, error: "Integração do Estoque temporariamente indisponível. Tente novamente." }, { status: 503, headers: { "Retry-After": "15", "Cache-Control": "no-store" } });
+  }
   return NextResponse.json(
     { ok: false, error: needsNewConsent ? "Autorize o acesso à planilha: saia do Portal e entre novamente." : message },
     { status: unauthorized ? 403 : needsNewConsent ? 403 : 400 },
@@ -151,12 +150,18 @@ function apiError(error: unknown) {
 }
 
 export async function GET() {
+  const gate = await requireModuleAuthorization("estoque", "visualizar");
+  if (!gate.current) return gate.errorResponse;
+  const { user } = gate.current;
   try {
-    const sheets = await getSheets();
+    const sheets = await getSheets(gate.current);
     const data = await readAll(sheets);
-    const session = await auth();
+    const storedUnits = new Map(data.needRows.slice(1).map(row => [value(row, 0), value(row, 10)]));
+    data.necessidades = data.necessidades.filter((item) => canReadUnit(user, "estoque", storedUnits.get(item.id)));
+    data.vendedores = data.vendedores.filter((item) => canReadUnit(user, "estoque", item.unidade));
+    data.summary = summarize(data.necessidades);
     let unreadIds: string[] | null = null;
-    try { unreadIds = pendingStockIds(session?.user?.email || "", data.necessidades); }
+    try { unreadIds = pendingStockIdsForUser(user, data.necessidades); }
     catch (error) { console.error("[stock-notifications]", error); }
     return NextResponse.json({
       unreadIds,
@@ -167,7 +172,7 @@ export async function GET() {
       summary: data.summary,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return apiError(error);
+    return apiError(error, Boolean(user.collaboratorAccess));
   }
 }
 
@@ -175,25 +180,26 @@ async function updateCells(sheets: sheets_v4.Sheets, data: Array<{ range: string
   await sheets.spreadsheets.values.batchUpdate({ spreadsheetId: SPREADSHEET_ID, requestBody: { valueInputOption: "RAW", data } });
 }
 
-function normalizeUnit(input: unknown): "rio_claro" | "araras" {
-  return input === "araras" ? "araras" : "rio_claro";
-}
-
-async function recordStockUpdate(summary: string) {
-  const session = await auth();
-  await recordModuleUpdateSafely("estoque", session?.user?.email, summary);
-}
-
 export async function POST(request: Request) {
+  const gate = await requireModuleAuthorization("estoque", "visualizar");
+  if (!gate.current) return gate.errorResponse;
+  const { user } = gate.current;
+  const recordStockUpdate = (summary: string) => recordModuleUpdateSafely("estoque", user.email, summary);
   try {
-    const sheets = await getSheets();
     const body = (await request.json()) as Record<string, unknown>;
     const action = String(body.action ?? "");
+    const permissionAction = stockAction(action);
+    if (!permissionAction) return NextResponse.json({ error: "Ação desconhecida." }, { status: 400 });
+    if (!canModuleOperation(user, "estoque", permissionAction)) return NextResponse.json({ error: "Ação não permitida." }, { status: 403 });
+    const sheets = await getSheets(gate.current);
     const data = await readAll(sheets);
 
     if (action === "criar") {
       const codigo = String(body.codigo ?? "").trim();
-      const unidade = normalizeUnit(body.unidade);
+      const targetUnit = authorizationUnit(body.unidade);
+      if (!targetUnit || targetUnit === "Geral") return NextResponse.json({ error: "Unidade inválida." }, { status: 400 });
+      if (!canStockOperation(user, action, targetUnit)) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
+      const unidade = targetUnit === "Araras" ? "araras" : "rio_claro";
       const vendedor = String(body.vendedor ?? "").trim();
       const quantidade = String(body.quantidade ?? "").trim();
       const nota = String(body.nota ?? "").trim();
@@ -205,6 +211,8 @@ export async function POST(request: Request) {
       if (!produto) throw new Error(`Produto ${codigo} não encontrado.`);
       const existing = data.necessidades.find((item) => item.codigo === codigo && item.unidade === unidade && item.status !== STATUS.CHEGOU);
       if (existing) {
+        const persisted = data.needRows.slice(1).find(row => value(row, 0) === existing.id);
+        if (!persisted || authorizationUnit(value(persisted, 10)) !== targetUnit) return NextResponse.json({ error: "Unidade do registro não identificada." }, { status: 403 });
         if (cliente && !existing.clienteAguardando) {
           const index = data.needRows.slice(1).findIndex((row) => value(row, 0) === existing.id);
           if (index >= 0) await updateCells(sheets, [{ range: `Necessidades!J${index + 2}`, values: [[true]] }]);
@@ -234,11 +242,12 @@ export async function POST(request: Request) {
     if (rowIndex < 0) throw new Error("Solicitação não encontrada.");
     const currentNeed = data.necessidades.find((item) => item.id === id);
     if (!currentNeed) throw new Error("Solicitação não encontrada.");
+    const storedUnit = authorizationUnit(value(data.needRows[rowIndex + 1], 10));
+    if (!storedUnit || !canStockOperation(user, action, storedUnit)) return NextResponse.json({ error: "Ação não permitida nesta unidade." }, { status: 403 });
     const rowNumber = rowIndex + 2;
     const now = new Date().toISOString();
 
     if (action === "excluir") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode excluir registros do Estoque.");
       const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
       const sheet = spreadsheet.data.sheets?.find((item) => item.properties?.title === "Necessidades");
       const sheetId = sheet?.properties?.sheetId;
@@ -253,11 +262,11 @@ export async function POST(request: Request) {
           }],
         },
       });
+      await recordStockUpdate(`Solicitação excluída: ${currentNeed.id} · ${currentNeed.codigo}.`);
       return NextResponse.json({ ok: true });
     }
 
     if (action === "editar") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode editar solicitações do Estoque.");
       const status = String(body.status ?? currentNeed.status);
       const statusChanged = status !== currentNeed.status;
       if (statusChanged && !([STATUS.PENDENTE, STATUS.EM_COMPRA, STATUS.PEDIDO_EXISTENTE] as string[]).includes(status)) throw new Error("Selecione uma etapa válida.");
@@ -325,7 +334,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (action === "editar_observacao") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode editar respostas do Estoque.");
       const texto = String(body.texto ?? "").trim();
       if (!texto) throw new Error("Escreva a resposta.");
       await updateCells(sheets, [
@@ -359,7 +367,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (action === "reabrir") {
-      if (!(await canDeleteStockRecords())) throw new Error("Somente Ciça pode reabrir solicitações do Estoque.");
       if (currentNeed.status !== STATUS.CHEGOU) throw new Error("Somente solicitações em Chegou podem ser reabertas.");
       await updateCells(sheets, [
         { range: `Necessidades!D${rowNumber}`, values: [[STATUS.PEDIDO_EXISTENTE]] },
@@ -379,7 +386,7 @@ export async function POST(request: Request) {
     }
     throw new Error("Ação desconhecida.");
   } catch (error) {
-    return apiError(error);
+    return apiError(error, Boolean(user.collaboratorAccess));
   }
 }
 

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { ADMIN_IDENTITIES, resolveOfficialPortalUser } from "./authorization";
 import {
   entersDirectlyInPainelTimoni,
   normalizeEmail,
@@ -13,12 +14,11 @@ import { unstable_cache, revalidateTag } from "next/cache";
 const USERS_SHEET = "PortalUsuarios";
 const COLLABORATORS_SHEET = "PortalColaboradores";
 const HISTORY_SHEET = "PortalHistorico";
-const ROTATING_STOCK_MIGRATION = "Permissões Estoque Rotativo v1";
 const NOTICE_BY_ACCESS_MIGRATION = "Confirmação de leitura por acesso v1";
 const COLLABORATOR_ROSTER_MIGRATION = "Lista oficial de colaboradores 30-09-2026 v1";
 const REQUIRED_SHEETS = [USERS_SHEET, COLLABORATORS_SHEET, HISTORY_SHEET];
 const PORTAL_CONFIG_CACHE_TAG = "portal-config";
-export const CICA_EMAIL = "mcrodini@gmail.com";
+export const CICA_EMAIL = ADMIN_IDENTITIES.cica;
 export const DASHBOARD_BOX_MODULES: PortalModule[] = ["painel", "agenda", "compras", "pedido-de-compra", "conferencia", "estoque", "estoque-rotativo", "motorista", "reunioes", "leads"];
 
 export type ConfiguredCollaborator = TeamMember & {
@@ -193,19 +193,19 @@ export async function listConfiguredPortalUsers(accessToken: string) {
   return readUsers(accessToken);
 }
 
-async function fetchCollaborators(accessToken: string): Promise<ConfiguredCollaborator[]> {
+async function fetchCollaborators(accessToken: string, strictAccess = false): Promise<ConfiguredCollaborator[]> {
   const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${COLLABORATORS_SHEET}!A2:I500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
   return (response.values || []).map((row) => ({
     id: row[0] || "",
     name: row[1] || "",
-    unit: (row[2] || "Rio Claro") as TeamMember["unit"],
-    active: yes(row[3], true),
+    unit: (row[2] || (strictAccess ? "" : "Rio Claro")) as TeamMember["unit"],
+    active: yes(row[3], !strictAccess),
     noticeRequired: yes(row[4], true),
     updatedAt: row[5] || "",
     accessEmail: normalizeEmail(row[6] || ""),
     chatEnabled: yes(row[7], true),
     role: row[8] || "",
-  })).filter((member) => member.id && member.name);
+  })).filter((member) => member.id && (strictAccess || member.name));
 }
 
 const readCollaboratorsCached = unstable_cache(
@@ -215,6 +215,18 @@ const readCollaboratorsCached = unstable_cache(
 );
 
 const readCollaborators = cache(async (accessToken: string) => readCollaboratorsCached(accessToken));
+
+// Identificação de acesso não usa lista histórica, migração automática nem cache entre requisições.
+export const getOfficialCollaboratorsForAccess = cache(async (accessToken: string) => {
+  if (!accessToken) throw new Error("Conexão do cadastro não configurada.");
+  return fetchCollaborators(accessToken, true);
+});
+export const getOfficialCollaboratorForAccess = cache(async (accessToken: string, id: string) => {
+  if (!accessToken) throw new Error("Conexão do cadastro não configurada.");
+  if (!id || id.length > 128) return null;
+  const matches = (await getOfficialCollaboratorsForAccess(accessToken)).filter(member => member.id === id);
+  return matches.length === 1 ? matches[0] : null;
+});
 
 async function readHistory(accessToken: string): Promise<PortalAuditEntry[]> {
   const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${HISTORY_SHEET}!A2:D500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
@@ -316,6 +328,40 @@ export async function upsertPortalUser(accessToken: string, input: PortalUser) {
   return user;
 }
 
+/** Restricted edits never rewrite modules, status or other authorization columns. */
+export async function updatePortalUserMetadata(accessToken: string, user: PortalUser) {
+  const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:A500`)}`));
+  const index = (response.values || []).findIndex((row) => normalizeEmail(row[0]) === normalizeEmail(user.email));
+  if (index < 0) throw new Error("Acesso não encontrado.");
+  const row = index + 2;
+  await sheetsRequest(accessToken, sheetsUrl("/values:batchUpdate"), {
+    method: "POST",
+    body: JSON.stringify({ valueInputOption: "RAW", data: [
+      { range: `${USERS_SHEET}!B${row}`, values: [[user.name]] },
+      { range: `${USERS_SHEET}!M${row}`, values: [[user.accessLabel || user.name]] },
+    ] }),
+  });
+  revalidateTag(PORTAL_CONFIG_CACHE_TAG);
+  return user;
+}
+
+export async function updateCollaboratorMetadata(accessToken: string, member: ConfiguredCollaborator) {
+  const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${COLLABORATORS_SHEET}!A2:A500`)}`));
+  const index = (response.values || []).findIndex((row) => row[0] === member.id);
+  if (index < 0) throw new Error("Colaborador não encontrado.");
+  const row = index + 2;
+  await sheetsRequest(accessToken, sheetsUrl("/values:batchUpdate"), {
+    method: "POST",
+    body: JSON.stringify({ valueInputOption: "RAW", data: [
+      { range: `${COLLABORATORS_SHEET}!B${row}`, values: [[member.name]] },
+      { range: `${COLLABORATORS_SHEET}!I${row}`, values: [[member.role]] },
+      { range: `${COLLABORATORS_SHEET}!F${row}`, values: [[member.updatedAt]] },
+    ] }),
+  });
+  revalidateTag(PORTAL_CONFIG_CACHE_TAG);
+  return member;
+}
+
 export async function deletePortalUser(accessToken: string, email: string) {
   const normalized = normalizeEmail(email);
   if (!normalized || normalized === CICA_EMAIL) return false;
@@ -370,7 +416,7 @@ export async function deleteCollaborator(accessToken: string, id: string) {
   return true;
 }
 
-export async function appendAudit(accessToken: string, action: string, details: string, actor = CICA_EMAIL) {
+export async function appendAudit(accessToken: string, action: string, details: string, actor: string = CICA_EMAIL) {
   await sheetsRequest(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${HISTORY_SHEET}!A:D`)}:append`, {
     valueInputOption: "RAW",
     insertDataOption: "INSERT_ROWS",
@@ -384,8 +430,7 @@ export async function ensurePortalConfiguration(accessToken: string) {
   await ensureSheets(accessToken);
   let [users, collaborators] = await Promise.all([readUsers(accessToken), readCollaborators(accessToken)]);
   if (!users.length) {
-    users = defaultPortalUsers();
-    await writeUsers(accessToken, users);
+    throw new Error("Cadastro oficial vazio. Recuperação administrativa deve ser feita na planilha oficial.");
   }
   if (!collaborators.length) {
     collaborators = defaultCollaborators();
@@ -472,70 +517,37 @@ export async function ensurePortalConfiguration(accessToken: string) {
   return { users, collaborators };
 }
 
-let rotatingStockMigration: Promise<void> | null = null;
-
-async function ensureRotatingStockPermissions(accessToken: string) {
-  if (!rotatingStockMigration) rotatingStockMigration = (async () => {
-    const { users } = await ensurePortalConfiguration(accessToken);
-    const migrationRows = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${HISTORY_SHEET}!B2:B2000`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
-    if ((migrationRows.values || []).some((row) => row[0] === ROTATING_STOCK_MIGRATION)) return;
-    const allowed = new Set([CICA_EMAIL, "mrodini@gmail.com", "estoquetimoni@gmail.com", "carolina@casatimoni.com.br"]);
-    const changed = users.filter((user) => allowed.has(user.email) && !user.modules.includes("estoque-rotativo"));
-    for (const user of changed) {
-      await upsertPortalUser(accessToken, {
-        ...user,
-        modules: [...user.modules, "estoque-rotativo"],
-        boxes: [...new Set([...(user.boxes || []), "estoque-rotativo" as const])],
-      });
-    }
-    await appendAudit(accessToken, ROTATING_STOCK_MIGRATION, "Acesso inicial liberado para Ciça, Marcelo, Lucas e Carolina.", CICA_EMAIL);
-  })().catch((error) => {
-    rotatingStockMigration = null;
-    throw error;
-  });
-  await rotatingStockMigration;
-}
-
 export async function loadPortalConfiguration(accessToken: string): Promise<PortalConfiguration> {
-  const { users, collaborators } = await ensurePortalConfiguration(accessToken);
-  const history = await readHistory(accessToken);
+  // Administrative reads must not seed or migrate users as a side effect.
+  const [users, collaborators, history] = await Promise.all([fetchUsers(accessToken), fetchCollaborators(accessToken), readHistory(accessToken)]);
   return { users, collaborators, history };
 }
 
-export async function getEffectivePortalUser(accessToken: string | undefined, email: string | null | undefined) {
-  const normalized = normalizeEmail(email);
-  if (!normalized) return null;
-  if (!accessToken) return portalUsers[normalized] || null;
-  try {
-    await ensureRotatingStockPermissions(accessToken);
-    const users = await readUsers(accessToken);
-    if (!users.length) return portalUsers[normalized] || null;
-    return users.find((user) => user.email === normalized) || null;
-  } catch (error) {
-    console.warn("[portal-config] Não foi possível carregar a configuração dinâmica; usando base segura.", error);
-    return portalUsers[normalized] || null;
-  }
-}
+// A sessão distingue indisponibilidade do cadastro de usuário ausente/desativado.
+export const getPortalUserSessionState = cache(async (accessToken: string | undefined, email: string | null | undefined) => {
+  if (!accessToken) return { user: null, unavailable: true };
+  let unavailable = false;
+  const user = await resolveOfficialPortalUser(email, async () => {
+    try { return await fetchUsers(accessToken); }
+    catch { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
+  });
+  return { user, unavailable };
+});
+
+export const getEffectivePortalUser = cache(async (accessToken: string | undefined, email: string | null | undefined) => {
+  if (!accessToken) return null;
+  // Authorization is request-scoped and uncached across requests: revocations must not use a historical roster.
+  return (await getPortalUserSessionState(accessToken, email)).user;
+});
 
 export async function getEffectivePanelData(accessToken: string | undefined, email: string | null | undefined) {
-  const normalized = normalizeEmail(email);
-  const fallbackUser = normalized ? portalUsers[normalized] || null : null;
-  const fallbackCollaborators = defaultCollaborators().filter((member) => member.active);
-
-  if (!accessToken) return { user: fallbackUser, collaborators: fallbackCollaborators };
+  const user = await getEffectivePortalUser(accessToken, email);
+  if (!user || !accessToken) return { user: null, collaborators: [] as ConfiguredCollaborator[] };
   try {
-    await ensureRotatingStockPermissions(accessToken);
-    const [users, collaborators] = await Promise.all([
-      readUsers(accessToken),
-      readCollaborators(accessToken),
-    ]);
-    return {
-      user: users.length ? users.find((user) => user.email === normalized) || null : fallbackUser,
-      collaborators: collaborators.filter((member) => member.active),
-    };
-  } catch (error) {
-    console.warn("[portal-config] Não foi possível carregar o painel; usando base segura.", error);
-    return { user: fallbackUser, collaborators: fallbackCollaborators };
+    const collaborators = await readCollaborators(accessToken);
+    return { user, collaborators: collaborators.filter((member) => member.active) };
+  } catch {
+    return { user, collaborators: [] as ConfiguredCollaborator[] };
   }
 }
 
@@ -552,8 +564,7 @@ export async function getEffectiveCollaborators(accessToken?: string) {
 
 export async function recordPortalAccess(accessToken: string, email: string) {
   try {
-    await ensurePortalConfiguration(accessToken);
-    const users = await readUsers(accessToken);
+    const users = await fetchUsers(accessToken);
     const index = users.findIndex((user) => user.email === normalizeEmail(email));
     if (index < 0) return;
     const range = `${USERS_SHEET}!J${index + 2}`;
@@ -566,4 +577,3 @@ export async function recordPortalAccess(accessToken: string, email: string) {
     console.warn("[portal-config] Não foi possível registrar o último acesso.", error);
   }
 }
-

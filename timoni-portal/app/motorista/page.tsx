@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
 import type { Metadata } from "next";
 import MotoristaLeitura from "./motorista-leitura";
 
@@ -19,6 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MotoristaPage() {
+export default async function MotoristaPage() {
+  const gate = await requireModuleAuthorization("motorista", "visualizar");
+  if (!gate.current) redirect("/login");
   return <MotoristaLeitura />;
 }

@@ -1,6 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
+
+const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
 
 type RequestUnit = "rio_claro" | "araras";
 type SentOrder = { id: string; nome: string; enviadoEm: string; previsaoEntrega: string; unidade: RequestUnit };
@@ -19,36 +23,58 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [error, setError] = useState("");
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
   const [exceptions, setExceptions] = useState<PurchaseException[]>([]);
-  const inFlight = useRef(false);
-  const refresh = useCallback(async (force = false) => {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/pedido-de-compra${force ? "?refresh=1" : ""}`, { cache: "no-store" });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(payload.error || "Falha ao carregar");
-      setSentOrders(payload.pedidosEnviados || []);
-      setExceptions((payload.excecoes || []).filter((item: PurchaseException) => visibleUnits.includes(item.unidade)));
-      if (payload.stale) setError("Exibindo a última atualização. Não foi possível consultar o Trello agora.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar");
-    } finally { inFlight.current = false; setLoading(false); }
-  }, [visibleUnits]);
+  const [selected, setSelected] = useState<{ id: string; nome: string } | null>(null);
+  const request = useRef<{ run: (options?: { urgent?: boolean; force?: boolean }) => Promise<void> } | null>(null);
+  const unitKey = visibleUnits.join("|");
   useEffect(() => {
-    void refresh();
-    const timer = window.setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, 60000);
-    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
-    const onStorage = (event: StorageEvent) => { if (event.key === "timoni_pedido_compra_updated" && document.visibilityState === "visible") void refresh(); };
+    setSentOrders([]); setExceptions([]); setSelected(null);
+    if (!navigator.onLine) { setLoading(false); setError("Sem conexão. A lista será consultada quando a rede voltar."); }
+    const units = unitKey.split("|");
+    const loader = createScreenRequest({
+      load: async (signal, force) => {
+        const response = await fetch(`/api/pedido-de-compra${force ? "?refresh=1" : ""}`, { cache: "no-store", signal });
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new ScreenRequestError(payload.error || "Falha ao carregar", response.status);
+        return payload as { pedidosEnviados?: SentOrder[]; excecoes?: PurchaseException[]; stale?: boolean };
+      },
+      onData: payload => {
+        const orders = (payload.pedidosEnviados || []).filter(item => units.includes(item.unidade));
+        setSentOrders(orders);
+        setExceptions((payload.excecoes || []).filter(item => units.includes(item.unidade)));
+        setSelected(current => current && orders.some(item => item.id === current.id) ? current : null);
+        setError(payload.stale ? "Exibindo a última cópia salva. Não foi possível atualizar a lista agora." : "");
+      },
+      onError: error => {
+        setError(error instanceof Error ? error.message : "Falha ao carregar");
+        if (error instanceof ScreenRequestError && [401, 403].includes(error.status)) {
+          setSentOrders([]); setExceptions([]); setSelected(null);
+        }
+      },
+      onBusy: busy => { setLoading(busy); },
+    });
+    request.current = loader;
+    let dirty = false;
+    const check = (urgent = false) => {
+      if (document.visibilityState === "visible" && navigator.onLine) {
+        const shouldRefresh = urgent || dirty;
+        dirty = false;
+        void loader.run({ urgent: shouldRefresh });
+      }
+    };
+    check();
+    const timer = window.setInterval(() => check(), 60000);
+    const onVisible = () => check();
+    const onOnline = () => check(true);
+    const onStorage = (event: StorageEvent) => { if (event.key === "timoni_pedido_compra_updated") { dirty = true; check(); } };
     window.addEventListener("storage", onStorage);
     window.addEventListener("focus", onVisible);
+    window.addEventListener("online", onOnline);
     document.addEventListener("visibilitychange", onVisible);
-    return () => { window.clearInterval(timer); window.removeEventListener("storage", onStorage); window.removeEventListener("focus", onVisible); document.removeEventListener("visibilitychange", onVisible); };
-  }, [refresh]);
+    return () => { loader.dispose(); request.current = null; window.clearInterval(timer); window.removeEventListener("storage", onStorage); window.removeEventListener("focus", onVisible); window.removeEventListener("online", onOnline); document.removeEventListener("visibilitychange", onVisible); };
+  }, [unitKey]);
 
   return (
-    <div className="pb-10 space-y-5">
+    <div className="ct-modern-workspace pb-10 space-y-5">
       {error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">{error}</p>}
       {!loading && exceptions.length > 0 && (
         <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
@@ -57,7 +83,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           <div className="mt-3 divide-y divide-amber-200">
             {exceptions.map((item) => (
               <div key={`${item.id}-${item.tipo}`} className="py-3 text-sm">
-                <p className="font-semibold text-slate-900">{item.nome} · {unitLabel(item.unidade)}</p>
+                <button type="button" onClick={() => setSelected(item)} className="min-h-11 text-left font-semibold text-[#14038D] underline decoration-slate-300 underline-offset-4">{item.nome} · {unitLabel(item.unidade)}</button>
                 <p className="mt-1 text-slate-600">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</p>
               </div>
             ))}
@@ -70,7 +96,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Acompanhamento</p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">Pedidos enviados</h2>
           </div>
-          <button type="button" onClick={() => void refresh(true)} disabled={loading} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50">Atualizar lista</button>
+          <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50">Atualizar lista</button>
         </div>
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           {visibleUnits.map((currentUnit) => {
@@ -84,7 +110,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
                 <div className="divide-y divide-slate-100">
                   {orders.map((order) => (
                     <article key={order.id} className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{order.nome}</p>
+                      <button type="button" onClick={() => setSelected(order)} aria-label={`Ver itens do pedido ${order.nome}`} className="min-h-11 text-left font-semibold text-[#14038D] underline decoration-slate-300 underline-offset-4">{order.nome}</button>
                       <p className="mt-1 text-sm text-slate-500">Enviado: {dateOnly(order.enviadoEm)} · Entrega: {dateOnly(order.previsaoEntrega)}</p>
                     </article>
                   ))}
@@ -96,6 +122,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           })}
         </div>
       </section>
+      {selected && <PedidoDetalhes key={selected.id} id={selected.id} name={selected.nome} onClose={() => setSelected(null)} />}
     </div>
   );
 }
