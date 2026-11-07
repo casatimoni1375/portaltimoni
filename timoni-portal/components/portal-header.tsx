@@ -1,6 +1,4 @@
 import Image from "next/image";
-import { Suspense } from "react";
-import WeeklyPeopleHighlights, { WeeklyPeopleCards } from "@/components/weekly-people-highlights";
 import { getPortalSession as auth } from "@/lib/portal-session";
 import { hasModuleAccess, type PortalModule, type PortalUser } from "@/lib/access-control";
 import Link from "next/link";
@@ -58,8 +56,8 @@ export default async function PortalHeader({ email }: { email: string; portalUse
         <Link href={startHref} className="ct-portal-nav-link">Visão geral</Link>
         {hasModuleAccess(email, "painel", effectivePortalUser) && <>
           <Link href="/colaboradores" className="ct-portal-nav-link">Painel Timoni</Link>
-          <a href="#ct-aniversarios" className="ct-portal-nav-link">Aniversários</a>
-          <a href="#ct-ferias" className="ct-portal-nav-link">Férias</a>
+          <Link href="/colaboradores#ct-aniversarios" className="ct-portal-nav-link">Aniversários</Link>
+          <Link href="/colaboradores#ct-ferias" className="ct-portal-nav-link">Férias</Link>
         </>}
         <ModuleUpdatesNav items={desktopItems} canViewUpdates={canViewUpdates} linkClass="ct-portal-nav-link" />
         {isManagement && <Link href="/configuracoes" className="ct-portal-nav-link">Configurações</Link>}
@@ -84,7 +82,6 @@ export default async function PortalHeader({ email }: { email: string; portalUse
       <p className="ct-portal-eyebrow">Casa Timoni · seu espaço de trabalho</p>
       <p className="ct-portal-greeting">Olá, {email.trim().toLowerCase() === "mcrodini@gmail.com" ? "Ciça" : effectivePortalUser?.name?.split(" ")[0] || "equipe"}.</p>
       <p className="ct-portal-subtitle">Compras, operação e equipe. As informações do seu dia em um só lugar.</p>
-      {hasModuleAccess(email, "painel", effectivePortalUser) && <Suspense fallback={<WeeklyPeopleCards events={[]} unavailable />}><WeeklyPeopleHighlights accessToken={session?.error === "RefreshAccessTokenError" ? undefined : session?.accessToken} /></Suspense>}
     </div>
   </div>;
 }

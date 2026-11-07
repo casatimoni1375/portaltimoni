@@ -20,6 +20,7 @@ export async function loadPortalModule(session, relative = 'app/dashboard/page.t
     'next/link': { default: ({ children, ...props }) => React.createElement('a', props, children) },
     'next/navigation': { redirect: path => { throw Error('redirect:' + path); } },
     '@/lib/portal-session': { getPortalSession: async () => session },
+    '@/components/portal-panel': { default: () => React.createElement('section', { 'data-existing-panel': true }, 'Informações existentes do Painel') },
     '@/lib/google-calendar': { getAccessTokenFromRefreshToken: async () => { throw Error('Sem acesso externo nos testes'); }, listEventsInRange: async () => [] },
     ...overrides,
   };
@@ -129,8 +130,46 @@ test('estrutura aprovada usa logo oficial e menu lateral, sem ampliar leitura do
   assert.ok(!restricted.includes('href="/agenda"'));
   const management = actor('mcrodini@gmail.com', ['painel', 'estoque', 'motorista', 'agenda'], { unit: 'Geral' });
   const allowed = await renderPortalPreview(management);
-  assert.ok(allowed.includes('Aniversários da semana'));
-  assert.ok(allowed.includes('Férias da semana'));
+  assert.ok(allowed.includes('href="/colaboradores#ct-aniversarios"'));
+  assert.ok(allowed.includes('href="/colaboradores#ct-ferias"'));
+  assert.ok(!allowed.includes('Aniversários da semana'));
   assert.ok(allowed.includes('href="/dashboard"'));
   assert.ok(!allowed.includes('casa-timoni-logo.svg'));
+});
+
+test('visão geral inclui informações anteriores apenas para quem tem acesso ao Painel', async () => {
+  assert.ok((await renderDashboard(actor('mcrodini@gmail.com', ['painel', 'estoque']))).includes('data-existing-panel'));
+  assert.ok(!(await renderDashboard(actor('vendas@example.test', ['estoque']))).includes('data-existing-panel'));
+});
+
+test('próximas datas preservam a janela anterior sem misturar registros na semana atual', async () => {
+  const { getExistingPeopleWindow, selectUpcomingPeople, selectWeeklyPeople } = await loadPortalModule(null, 'components/weekly-people-highlights.tsx');
+  const now = new Date('2026-11-07T12:00:00Z');
+  assert.equal(getExistingPeopleWindow(now).timeMax, '2027-01-07T00:00:00-03:00');
+  const event = (id, summary, start, end) => ({ id, summary, start, end, calendarKey: 'timoni' });
+  const events = [event('futuro', 'Aniversário de exemplo', '2026-11-14', '2026-11-15'), event('dup', 'Aniversário de exemplo', '2026-11-14', '2026-11-15'), event('fora', 'Aniversário fora da janela', '2027-01-08', '2027-01-09'), event('ferias', 'Pessoa - Férias', '2026-10-28', '2026-11-12')];
+  assert.equal(selectWeeklyPeople(events, now).birthdays.length, 0);
+  assert.equal(selectUpcomingPeople(events, now).birthdays.length, 1);
+  assert.equal(selectUpcomingPeople(events, now).vacations.length, 1);
+});
+
+test('troca explícita oferece seleção da conta Google sem forçar consentimento', async () => {
+  for (const trocar of [undefined, '1']) {
+    let submitted;
+    const login = await loadPortalModule(null, 'app/login/page.tsx', {
+      '@/lib/auth': { auth: async () => null, signIn: async (...args) => { submitted = args; }, signOut: async () => {} },
+      'next-auth': { AuthError: class extends Error {} },
+      '@/lib/collaborator-auth.server': { individualLoginEnabled: () => false },
+    });
+    const page = await login.default({ searchParams: Promise.resolve({ trocar }) });
+    const findForm = node => {
+      if (!node || typeof node !== 'object') return null;
+      if (node.type === 'form') return node;
+      for (const child of React.Children.toArray(node.props?.children)) { const found = findForm(child); if (found) return found; }
+      return null;
+    };
+    await findForm(page).props.action();
+    assert.equal(submitted[0], 'google');
+    assert.equal(submitted[2]?.prompt, trocar === '1' ? 'select_account' : undefined);
+  }
 });
