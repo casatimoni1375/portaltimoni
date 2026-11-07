@@ -4,6 +4,7 @@ import { hasModuleAccess, isBoxVisible, type PortalModule } from "@/lib/access-c
 import type { PortalIconName } from "@/components/portal-icon";
 import DashboardOverview from "@/components/dashboard-overview";
 import PortalPanel from "@/components/portal-panel";
+import MotoristaPage from "./motorista/page";
 
 type Tile = { module: PortalModule; label: string; description: string; href: string; icon: PortalIconName };
 const tiles: Tile[] = [
@@ -29,5 +30,11 @@ export default async function DashboardPage() {
   const authorized = tiles.filter(tile => hasModuleAccess(email, tile.module, session?.portalUser));
   if (!authorized.length) redirect("/login?error=AccessDenied");
   const visible = authorized.filter(tile => isBoxVisible(email, tile.module, session?.portalUser));
+  if (email.trim().toLowerCase() === "caixarctimoni@gmail.com") {
+    return <div className="space-y-6">
+      {hasModuleAccess(email, "painel", session?.portalUser) && <PortalPanel embedded />}
+      {hasModuleAccess(email, "motorista", session?.portalUser) && <MotoristaPage />}
+    </div>;
+  }
   return <><DashboardOverview tiles={visible} />{hasModuleAccess(email, "painel", session?.portalUser) && <PortalPanel embedded />}</>;
 }
