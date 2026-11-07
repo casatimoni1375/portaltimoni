@@ -79,7 +79,6 @@ export default async function PortalHeader({ email }: { email: string; portalUse
     <div className="ct-portal-welcome">
       <p className="ct-portal-eyebrow">Casa Timoni · seu espaço de trabalho</p>
       <p className="ct-portal-greeting">Olá, {email.trim().toLowerCase() === "mcrodini@gmail.com" ? "Ciça" : effectivePortalUser?.name?.split(" ")[0] || "equipe"}.</p>
-      <p className="ct-portal-subtitle">Compras, operação e equipe. As informações do seu dia em um só lugar.</p>
     </div>
   </div>;
 }

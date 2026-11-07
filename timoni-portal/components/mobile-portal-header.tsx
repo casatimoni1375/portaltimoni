@@ -38,12 +38,12 @@ export default function MobilePortalHeader({ items, showUpdates, showGuide, show
   }
 
   return <>
-    <div className="portal-mobile-header sticky top-0 z-[90] grid h-16 grid-cols-[2.75rem_1fr_auto] items-center bg-white px-3 text-[#14038D] md:hidden">
+    <div className="portal-mobile-header sticky top-0 z-[90] grid h-14 grid-cols-[2.75rem_1fr_auto] items-center bg-white px-3 text-[#14038D] md:hidden">
       <button type="button" onClick={() => setOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-lg" aria-label="Abrir menu" aria-expanded={open} aria-controls="portal-mobile-menu">
         <PortalIcon name="menu" className="h-6 w-6" />
       </button>
       <Link href="/dashboard" className="flex items-center justify-start leading-none" aria-label="Casa Timoni — início">
-        <Image src="/logo-ct-oficial.png" alt="Casa Timoni" width={40} height={40} className="mr-2 h-10 w-10 object-contain" /><span className="text-base font-bold tracking-tight">Portal Timoni</span>
+        <Image src="/logo-ct-oficial.png" alt="Casa Timoni" width={32} height={32} className="mr-2 h-8 w-8 object-contain" /><span className="text-sm font-bold tracking-tight">Portal Timoni</span>
       </Link>
       <div className="flex items-center justify-end gap-0.5">
         {showChat ? <ChatButton mobileHeader /> : null}
@@ -52,7 +52,7 @@ export default function MobilePortalHeader({ items, showUpdates, showGuide, show
       </div>
     </div>
 
-    {open ? createPortal(<div id="portal-mobile-menu" className="fixed inset-x-0 bottom-0 top-16 z-[100] md:hidden" role="dialog" aria-modal="true" aria-label="Menu principal">
+    {open ? createPortal(<div id="portal-mobile-menu" className="fixed inset-x-0 bottom-0 top-14 z-[100] md:hidden" role="dialog" aria-modal="true" aria-label="Menu principal">
       <button type="button" className="absolute inset-0 bg-slate-950/45" onClick={() => setOpen(false)} aria-label="Fechar menu" />
       <aside className="absolute inset-y-0 left-0 flex w-[85%] max-w-[20rem] flex-col bg-white shadow-2xl">
         <div className="flex h-10 items-center justify-between border-b border-slate-100 px-2.5">
