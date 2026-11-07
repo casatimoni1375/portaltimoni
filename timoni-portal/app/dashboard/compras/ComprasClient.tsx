@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {useSearchParams} from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
@@ -51,6 +52,7 @@ function todayLocal() {
 }
 
 export default function ComprasClient() {
+  const query=useSearchParams();const viewUnit=query.get("unidade");const requestedSupplier=query.get("fornecedor");
   const [trello, setTrello] = useState<TrelloPayload>({ configured: false });
   const [loadingTrello, setLoadingTrello] = useState(true);
   const [selectedId, setSelectedId] = useState("");
@@ -75,7 +77,7 @@ export default function ComprasClient() {
   const [success, setSuccess] = useState("");
   const [updatedCardUrl, setUpdatedCardUrl] = useState("");
 
-  const suppliers = useMemo(() => trello.suppliers || [], [trello.suppliers]);
+  const suppliers = useMemo(() => (trello.suppliers || []).filter(item=>(!viewUnit||viewUnit==="todas"||item.unit===viewUnit)&& (query.get("filtro")!=="urgentes"||item.urgent)), [trello.suppliers,viewUnit,query]);
   const selectedSupplier = useMemo(
     () => suppliers.find((supplier) => supplier.id === selectedId) || null,
     [selectedId, suppliers],
@@ -134,11 +136,15 @@ export default function ComprasClient() {
     setSelectedId(supplier.id);
     setSupplierName(supplier.name);
     setOrderNumber("");
-    setUnit("");
+    setUnit(supplier.unit==="rio_claro"||supplier.unit==="araras"?supplier.unit:"");
     setError("");
     setSuccess("");
     setUpdatedCardUrl("");
   }
+
+  useEffect(()=>{if(!requestedSupplier)return;const supplier=suppliers.find(item=>item.id===requestedSupplier);if(supplier){setSelectedId(supplier.id);setSupplierName(supplier.name);if(supplier.unit==="rio_claro"||supplier.unit==="araras")setUnit(supplier.unit);}},[requestedSupplier,suppliers]);
+
+  useEffect(()=>{if(selectedId&&!suppliers.some(item=>item.id===selectedId)){setSelectedId("");setSupplierName("");setUnit("");}},[selectedId,suppliers]);
 
   async function extractItems() {
     setError("");

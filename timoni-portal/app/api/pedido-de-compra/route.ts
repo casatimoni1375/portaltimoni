@@ -1,3 +1,4 @@
+import { requirePurchaseRead } from "@/lib/purchase-read-access";
 import { canReadUnit } from "@/lib/module-authorization";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { readPurchaseOrdersSnapshot, savePurchaseOrdersSnapshot, type PurchaseOrder } from "@/lib/purchase-orders";
@@ -46,7 +47,7 @@ function getExceptions(orders: PurchaseOrder[]): PurchaseException[] {
 }
 
 export async function GET(request: Request) {
-  const gate = await requireModuleAuthorization("pedido-de-compra", "visualizar");
+  const gate = await requirePurchaseRead();
   if (!gate.current) return gate.errorResponse;
 
   try {
@@ -69,7 +70,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const orders = (pedidosEnviados || []).filter(order => canReadUnit(gate.current.user, "pedido-de-compra", order.unidade));
+    const orders = (pedidosEnviados || []).filter(order => canReadUnit(gate.current.user, gate.resource, order.unidade));
     return NextResponse.json(
       { ok: true, pedidosEnviados: orders.map(({ id, nome, enviadoEm, previsaoEntrega, unidade }) => ({ id, nome, enviadoEm, previsaoEntrega, unidade })), excecoes: getExceptions(orders), syncedAt, stale },
       { headers: { "Cache-Control": "no-store" } },

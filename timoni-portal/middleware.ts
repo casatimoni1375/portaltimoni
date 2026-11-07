@@ -79,6 +79,8 @@ export default auth((request) => {
 
   // Pedidos de Compra validates current saved permissions in its server page.
   // The JWT may still contain the permissions from before the last edit.
+  if (pathname === "/agenda" && ["agenda", "agenda-ct", "reunioes"].some(module=>hasModuleAccess(request.auth?.user?.email,module as PortalModule,configuredUser))) return NextResponse.next();
+  if (pathname === "/dashboard/compras" && ["compras", "pedido-de-compra", "estoque-rotativo", "conferencia"].some(module=>hasModuleAccess(request.auth?.user?.email,module as PortalModule,configuredUser))) return NextResponse.next();
   const protectedRoute = protectedRoutes.find(({ prefix }) => pathname.startsWith(prefix));
 
   if (protectedRoute && !hasModuleAccess(request.auth?.user?.email, protectedRoute.module, configuredUser)) {

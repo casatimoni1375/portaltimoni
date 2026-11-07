@@ -147,13 +147,16 @@ function apiError(error: unknown, individual = false) {
   );
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const gate = await requireModuleAuthorization("estoque", "visualizar");
   if (!gate.current) return gate.errorResponse;
   const { user } = gate.current;
   try {
     const sheets = await getSheets();
     const data = await readAll(sheets);
+    const search=request?new URL(request.url).searchParams.get("search"):null;
+    if(search){const q=search.trim().toLocaleLowerCase("pt-BR");return NextResponse.json({produtos:data.produtos.filter(product=>`${product.codigo} ${product.descricao}`.toLocaleLowerCase("pt-BR").includes(q)).slice(0,8)},{headers:{"Cache-Control":"private, no-store"}});}
+
     const storedUnits = new Map(data.needRows.slice(1).map(row => [value(row, 0), value(row, 10)]));
     data.necessidades = data.necessidades.filter((item) => canReadUnit(user, "estoque", storedUnits.get(item.id)));
     data.vendedores = data.vendedores.filter((item) => canReadUnit(user, "estoque", item.unidade));

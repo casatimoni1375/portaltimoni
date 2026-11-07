@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
@@ -57,6 +58,7 @@ const headerAliases:Record<Exclude<keyof ImportRow,"sourceRow"|"duplicate"|"erro
 };
 
 export default function LeadsPage() {
+  const urlQuery=useSearchParams();
   const [data,setData]=useState<ResponseData|null>(null);
   const [reportData,setReportData]=useState<ResponseData|null>(null);
   const [page,setPage]=useState(1);
@@ -72,6 +74,7 @@ export default function LeadsPage() {
   const [showSearch,setShowSearch]=useState(false);
   const [text,setText]=useState("");
   const [segment,setSegment]=useState("");
+  useEffect(()=>{const search=urlQuery.get("busca");if(search){setText(search);setFilter("todos");}if(urlQuery.get("unidade")==="araras")setLocation("ara");else if(urlQuery.get("unidade")==="rio_claro")setLocation("rc");},[urlQuery]);
   const [prospectSearch,setProspectSearch]=useState("");
   const fileInputRef=useRef<HTMLInputElement>(null);
   const [importRows,setImportRows]=useState<ImportRow[]|null>(null);

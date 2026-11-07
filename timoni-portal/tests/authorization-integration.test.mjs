@@ -609,3 +609,30 @@ test("Cadastro fixo usa credencial central, sem herdar a conta Google do colabor
   const state=await config.getPortalUserSessionState("personal-test-token",cica.email);
   assert.equal(state.user.email,cica.email);assert.deepEqual(tokens,["Bearer central-test-token"]);
 });
+
+test("Navegação enxuta preserva ordem e esconde módulos sem concessão",async()=>{
+ const h=await harness();const nav=await h.evaluate("lib/clean-navigation.ts");
+ assert.deepEqual(Array.from(nav.cleanNavigation(cica),item=>item.label),["Hoje","Estoque","Compras","Motorista","Agenda","Comercial","Equipe"]);
+ const seller=person("seller@example.test",{modules:["pedido-de-compra","painel"]});
+ assert.deepEqual(Array.from(nav.cleanNavigation(seller),item=>item.label),["Hoje","Compras","Equipe"]);
+ assert.equal(nav.cleanNavigation({...seller,active:false}).length,0);
+ assert.equal(nav.activeNavigation("/dashboard/estoque-rotativo"),"compras");assert.equal(nav.activeNavigation("/dashboard/estoque"),"estoque");assert.equal(nav.activeNavigation("/agenda-ct"),"agenda");
+});
+test("Rotas agrupadas não concedem módulo nem ação nova",async()=>{
+ const h=await harness({realAuth:true});const m=await h.evaluate("middleware.ts");
+ const personWith=(modules)=>person("seller@example.test",{modules});
+ const req=(path,user)=>({nextUrl:new URL(`https://portal.test${path}`),url:`https://portal.test${path}`,auth:{user:{email:user.email},portalUser:user}});
+ assert.equal(m.default(req("/dashboard/compras?aba=acompanhar",personWith(["pedido-de-compra"]))).status,200);
+ assert.equal(m.default(req("/agenda?view=loja",personWith(["agenda-ct"]))).status,200);
+ assert.equal(m.default(req("/dashboard/compras",personWith(["painel"]))).status,302);
+ const policy=await h.evaluate("lib/authorization.ts");assert.equal(policy.can(personWith(["pedido-de-compra"]),"compras","criar"),false);
+});
+test("Equipe mensal filtra a unidade do cadastro, mesmo com unidade forjada na URL",async()=>{
+ const actor=person("rc@example.test",{unit:"Rio Claro",modules:["painel"]});
+ const roster=[{...member,name:"Adriel",unit:"Rio Claro"},{...member,id:"ara",name:"Yan",unit:"Araras"}];
+ const calendar=[{id:"rc",summary:"Aniversário Adriel",start:"2026-11-14",end:"2026-11-15"},{id:"ara",summary:"Aniversário Yan",start:"2026-11-26",end:"2026-11-27"},{id:"unknown",summary:"Aniversário sem cadastro",start:"2026-11-10",end:"2026-11-11"}];
+ const h=await harness({actor,extraMocks:{"@/lib/google-calendar":{getAccessTokenFromRefreshToken:async()=>"central",listEventsInRange:async()=>calendar},"@/lib/portal-config":{getEffectivePortalUser:async()=>actor,getEffectivePanelData:async()=>({user:actor,collaborators:roster})}}});
+ const route=await h.evaluate("app/api/hoje/equipe/route.ts");
+ const data=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=todas"))).json();assert.deepEqual(data.events.map(item=>item.id),["rc"]);assert.deepEqual(data.people.map(item=>item.name),["Adriel"]);
+ const foreign=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=araras"))).json();assert.equal(foreign.events.length,0);assert.equal(foreign.people.length,0);
+});

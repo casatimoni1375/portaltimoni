@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
 
@@ -109,6 +110,7 @@ function canUseNotifications() {
 }
 
 export default function EstoqueClient({ isManager = false, canDelete = false, canEdit = false, canRespond = false, showRequestForm = true, showManagerResponseField = true, defaultUnit = "rio_claro", allowedUnits = ["rio_claro", "araras"] }: EstoqueClientProps) {
+  const query=useSearchParams();
   const safeAllowedUnits = useMemo(() => allowedUnits, [allowedUnits]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -124,6 +126,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
   const [seller, setSeller] = useState("");
   const [codeSearch, setCodeSearch] = useState("");
   const [descriptionSearch, setDescriptionSearch] = useState("");
+  useEffect(()=>{const value=query.get("unidade");if(value==="todas"&&safeAllowedUnits.length>1)setUnit("todas");else if(value&&safeAllowedUnits.includes(value as RequestUnit))setUnit(value as RequestUnit);else if(safeAllowedUnits.length===1)setUnit(safeAllowedUnits[0]);const code=query.get("busca");if(code)setCodeSearch(code);},[query,safeAllowedUnits]);
   const [selected, setSelected] = useState("");
   const [quantity, setQuantity] = useState("");
   const [note, setNote] = useState("");
