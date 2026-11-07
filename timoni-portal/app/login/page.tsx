@@ -11,9 +11,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; code?: string }>;
+  searchParams: Promise<{ error?: string; code?: string; trocar?: string }>;
 }) {
-  const [{ error, code }, session] = await Promise.all([searchParams, auth()]);
+  const [{ error, code, trocar }, session] = await Promise.all([searchParams, auth()]);
   const individual = individualLoginEnabled();
   if (individual && (session?.collaboratorSubject || !session?.user?.email)) {
     const connected = Boolean(session?.collaboratorAccess && !session.error);
@@ -77,7 +77,7 @@ export default async function LoginPage({
             </Link>
             <form action={async () => {
               "use server";
-              await signOut({ redirectTo: "/login" });
+              await signOut({ redirectTo: "/login?trocar=1" });
             }}>
               <button type="submit" className="mt-3 text-sm text-slate-500 hover:text-slate-800">Trocar conta</button>
             </form>
@@ -86,7 +86,7 @@ export default async function LoginPage({
         <form
           action={async () => {
             "use server";
-            await signIn("google", { redirectTo: "/dashboard" });
+            await signIn("google", { redirectTo: "/dashboard" }, trocar === "1" ? { prompt: "select_account" } : undefined);
           }}
         >
           <button

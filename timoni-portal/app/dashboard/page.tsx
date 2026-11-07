@@ -3,6 +3,7 @@ import { getPortalSession as auth } from "@/lib/portal-session";
 import { hasModuleAccess, isBoxVisible, type PortalModule } from "@/lib/access-control";
 import type { PortalIconName } from "@/components/portal-icon";
 import DashboardOverview from "@/components/dashboard-overview";
+import PortalPanel from "@/components/portal-panel";
 
 type Tile = { module: PortalModule; label: string; description: string; href: string; icon: PortalIconName };
 const tiles: Tile[] = [
@@ -28,5 +29,5 @@ export default async function DashboardPage() {
   const authorized = tiles.filter(tile => hasModuleAccess(email, tile.module, session?.portalUser));
   if (!authorized.length) redirect("/login?error=AccessDenied");
   const visible = authorized.filter(tile => isBoxVisible(email, tile.module, session?.portalUser));
-  return <DashboardOverview tiles={visible} />;
+  return <><DashboardOverview tiles={visible} />{hasModuleAccess(email, "painel", session?.portalUser) && <PortalPanel embedded />}</>;
 }
