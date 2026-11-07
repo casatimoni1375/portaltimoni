@@ -1,3 +1,6 @@
+import Image from "next/image";
+import { Suspense } from "react";
+import WeeklyPeopleHighlights, { WeeklyPeopleCards } from "@/components/weekly-people-highlights";
 import { getPortalSession as auth } from "@/lib/portal-session";
 import { hasModuleAccess, type PortalModule, type PortalUser } from "@/lib/access-control";
 import Link from "next/link";
@@ -31,8 +34,6 @@ export default async function PortalHeader({ email }: { email: string; portalUse
   const canViewUpdates = isManagement;
   const canUseChat = email.trim().toLowerCase() === "mcrodini@gmail.com" && hasModuleAccess(email, "chat", effectivePortalUser);
   const mobileVisible = (module: PortalModule) => module === "motorista" || module === "pedido-de-compra" || effectivePortalUser?.mobileModules === undefined || effectivePortalUser.mobileModules.includes(module);
-  const linkClass =
-    "whitespace-nowrap rounded-lg px-2 py-2 text-[13px] font-medium text-white/90 transition hover:bg-white/10 hover:text-white";
   const allowedItems = navItems
     .filter((item) => hasModuleAccess(email, item.module, effectivePortalUser))
     .map((item) => ({ ...item, targetHref: item.href }));
@@ -46,43 +47,44 @@ export default async function PortalHeader({ email }: { email: string; portalUse
     ...equipeItems.filter((item) => mobileVisible(item.module)),
     ...(isManagement ? [{ href: "/configuracoes", targetHref: "/configuracoes", label: "Configurações", module: "painel" as PortalModule, updateModule: undefined, icon: "settings" as PortalIconName, color: "text-slate-800" }] : []),
   ];
-  const startHref = "/colaboradores";
+  const startHref = "/dashboard";
   const initials = email.trim().toLowerCase() === "mcrodini@gmail.com" ? "CR" : email.trim().toLowerCase() === "mrodini@gmail.com" ? "MR" : "CT";
 
-  return (
-    <>
-    <header className="fixed inset-x-0 top-0 z-[90] border-b border-blue-950/50 bg-[#0F2D8F] text-white shadow-sm">
+  return <div className="ct-modern-shell">
+    <aside className="ct-portal-sidebar" aria-label="Navegação do Portal">
+      <Link href={startHref} className="ct-portal-brand" aria-label="Casa Timoni — início"><Image src="/logo-ct-oficial.png" alt="Logotipo oficial Casa Timoni" width={132} height={132} /></Link>
+      <p className="ct-portal-sidebar-label">SEU PORTAL</p>
+      <nav aria-label="Menu principal">
+        <Link href={startHref} className="ct-portal-nav-link">Visão geral</Link>
+        {hasModuleAccess(email, "painel", effectivePortalUser) && <>
+          <Link href="/colaboradores" className="ct-portal-nav-link">Painel Timoni</Link>
+          <a href="#ct-aniversarios" className="ct-portal-nav-link">Aniversários</a>
+          <a href="#ct-ferias" className="ct-portal-nav-link">Férias</a>
+        </>}
+        <ModuleUpdatesNav items={desktopItems} canViewUpdates={canViewUpdates} linkClass="ct-portal-nav-link" />
+        {isManagement && <Link href="/configuracoes" className="ct-portal-nav-link">Configurações</Link>}
+      </nav>
+      <div className="ct-portal-aside-footer"><strong>Tudo no seu lugar.</strong>Informações claras para cuidar de cada etapa do dia.</div>
+    </aside>
+    <header className="ct-portal-header">
       <MobilePortalHeader items={mobileItems} showUpdates={canViewUpdates} showGuide={isManagement} showChat={canUseChat && mobileVisible("chat")} initials={initials} />
-      <div className="mx-auto hidden max-w-7xl flex-wrap items-center justify-between gap-x-2 px-4 sm:flex sm:flex-nowrap sm:gap-2 sm:px-4">
-        <Link
-          href={startHref}
-          className="order-1 flex min-h-12 shrink-0 items-center py-3 text-base font-bold tracking-tight text-white sm:order-none"
-          aria-label="Casa Timoni — início"
-        >
-          Casa Timoni
-        </Link>
-
-        <nav
-          className="order-3 -mx-1 flex w-[calc(100%+0.5rem)] min-w-0 flex-none items-center gap-0.5 overflow-x-auto border-t border-white/10 px-1 py-2 sm:order-none sm:mx-0 sm:w-auto sm:flex-1 sm:border-0 sm:px-0"
-          aria-label="Menu principal"
-        >
-          <ModuleUpdatesNav items={desktopItems} canViewUpdates={canViewUpdates} linkClass={linkClass} />
-        </nav>
-
-        {isManagement ? <Link href="/configuracoes" className={linkClass}>Configurações</Link> : null}
-
-        <PortalNotifications items={desktopItems} showUpdates={canViewUpdates} />
-        {canUseChat ? <ChatButton /> : null}
-
-        <div className="order-2 flex min-h-12 shrink-0 items-center sm:order-none">
-          <Link href="/login" prefetch={false} title="Sair da tela mantendo a sessão"
-            className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white">
-            Sair
-          </Link>
+      <div className="ct-portal-desktop-top">
+        <Link href={startHref} className="ct-portal-crumb">Portal Timoni <span aria-hidden="true"> / </span><strong>Seu espaço de trabalho</strong></Link>
+        <div className="ct-portal-profile">
+          <span className="ct-portal-profile-name">{effectivePortalUser?.name || email}</span>
+          <span className="ct-portal-avatar" aria-label={effectivePortalUser?.name || email}>{initials}</span>
+          <PortalNotifications items={desktopItems} showUpdates={canViewUpdates} />
+          {canUseChat && <ChatButton />}
+          <Link href="/login" prefetch={false} title="Sair da tela mantendo a sessão" className="ct-portal-top-link">Sair</Link>
         </div>
       </div>
     </header>
-    <div aria-hidden="true" className="h-16 sm:h-12" />
-    </>
-  );
+    <div className="ct-portal-spacer" aria-hidden="true" />
+    <div className="ct-portal-welcome">
+      <p className="ct-portal-eyebrow">Casa Timoni · seu espaço de trabalho</p>
+      <p className="ct-portal-greeting">Olá, {email.trim().toLowerCase() === "mcrodini@gmail.com" ? "Ciça" : effectivePortalUser?.name?.split(" ")[0] || "equipe"}.</p>
+      <p className="ct-portal-subtitle">Compras, operação e equipe. As informações do seu dia em um só lugar.</p>
+      {hasModuleAccess(email, "painel", effectivePortalUser) && <Suspense fallback={<WeeklyPeopleCards events={[]} unavailable />}><WeeklyPeopleHighlights accessToken={session?.error === "RefreshAccessTokenError" ? undefined : session?.accessToken} /></Suspense>}
+    </div>
+  </div>;
 }
