@@ -104,7 +104,9 @@ test("edição cadastral não cria usuários nem altera campos de segurança", (
   assert.equal(canEditConfigurationRecord(cica, "user", undefined, before), true);
 });
 
-const moduleSource = stripTypeScriptTypes(await readFile(new URL("../lib/module-authorization.ts", import.meta.url), "utf8")).replace('"./authorization"', JSON.stringify(policyUrl));
+const collaboratorSource = stripTypeScriptTypes(await readFile(new URL("../lib/collaborator-access.ts", import.meta.url), "utf8")).replace('"./authorization"', JSON.stringify(policyUrl));
+const collaboratorUrl = "data:text/javascript;base64," + Buffer.from(collaboratorSource).toString("base64");
+const moduleSource = stripTypeScriptTypes(await readFile(new URL("../lib/module-authorization.ts", import.meta.url), "utf8")).replace('"./authorization"', JSON.stringify(policyUrl)).replace('"./collaborator-access"', JSON.stringify(collaboratorUrl));
 const modulePolicy = await import("data:text/javascript;base64," + Buffer.from(moduleSource).toString("base64"));
 test("1B: módulo oficial é obrigatório inclusive Motorista e Pedidos", () => {
   for (const resource of ["motorista", "pedido-de-compra", "reunioes"]) assert.equal(can(user("vendas@example.test", { modules: [] }), resource, "visualizar"), false);

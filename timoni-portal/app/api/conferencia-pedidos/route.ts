@@ -1,7 +1,7 @@
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
-import { cookies } from "next/headers";
+import { getGeminiServerKey, redactGeminiMessage } from "@/lib/gemini-config.server";
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
@@ -388,18 +388,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const cookieStore = await cookies();
-    const apiKey =
-      process.env.GEMINI_API_KEY?.trim() ||
-      process.env.GOOGLE_AI_STUDIO_API_KEY?.trim() ||
-      cookieStore.get("timoni_gemini_key")?.value?.trim();
+    const apiKey = getGeminiServerKey();
 
     if (!apiKey) {
       return NextResponse.json(
         {
           code: "GEMINI_NOT_CONFIGURED",
           error:
-            "O Gemini ainda não está configurado neste Portal. A configuração é feita uma única vez.",
+            "A integração central ainda não está configurada. Avise a administração do Portal.",
         },
         { status: 503 },
       );
@@ -495,7 +491,7 @@ export async function POST(request: Request) {
         : temporary
           ? "O serviço de conferência está temporariamente ocupado. Tentamos novamente de forma automática, mas não foi possível concluir agora. Aguarde alguns minutos e tente novamente."
           : lastMessage || "Não foi possível analisar os documentos. Verifique os arquivos e tente novamente.";
-      return NextResponse.json({ error, retryable: temporary || lastStatus === 422 }, { status: temporary ? 503 : 502 });
+      return NextResponse.json({ error: redactGeminiMessage(error), retryable: temporary || lastStatus === 422 }, { status: temporary ? 503 : 502 });
     }
     const supplierNames = new Set(
       (Array.isArray(parsed.documentos_fornecedor) ? parsed.documentos_fornecedor : [])
@@ -516,7 +512,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Falha inesperada na conferência.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: redactGeminiMessage(message) }, { status: 400 });
   }
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
+import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
 
 type Meeting = {
   id: string;
@@ -154,9 +155,9 @@ function MeetingCard({
 }
 
 export default function ReunioesClient({
-  isGestao, canManage, canCreate, canDelete,
+  allowedUnits, canManage, canCreate, canDelete,
 }: {
-  isGestao: boolean;
+  allowedUnits: Meeting["unit"][];
   canManage: boolean;
   canCreate: boolean;
   canDelete: boolean;
@@ -168,44 +169,52 @@ export default function ReunioesClient({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  async function load() {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch("/api/reunioes", { cache: "no-store" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erro ao carregar reuniões.");
-      setItems(data.items || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar reuniões.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => { void load(); }, []);
+  const request = useRef<{ run: (options?: { urgent?: boolean }) => Promise<void> } | null>(null);
+  const unitKey = allowedUnits.join("|");
+  const load = () => request.current?.run({ urgent: true });
+  useEffect(() => {
+    setItems([]); setShowForm(false);
+    const units = unitKey.split("|");
+    const loader = createScreenRequest({
+      load: async signal => {
+        const response = await fetch("/api/reunioes", { cache: "no-store", signal });
+        const data = await response.json();
+        if (!response.ok) throw new ScreenRequestError(data.error || "Erro ao carregar reuniões.", response.status);
+        return data as { items?: Meeting[] };
+      },
+      onData: data => { setItems((data.items || []).filter(item => units.includes(item.unit))); setError(""); },
+      onError: error => {
+        setError(error instanceof Error ? error.message : "Erro ao carregar reuniões.");
+        if (error instanceof ScreenRequestError && [401, 403].includes(error.status)) { setItems([]); setShowForm(false); }
+      },
+      onBusy: setLoading,
+    });
+    request.current = loader;
+    void loader.run();
+    return () => { loader.dispose(); request.current = null; };
+  }, [unitKey]);
 
   const visible = useMemo(
     () => items
-      .filter((item) => isGestao || item.unit === "Araras")
+      .filter((item) => allowedUnits.includes(item.unit))
       .map(upcomingMeeting)
       .filter((item): item is Meeting => Boolean(item)),
-    [items, isGestao],
+    [items, allowedUnits],
   );
   const history = useMemo(() => {
     const completed = items
-      .filter((item) => item.status === "concluida" && (isGestao || item.unit === "Araras"));
+      .filter((item) => item.status === "concluida" && allowedUnits.includes(item.unit));
     const unique = new Map<string, Meeting>();
     completed.forEach((item) => unique.set(`${item.unit}-${item.date}`, item));
     return [...unique.values()].sort((a, b) => b.date.localeCompare(a.date));
-  }, [items, isGestao]);
+  }, [items, allowedUnits]);
 
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
   function startNew() {
-    setForm(EMPTY);
+    setForm({ ...EMPTY, unit: allowedUnits[0] || "Araras" });
     setShowForm(true);
   }
 
@@ -260,7 +269,7 @@ export default function ReunioesClient({
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-rose-600">Gestão e acompanhamento</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{isGestao ? "Reuniões" : "Reuniões Araras"}</h1>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">Pautas, atas, apresentações e datas futuras por loja.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -270,12 +279,12 @@ export default function ReunioesClient({
         </div>
       </section>
 
-      {canManage && showForm && (
+      {(form.id ? canManage : canCreate) && showForm && (
         <form id="form-reuniao" onSubmit={submit} className="mt-5 grid gap-4 rounded-3xl border border-blue-200 bg-blue-50 p-5 md:grid-cols-2">
           <h2 className="text-xl font-semibold text-slate-900 md:col-span-2">{form.id ? "Editar reunião" : "Nova reunião"}</h2>
           <label className="text-sm font-medium text-slate-700">Loja
             <select value={form.unit} onChange={(e) => setField("unit", e.target.value as Meeting["unit"])} className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5">
-              <option>Araras</option><option>Rio Claro</option>
+              {allowedUnits.map(unit => <option key={unit}>{unit}</option>)}
             </select>
           </label>
           <label className="text-sm font-medium text-slate-700">Periodicidade
@@ -331,7 +340,7 @@ export default function ReunioesClient({
       <section className="mt-5">
         <h2 className="text-xl font-semibold text-slate-900">Reuniões agendadas</h2>
         {loading ? <p className="mt-3 text-sm text-slate-500">Carregando...</p> :
-          visible.length ? <div className={`mt-3 grid gap-4 ${isGestao ? "md:grid-cols-2" : ""}`}>
+          visible.length ? <div className={`mt-3 grid gap-4 ${allowedUnits.length > 1 ? "md:grid-cols-2" : ""}`}>
             {visible.map((meeting) => {
               const sourceMeeting = items.find((item) => item.id === meeting.id) || meeting;
               const pendingOccurrences = pastOccurrences(sourceMeeting);

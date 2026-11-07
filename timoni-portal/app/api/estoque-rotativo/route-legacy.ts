@@ -1,3 +1,4 @@
+import { rotatingStockFilterTitle, rotatingStockRowFilter } from "@/lib/rotativo-filter";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { canRotativoOperation, rotativoAction, type RotativoRole } from "@/lib/module-authorization";
 import type { PortalUser } from "@/lib/access-control";
@@ -697,7 +698,7 @@ async function markSupplierRotatingStockUpdated(
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `'${sheetName.replace(/'/g, "''")}'!C2`,
+    range: `'${sheetName.replace(/'/g, "''")}'!A3`,
     valueInputOption: "RAW",
     requestBody: { values: [[`Rotativo atualizado em ${date}`]] },
   });
@@ -707,7 +708,7 @@ async function markSupplierRotatingStockUpdated(
     requestBody: {
       requests: [{
         repeatCell: {
-          range: { sheetId, startRowIndex: 1, endRowIndex: 2, startColumnIndex: 2, endColumnIndex: 3 },
+          range: { sheetId, startRowIndex: 2, endRowIndex: 3, startColumnIndex: 0, endColumnIndex: 1 },
           cell: { userEnteredFormat: {
             backgroundColor: { red: 0.82, green: 0.95, blue: 0.84 },
             textFormat: {
@@ -875,12 +876,6 @@ async function centralSheetId(sheets: sheets_v4.Sheets) {
   return sheet.properties.sheetId;
 }
 
-function rotatingStockFilterTitle(updateId: string, supplierName: string) {
-  const shortId = updateId.replace(/-/g, "").slice(0, 8);
-  const cleanSupplier = supplierName.replace(/[\r\n]+/g, " ").trim().slice(0, 45);
-  return `Rotativo · ${cleanSupplier || "Atualização"} · ${shortId}`;
-}
-
 async function ensureRotatingStockFilterView(
   sheets: sheets_v4.Sheets,
   updateId: string,
@@ -899,55 +894,17 @@ async function ensureRotatingStockFilterView(
 
   const title = rotatingStockFilterTitle(updateId, supplierName);
   const existing = sheet?.filterViews?.find((filterView) => filterView.title === title);
-  if (existing?.filterViewId) return existing.filterViewId;
-
-  const selectedRows = new Set(targetRows.filter((row) => Number.isInteger(row) && row >= 2 && row <= rowCount));
-  if (!selectedRows.size) throw new Error("Esta atualização não possui itens encontrados na planilha central.");
-
-  const valuesResponse = await sheets.spreadsheets.values.get({
-    spreadsheetId: ROTATING_STOCK_CENTRAL.spreadsheetId,
-    range: `${ROTATING_STOCK_CENTRAL.sheetName}!B2:C${rowCount}`,
-    valueRenderOption: "FORMATTED_VALUE",
-  });
-  const values = (valuesResponse.data.values || []) as unknown[][];
-
-  function filterSpec(valueOffset: number, sheetColumnIndex: number) {
-    const selectedValues = new Set<string>();
-    const occurrences = new Map<string, number[]>();
-
-    for (let index = 0; index < values.length; index += 1) {
-      const rowNumber = index + 2;
-      const value = String(values[index]?.[valueOffset] ?? "").trim();
-      const list = occurrences.get(value) || [];
-      list.push(rowNumber);
-      occurrences.set(value, list);
-      if (selectedRows.has(rowNumber)) {
-        if (!value) return null;
-        selectedValues.add(value);
-      }
-    }
-
-    for (const value of selectedValues) {
-      const rows = occurrences.get(value) || [];
-      if (rows.some((row) => !selectedRows.has(row))) return null;
-    }
-
-    const hiddenValues = new Set<string>();
-    for (let index = 0; index < values.length; index += 1) {
-      const rowNumber = index + 2;
-      if (selectedRows.has(rowNumber)) continue;
-      const value = String(values[index]?.[valueOffset] ?? "").trim();
-      if (!selectedValues.has(value)) hiddenValues.add(value);
-    }
-
-    return {
-      columnIndex: sheetColumnIndex,
-      filterCriteria: { hiddenValues: Array.from(hiddenValues) },
-    };
+  const spec = rotatingStockRowFilter(targetRows, rowCount);
+  if (existing?.filterViewId != null) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: ROTATING_STOCK_CENTRAL.spreadsheetId,
+      requestBody: { requests: [{ updateFilterView: {
+        filter: { filterViewId: existing.filterViewId, range: { sheetId, startRowIndex: 0, endRowIndex: rowCount, startColumnIndex: 0, endColumnIndex: columnCount }, filterSpecs: [spec] },
+        fields: "range,filterSpecs,criteria",
+      } }] },
+    });
+    return existing.filterViewId;
   }
-
-  const spec = filterSpec(0, 1) || filterSpec(1, 2);
-  if (!spec) throw new Error("Não foi possível criar um filtro exato para esta atualização.");
 
   const created = await sheets.spreadsheets.batchUpdate({
     spreadsheetId: ROTATING_STOCK_CENTRAL.spreadsheetId,
@@ -971,7 +928,7 @@ async function ensureRotatingStockFilterView(
   });
 
   const filterViewId = created.data.replies?.[0]?.addFilterView?.filter?.filterViewId;
-  if (!filterViewId) throw new Error("O filtro da atualização não foi criado.");
+  if (filterViewId == null) throw new Error("O filtro da atualização não foi criado.");
   return filterViewId;
 }
 
@@ -1498,4 +1455,3 @@ export async function POST(request: Request) {
     return apiError(error);
   }
 }
-

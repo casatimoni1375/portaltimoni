@@ -1,4 +1,5 @@
 import { ADMIN_IDENTITIES, can, resolveConfiguredUser, type AuthorizationProfile } from "./authorization";
+import type { CollaboratorAccess } from "./collaborator-access";
 
 export type PortalModule =
   | "painel"
@@ -19,6 +20,7 @@ export type PortalModule =
 export type PortalBox = PortalModule | "espaco-equipe";
 
 export type PortalUser = {
+  collaboratorAccess?: CollaboratorAccess;
   /** Resolved from the official registry/central identity adapter, never a display label. */
   profile?: AuthorizationProfile;
   name: string;

@@ -1,5 +1,5 @@
 /**
- * Portal Timoni — Motorista
+ * Portal Timoni — Agenda de Motorista
  * Backend (Web App) da agenda, rodando no Apps Script da própria planilha.
  *
  * COMO PUBLICAR (uma vez):
@@ -13,60 +13,72 @@
  *
  * ESTRUTURA ESPERADA DA PLANILHA (crie uma aba com este cabeçalho na linha 1):
  *   Aba "Viagens":
- *      A: id | B: data | C: loja | D: ordem | E: tipoHorario | F: horario |
- *      G: endereco | H: numero | I: complemento | J: clienteFornecedor | K: numeroPedido |
- *      L: itens | M: contatoNome | N: contatoWhats | O: volumes | P: info |
- *      Q: dividir | R: notasJson | S: preenchidoPor | T: bloqueioMinutos |
- *      U: criadoEm | V: atualizadoEm
+ *      A: id | B: data | C: loja | D: ordem | E: tipoHorario | F: horario | G: horarioFim |
+ *      H: endereco | I: numero | J: complemento | K: clienteFornecedor | L: numeroPedido |
+ *      M: itens | N: contatoNome | O: contatoWhats | P: volumes | Q: info |
+ *      R: dividir | S: notasJson | T: preenchidoPor |
+ *      U: criadoEm | V: atualizadoEm | W: checkinEm | X: checkoutEm | Y: observacaoMotorista |
+ *      Z: vendedor
  *
- * data: "YYYY-MM-DD". loja: "rio_claro" ou "araras". tipoHorario: "Entrega" ou "Retirada".
+ * data: "YYYY-MM-DD". loja: "rio_claro" ou "araras". tipoHorario: "Entrega", "Retirada" ou
+ * "Bloqueio" (bloqueio de horário sem entrega/retirada associada).
  * ordem: posição da viagem dentro do dia (número, começa em 0), usada para reordenar.
  * itens / info: texto com uma linha por item (igual ao textarea da página).
  * dividir: "true"/"false". notasJson: JSON de [{nome, itens}] quando dividir = true.
- * bloqueioMinutos: só relevante quando tipoHorario = "Retirada".
+ * horarioFim ("Até"): opcional em Entrega, obrigatório em Retirada/Bloqueio — define o período
+ * que essa viagem ocupa; outra viagem cujo horário caia dentro desse período mostra aviso de
+ * conflito na tela.
+ * checkinEm / checkoutEm: preenchidos pelo Modo Motorista (chegou / concluiu), ISO datetime.
+ * observacaoMotorista: texto livre que o motorista deixa na parada.
+ * vendedor: quem fez a venda/pedido (aparece no relatório como "Vendedor:"), diferente de
+ * preenchidoPor, que é quem cadastrou a viagem na agenda (aparece como "Por:").
  *
- * Dica opcional: o Sheets converte sozinho o que parece data/hora (colunas B e F) em valores
+ * Dica opcional: o Sheets converte sozinho o que parece data/hora (colunas B, F e G) em valores
  * de Data/Hora de verdade — o código já lê isso de volta corretamente, mas se quiser que a
- * planilha mostre "2026-07-24" e "09:00" em vez de datas formatadas, selecione as colunas B e F
+ * planilha mostre "2026-07-24" e "09:00" em vez de datas formatadas, selecione essas colunas
  * e troque o formato para "Texto simples" (Formatar > Número > Texto simples).
  */
 
 var ABA_VIAGENS = 'Viagens';
-var COLUNAS = ['id', 'data', 'loja', 'ordem', 'tipoHorario', 'horario', 'endereco', 'numero', 'complemento', 'clienteFornecedor', 'numeroPedido', 'itens', 'contatoNome', 'contatoWhats', 'volumes', 'info', 'dividir', 'notasJson', 'preenchidoPor', 'bloqueioMinutos', 'criadoEm', 'atualizadoEm'];
+var COLUNAS = ['id', 'data', 'loja', 'ordem', 'tipoHorario', 'horario', 'horarioFim', 'endereco', 'numero', 'complemento', 'clienteFornecedor', 'numeroPedido', 'itens', 'contatoNome', 'contatoWhats', 'volumes', 'info', 'dividir', 'notasJson', 'preenchidoPor', 'criadoEm', 'atualizadoEm', 'checkinEm', 'checkoutEm', 'observacaoMotorista', 'vendedor'];
 
-function doGet(e) {
-  var p = (e && e.parameter) || {};
-  var action = p.action || 'mes';
-  try {
-    switch (action) {
-      // Leituras não travam (mesmo raciocínio do módulo Estoque).
-      case 'mes':
-        return json({ ok: true, resumo: resumoMes(p.ano, p.mes) });
-      case 'dia':
-        return json({ ok: true, viagens: lerDia(p.data) });
-      // Escritas travam (comLock) para não haver duas gravando ao mesmo tempo.
-      case 'criar':
-        return comLock(function () { return json({ ok: true, viagem: criar(p) }); });
-      case 'atualizar':
-        return comLock(function () { return json({ ok: true, viagem: atualizar(p.id, p) }); });
-      case 'excluir':
-        return comLock(function () { excluir(p.id); return json({ ok: true }); });
-      case 'reordenar':
-        return comLock(function () { reordenar(p.data, JSON.parse(p.ordemJson || '[]')); return json({ ok: true }); });
-      default:
-        return json({ ok: false, erro: 'Ação desconhecida: ' + action });
+function executarPedido(e, metodo) {
+    var p = (e && e.parameter) || {};
+    var action = p.action || 'mes';
+    try {
+        var esperado = String(PropertiesService.getScriptProperties().getProperty('MOTORISTA_API_TOKEN') || '').trim();
+        if (!esperado || String(p.token || '') !== esperado)
+            return json({ ok: false, erro: 'Acesso não autorizado.' });
+        if (metodo === 'GET' && action !== 'dia' && action !== 'mes')
+            return json({ ok: false, erro: 'Acesso somente leitura.', codigo: 405 });
+        switch (action) {
+            case 'mes':
+                return json({ ok: true, resumo: resumoMes(p.ano, p.mes) });
+            case 'dia':
+                return json({ ok: true, viagens: lerDia(p.data) });
+            case 'criar':
+                return comLock(function () { return json({ ok: true, viagem: criar(p) }); });
+            case 'atualizar':
+                return comLock(function () { return json({ ok: true, viagem: atualizar(p.id, p) }); });
+            case 'excluir':
+                return comLock(function () { excluir(p.id); return json({ ok: true }); });
+            case 'reordenar':
+                return comLock(function () { reordenar(p.data, JSON.parse(p.ordemJson || '[]')); return json({ ok: true }); });
+            default:
+                return json({ ok: false, erro: 'Ação desconhecida: ' + action });
+        }
     }
-  } catch (err) {
-    return json({ ok: false, erro: String((err && err.message) || err) });
-  }
+    catch (err) {
+        return json({ ok: false, erro: String((err && err.message) || err) });
+    }
 }
+
+function doGet(e) { return executarPedido(e, 'GET'); }
 
 // Aceita POST também (criar/atualizar/reordenar usam POST para não esbarrar em limite de
 // tamanho de URL com o texto de itens/notas). GAS preenche e.parameter também no POST
 // application/x-www-form-urlencoded, então o mesmo roteamento serve para os dois.
-function doPost(e) {
-  return doGet(e);
-}
+function doPost(e) { return executarPedido(e, 'POST'); }
 
 function comLock(fn) {
   var lock = LockService.getScriptLock();
@@ -138,11 +150,14 @@ function registroDaLinha(linha) {
   }
   reg.data = formatarDataChave(reg.data);
   reg.horario = formatarHorario(reg.horario);
+  reg.horarioFim = formatarHorario(reg.horarioFim);
   reg.ordem = Number(reg.ordem || 0);
   reg.dividir = parseBool(reg.dividir);
   reg.notasJson = reg.notasJson || '[]';
   reg.criadoEm = normalizarData(reg.criadoEm);
   reg.atualizadoEm = normalizarData(reg.atualizadoEm);
+  reg.checkinEm = normalizarData(reg.checkinEm);
+  reg.checkoutEm = normalizarData(reg.checkoutEm);
   return reg;
 }
 
@@ -164,8 +179,9 @@ function resumoMes(ano, mes) {
   var resumo = {};
   lerTudo().forEach(function (item) {
     if (item.reg.data.indexOf(prefixo) !== 0) return;
-    if (!resumo[item.reg.data]) resumo[item.reg.data] = { entregas: 0, retiradas: 0 };
+    if (!resumo[item.reg.data]) resumo[item.reg.data] = { entregas: 0, retiradas: 0, bloqueios: 0 };
     if (item.reg.tipoHorario === 'Retirada') resumo[item.reg.data].retiradas++;
+    else if (item.reg.tipoHorario === 'Bloqueio') resumo[item.reg.data].bloqueios++;
     else resumo[item.reg.data].entregas++;
   });
   return resumo;
@@ -192,6 +208,7 @@ function criar(p) {
     ordem: diaAtual.length,
     tipoHorario: String(p.tipoHorario || 'Entrega').trim(),
     horario: String(p.horario || '').trim(),
+    horarioFim: String(p.horarioFim || '').trim(),
     endereco: String(p.endereco || '').trim(),
     numero: String(p.numero || '').trim(),
     complemento: String(p.complemento || '').trim(),
@@ -205,9 +222,12 @@ function criar(p) {
     dividir: parseBool(p.dividir),
     notasJson: String(p.notasJson || '[]'),
     preenchidoPor: String(p.preenchidoPor || '').trim(),
-    bloqueioMinutos: String(p.bloqueioMinutos || '').trim(),
     criadoEm: new Date().toISOString(),
-    atualizadoEm: new Date().toISOString()
+    atualizadoEm: new Date().toISOString(),
+    checkinEm: '',
+    checkoutEm: '',
+    observacaoMotorista: '',
+    vendedor: String(p.vendedor || '').trim()
   };
   sheet.appendRow(COLUNAS.map(function (c) { return registro[c] === null ? '' : registro[c]; }));
   return registro;
@@ -221,7 +241,7 @@ function localizarLinha(id) {
   return achado;
 }
 
-var CAMPOS_EDITAVEIS = ['data', 'loja', 'tipoHorario', 'horario', 'endereco', 'numero', 'complemento', 'clienteFornecedor', 'numeroPedido', 'itens', 'contatoNome', 'contatoWhats', 'volumes', 'info', 'dividir', 'notasJson', 'preenchidoPor', 'bloqueioMinutos'];
+var CAMPOS_EDITAVEIS = ['data', 'loja', 'tipoHorario', 'horario', 'horarioFim', 'endereco', 'numero', 'complemento', 'clienteFornecedor', 'numeroPedido', 'itens', 'contatoNome', 'contatoWhats', 'volumes', 'info', 'dividir', 'notasJson', 'preenchidoPor', 'checkinEm', 'checkoutEm', 'observacaoMotorista', 'vendedor'];
 
 function atualizar(id, p) {
   var achado = localizarLinha(id);

@@ -5,6 +5,8 @@ export type PurchaseOrder = {
   id: string; nome: string; enviadoEm: string; previsaoEntrega: string;
   unidade: "rio_claro" | "araras";
   activityAt?: string;
+  descricao?: string;
+  detalhesAtualizadosEm?: string;
 };
 
 function database() {
@@ -45,6 +47,8 @@ function comparable(orders: PurchaseOrder[]) {
     enviadoEm: order.enviadoEm,
     previsaoEntrega: order.previsaoEntrega,
     unidade: order.unidade,
+    descricao: order.descricao,
+    detalhesAtualizadosEm: order.detalhesAtualizadosEm,
   })));
 }
 export async function readPurchaseOrdersSnapshot() {
@@ -59,9 +63,9 @@ export async function readPurchaseOrdersSnapshot() {
 }
 export async function savePurchaseOrdersSnapshot(orders: PurchaseOrder[], startedAt: string) {
   await ensureSchema();
-  const normalized = normalizePurchaseOrders(orders);
   const rows = await database()`SELECT orders FROM portal_purchase_orders_snapshot WHERE id = 1`;
   const current = rows.length ? normalizePurchaseOrders(Object.values(rows[0].orders) as PurchaseOrder[]) : [];
+  const normalized = preservePurchaseOrderDetails(normalizePurchaseOrders(orders), current);
   const changed = comparable(current) !== comparable(normalized);
   const data = JSON.stringify(Object.fromEntries(normalized.map((order) => [order.id, order])));
 
@@ -79,6 +83,17 @@ export async function savePurchaseOrdersSnapshot(orders: PurchaseOrder[], starte
     await database()`UPDATE portal_purchase_orders_snapshot SET synced_at = NOW() WHERE id = 1`;
   }
   return { changed };
+}
+
+// Atualizações de resumo não apagam os itens já registrados no Portal.
+// Nunca transfere detalhes por nome ou entre unidades diferentes.
+export function preservePurchaseOrderDetails(orders: PurchaseOrder[], current: PurchaseOrder[]) {
+  const byId = new Map(current.map(order => [order.id, order]));
+  return orders.map(order => {
+    const previous = byId.get(order.id);
+    if (order.descricao !== undefined || !previous || previous.unidade !== order.unidade || previous.descricao === undefined) return order;
+    return { ...order, descricao: previous.descricao, detalhesAtualizadosEm: previous.detalhesAtualizadosEm };
+  });
 }
 export async function upsertPurchaseOrder(order: PurchaseOrder) {
   await ensureSchema();

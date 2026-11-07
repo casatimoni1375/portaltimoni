@@ -117,6 +117,11 @@ export async function listMeetings(_accessToken: string) {
   return getCachedMeetings(_accessToken);
 }
 
+// Gravações conferem o estado atual, sem depender do cache de apresentação.
+export async function listMeetingsFresh(accessToken: string) {
+  return parseRows(await readRows(accessToken));
+}
+
 export async function createMeeting(
   accessToken: string,
   input: Omit<Meeting, "id" | "createdAt" | "updatedAt" | "status">,
@@ -141,17 +146,17 @@ export async function createMeeting(
   return item.id;
 }
 
-async function findRow(accessToken: string, id: string) {
+async function findCurrent(accessToken: string, id: string, expectedUnit?: MeetingUnit) {
   const rows = await readRows(accessToken);
   const index = rows.findIndex((row) => row[0] === id);
-  return index < 0 ? null : index + 2;
+  const current = parseRows(rows).find(item => item.id === id);
+  if (index < 0 || !current) throw new Error("Reunião não encontrada.");
+  if (expectedUnit && current.unit !== expectedUnit) throw new Error("A reunião mudou de unidade. Atualize a lista antes de continuar.");
+  return { current, rowNumber: index + 2 };
 }
 
-export async function updateMeeting(accessToken: string, id: string, input: Partial<Meeting>) {
-  const rowNumber = await findRow(accessToken, id);
-  if (!rowNumber) throw new Error("Reunião não encontrada.");
-  const current = (await listMeetings(accessToken)).find((item) => item.id === id);
-  if (!current) throw new Error("Reunião não encontrada.");
+export async function updateMeeting(accessToken: string, id: string, input: Partial<Meeting>, expectedUnit?: MeetingUnit) {
+  const { current, rowNumber } = await findCurrent(accessToken, id, expectedUnit);
   const sheets = await sheetsClient(accessToken);
   const updated: Meeting = { ...current, ...input, id, updatedAt: new Date().toISOString() };
   await sheets.spreadsheets.values.update({
@@ -167,11 +172,13 @@ export async function archiveMeetingOccurrence(
   accessToken: string,
   id: string,
   occurrenceDate: string,
+  expectedUnit?: MeetingUnit,
 ) {
   const rawRows = await readRows(accessToken);
   const rows = parseRows(rawRows);
   const current = rows.find((item) => item.id === id);
   if (!current || current.status !== "agendada") throw new Error("Reunião não encontrada ou já arquivada.");
+  if (expectedUnit && current.unit !== expectedUnit) throw new Error("A reunião mudou de unidade. Atualize a lista antes de continuar.");
 
   const occurrences = [
     { date: current.date, time: current.time },
@@ -196,16 +203,6 @@ export async function archiveMeetingOccurrence(
     status: "concluida",
     updatedAt: now,
   };
-  if (!rows.some((item) => item.id === archived.id)) {
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
-      range: `${SHEET}!A:O`,
-      valueInputOption: "RAW",
-      insertDataOption: "INSERT_ROWS",
-      requestBody: { values: [valuesOf(archived)] },
-    });
-  }
-
   const remaining = occurrences.filter((_, index) => index !== occurrenceIndex);
   const updated: Meeting = {
     ...current,
@@ -217,18 +214,23 @@ export async function archiveMeetingOccurrence(
     status: remaining.length ? "agendada" : "concluida",
     updatedAt: now,
   };
-  await sheets.spreadsheets.values.update({
+  const book = await sheets.spreadsheets.get({ spreadsheetId: COMUNICADOS_SPREADSHEET_ID, fields: "sheets.properties" });
+  const sheetId = book.data.sheets?.find(sheet => sheet.properties?.title === SHEET)?.properties?.sheetId;
+  if (sheetId === undefined) throw new Error("Aba de reuniões não encontrada.");
+  const cells = (item: Meeting) => ({ values: valuesOf(item).map(value => ({ userEnteredValue: { stringValue: String(value) } })) });
+  // Histórico e atualização da reunião são aplicados no mesmo lote atômico.
+  await sheets.spreadsheets.batchUpdate({
     spreadsheetId: COMUNICADOS_SPREADSHEET_ID,
-    range: `${SHEET}!A${rowNumber}:O${rowNumber}`,
-    valueInputOption: "RAW",
-    requestBody: { values: [valuesOf(updated)] },
+    requestBody: { requests: [
+      ...(!rows.some(item => item.id === archived.id) ? [{ appendCells: { sheetId, rows: [cells(archived)], fields: "userEnteredValue" } }] : []),
+      { updateCells: { range: { sheetId, startRowIndex: rowNumber - 1, endRowIndex: rowNumber, startColumnIndex: 0, endColumnIndex: HEADERS.length }, rows: [cells(updated)], fields: "userEnteredValue" } },
+    ] },
   });
   invalidateMeetingsCache();
 }
 
-export async function deleteMeeting(accessToken: string, id: string) {
-  const rowNumber = await findRow(accessToken, id);
-  if (!rowNumber) throw new Error("Reunião não encontrada.");
+export async function deleteMeeting(accessToken: string, id: string, expectedUnit?: MeetingUnit) {
+  const { rowNumber } = await findCurrent(accessToken, id, expectedUnit);
   const sheets = await sheetsClient(accessToken);
   const book = await sheets.spreadsheets.get({
     spreadsheetId: COMUNICADOS_SPREADSHEET_ID,

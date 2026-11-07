@@ -1,7 +1,8 @@
 import { canModuleOperation, canReadUnit, canStockOperation, normalizeUnit as authorizationUnit, stockAction } from "@/lib/module-authorization";
-import { pendingStockIds } from "@/lib/stock-notice-reads";
-import { auth } from "@/lib/auth";
-import { hasModuleAccess } from "@/lib/access-control";
+import { pendingStockIdsForUser } from "@/lib/stock-notice-reads";
+import { requireModuleAuthorization } from "@/lib/authorization-server";
+import { getPortalCentralIntegrationToken } from "@/lib/collaborator-auth.server";
+import type { PortalUser } from "@/lib/access-control";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
@@ -106,16 +107,15 @@ function summarize(needs: Need[]) {
 }
 
 
-async function getSheets() {
-  const session = await auth();
-  if (!session?.user?.email || !hasModuleAccess(session.user.email, "estoque", session.portalUser)) {
-    throw new Error("Acesso não autorizado ao módulo Estoque.");
-  }
-  if (!session.accessToken || session.error === "RefreshAccessTokenError") {
-    throw new Error("Sessão expirada. Saia e entre novamente no Portal.");
+class StockIntegrationUnavailable extends Error {}
+async function getSheets(context: { user: PortalUser; accessToken: string }) {
+  let accessToken = context.accessToken;
+  if (context.user.collaboratorAccess) {
+    try { accessToken = await getPortalCentralIntegrationToken(); }
+    catch { throw new StockIntegrationUnavailable("Integração do Estoque temporariamente indisponível. Tente novamente."); }
   }
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: session.accessToken });
+  oauth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth: oauth });
 }
 
@@ -136,10 +136,13 @@ async function readAll(sheets: sheets_v4.Sheets) {
 }
 
 
-function apiError(error: unknown) {
+function apiError(error: unknown, individual = false) {
   const message = error instanceof Error ? error.message : "Falha ao acessar o Estoque.";
   const unauthorized = /não autorizado/i.test(message);
   const needsNewConsent = /insufficient|permission|scope|forbidden|403/i.test(message);
+  if (error instanceof StockIntegrationUnavailable || (individual && needsNewConsent)) {
+    return NextResponse.json({ ok: false, error: "Integração do Estoque temporariamente indisponível. Tente novamente." }, { status: 503, headers: { "Retry-After": "15", "Cache-Control": "no-store" } });
+  }
   return NextResponse.json(
     { ok: false, error: needsNewConsent ? "Autorize o acesso à planilha: saia do Portal e entre novamente." : message },
     { status: unauthorized ? 403 : needsNewConsent ? 403 : 400 },
@@ -147,17 +150,18 @@ function apiError(error: unknown) {
 }
 
 export async function GET() {
+  const gate = await requireModuleAuthorization("estoque", "visualizar");
+  if (!gate.current) return gate.errorResponse;
+  const { user } = gate.current;
   try {
-    const sheets = await getSheets();
+    const sheets = await getSheets(gate.current);
     const data = await readAll(sheets);
-    const session = await auth();
-    const user = session!.portalUser!;
     const storedUnits = new Map(data.needRows.slice(1).map(row => [value(row, 0), value(row, 10)]));
     data.necessidades = data.necessidades.filter((item) => canReadUnit(user, "estoque", storedUnits.get(item.id)));
     data.vendedores = data.vendedores.filter((item) => canReadUnit(user, "estoque", item.unidade));
     data.summary = summarize(data.necessidades);
     let unreadIds: string[] | null = null;
-    try { unreadIds = pendingStockIds(session?.user?.email || "", data.necessidades); }
+    try { unreadIds = pendingStockIdsForUser(user, data.necessidades); }
     catch (error) { console.error("[stock-notifications]", error); }
     return NextResponse.json({
       unreadIds,
@@ -168,7 +172,7 @@ export async function GET() {
       summary: data.summary,
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return apiError(error);
+    return apiError(error, Boolean(user.collaboratorAccess));
   }
 }
 
@@ -176,21 +180,18 @@ async function updateCells(sheets: sheets_v4.Sheets, data: Array<{ range: string
   await sheets.spreadsheets.values.batchUpdate({ spreadsheetId: SPREADSHEET_ID, requestBody: { valueInputOption: "RAW", data } });
 }
 
-async function recordStockUpdate(summary: string) {
-  const session = await auth();
-  await recordModuleUpdateSafely("estoque", session?.user?.email, summary);
-}
-
 export async function POST(request: Request) {
+  const gate = await requireModuleAuthorization("estoque", "visualizar");
+  if (!gate.current) return gate.errorResponse;
+  const { user } = gate.current;
+  const recordStockUpdate = (summary: string) => recordModuleUpdateSafely("estoque", user.email, summary);
   try {
-    const sheets = await getSheets();
     const body = (await request.json()) as Record<string, unknown>;
     const action = String(body.action ?? "");
-    const session = await auth();
-    const user = session!.portalUser!;
     const permissionAction = stockAction(action);
     if (!permissionAction) return NextResponse.json({ error: "Ação desconhecida." }, { status: 400 });
     if (!canModuleOperation(user, "estoque", permissionAction)) return NextResponse.json({ error: "Ação não permitida." }, { status: 403 });
+    const sheets = await getSheets(gate.current);
     const data = await readAll(sheets);
 
     if (action === "criar") {
@@ -261,6 +262,7 @@ export async function POST(request: Request) {
           }],
         },
       });
+      await recordStockUpdate(`Solicitação excluída: ${currentNeed.id} · ${currentNeed.codigo}.`);
       return NextResponse.json({ ok: true });
     }
 
@@ -384,7 +386,7 @@ export async function POST(request: Request) {
     }
     throw new Error("Ação desconhecida.");
   } catch (error) {
-    return apiError(error);
+    return apiError(error, Boolean(user.collaboratorAccess));
   }
 }
 

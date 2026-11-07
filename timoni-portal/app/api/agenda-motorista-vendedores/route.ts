@@ -4,6 +4,7 @@ import type { PortalUser } from "@/lib/access-control";
 import { loadPortalConfiguration } from "@/lib/portal-config";
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
+import { getPortalCentralIntegrationToken } from "@/lib/collaborator-auth.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,10 +63,11 @@ function resposta(vendedores: Seller[], responsaveis: Responsible[], fallback = 
 export async function GET() {
   const gate = await requireModuleAuthorization("motorista", "visualizar");
   if (!gate.current) return gate.errorResponse;
-  const { user: actor, accessToken } = gate.current;
+  const { user: actor } = gate.current;
   try {
-    const configuration = await loadPortalConfiguration(accessToken);
-    const responsaveis: Responsible[] = configuration.users
+    const accessToken = actor.collaboratorAccess ? await getPortalCentralIntegrationToken() : gate.current.accessToken;
+    const configuration = actor.collaboratorAccess ? null : await loadPortalConfiguration(accessToken);
+    const responsaveis: Responsible[] = actor.collaboratorAccess ? [{ email: actor.email, name: actor.name, unit: actor.unit || "" }] : configuration!.users
       .filter((user) => user.active !== false && user.readOnly !== true && user.modules.includes("motorista"))
       .map((user) => ({ email: user.email, name: user.name, unit: user.unit || "Geral" }))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));

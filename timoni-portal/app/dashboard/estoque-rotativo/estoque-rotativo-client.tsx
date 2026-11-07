@@ -563,7 +563,7 @@ export default function EstoqueRotativoClient() {
   const visibleItems = data?.items || [];
 
   return (
-    <div className="space-y-5 pb-10">
+    <div className="ct-modern-workspace space-y-5 pb-10">
       <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

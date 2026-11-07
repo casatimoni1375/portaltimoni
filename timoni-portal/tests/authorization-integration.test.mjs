@@ -24,6 +24,7 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
   const mockConfig = {
     CICA_EMAIL: cica.email,
     getEffectivePortalUser: async (_token, email) => currentActor && currentActor.email === email ? currentActor : null,
+    getPortalUserSessionState: async (_token, email) => ({ user: currentActor && currentActor.email === email ? currentActor : null, unavailable: false }),
     loadPortalConfiguration: async () => structuredClone(configuration),
     appendAudit: async (...args) => writes.push(["audit", ...args]),
     upsertPortalUser: async (...args) => writes.push(["user", ...args]),
@@ -52,7 +53,9 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
     "@/lib/comunicados": { listComunicados: async () => [], replaceComunicados: async () => writes.push(["replace-notices"]) },
     "@/lib/aviso-leituras": { listAvisoLeituras: async () => [], replaceAvisoLeituras: async () => writes.push(["replace-reads"]) },
     "@/lib/espaco-equipe": { listTeamMessages: async () => [], replaceTeamMessages: async () => writes.push(["replace-messages"]) },
-    "next-auth": { default: options => { authOptions = options; return { handlers: {}, auth: fn => fn, signIn() {}, signOut() {} }; } },
+    "next-auth": { CredentialsSignin: class extends Error {}, default: options => { authOptions = options; return { handlers: {}, auth: fn => fn, signIn() {}, signOut() {} }; } },
+    "next-auth/providers/credentials": { default: options => options },
+    "@/lib/collaborator-auth.server": { individualLoginEnabled: () => false, authenticatePortalCollaborator: async () => null, resolvePortalCollaboratorSession: async () => ({ access: null, unavailable: false }), getPortalCentralIntegrationToken: async () => { throw Error("Não usar token individual em cenário Google"); } },
     "next-auth/providers/google": { default: options => options },
   };
   Object.assign(mocks, extraMocks);
@@ -63,18 +66,24 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
     if (mocks[id]) {
       const m = synthetic(id, mocks[id]); cache.set(id, m); return m;
     }
-    const source = stripTypeScriptTypes(await readFile(new URL(id, root), "utf8"));
-    const m = new vm.SourceTextModule(source, { context, identifier: id });
-    cache.set(id, m);
-    await m.link(async (specifier, parent) => {
-      if (mocks[specifier]) return load(specifier);
-      if (specifier.startsWith("@/")) return load(`${specifier.slice(2)}.ts`);
-      if (specifier.startsWith(".")) return load(new URL(`${specifier}.ts`, new URL(parent.identifier, root)).pathname.slice(root.pathname.length));
-      throw Error(`Import não previsto: ${specifier}`);
-    });
-    return m;
+    // Registra a promessa antes da leitura: importações concorrentes recebem o mesmo módulo.
+    const pending = readFile(new URL(id, root), "utf8").then(source =>
+      new vm.SourceTextModule(stripTypeScriptTypes(source), { context, identifier: id }));
+    cache.set(id, pending);
+    return pending;
   }
-  async function evaluate(id) { const m = await load(id); if (m.status !== "evaluated") await m.evaluate(); return m.namespace; }
+  async function link(specifier, parent) {
+    if (mocks[specifier]) return load(specifier);
+    if (specifier.startsWith("@/")) return load(`${specifier.slice(2)}.ts`);
+    if (specifier.startsWith(".")) return load(new URL(`${specifier}.ts`, new URL(parent.identifier, root)).pathname.slice(root.pathname.length));
+    throw Error(`Import não previsto: ${specifier}`);
+  }
+  async function evaluate(id) {
+    const m = await load(id);
+    if (m.status === "unlinked") await m.link(link);
+    if (m.status !== "evaluated") await m.evaluate();
+    return m.namespace;
+  }
   return { evaluate, writes, configuration, setActor: value => { currentActor = value; }, getAuthOptions: () => authOptions };
 }
 
@@ -198,7 +207,7 @@ const urlRequest = (params) => ({ nextUrl: new URL("https://portal.test/api?" + 
 const motorPost = body => new Request("https://portal.test/api/agenda-motorista", { method: "POST", body: new URLSearchParams(body) });
 function motorHarness(actor, trips = [{ id: "rc", loja: "rio_claro" }, { id: "ara", loja: "araras" }]) {
   const calls = [];
-  return harness({ actor, registryFetch: async (url, init) => {
+  return harness({ actor, env: { MOTORISTA_API_TOKEN: "token-apenas-teste" }, registryFetch: async (url, init) => {
     calls.push({ url: String(url), method: init.method, body: init.body });
     return Response.json(init.method === "GET" ? { ok: true, viagens: trips } : { ok: true });
   }, extraMocks: { "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} } } }).then(h => ({ ...h, calls }));
@@ -259,11 +268,12 @@ test("Reuniões: exige módulo e filtra a unidade; Marcelo edita sem criar/exclu
   const operations = [];
   const h = await harness({ actor: moduleActor(), extraMocks: { "@/lib/reunioes": {
     listMeetings: async () => [{ id: "rc", unit: "Rio Claro" }, { id: "ara", unit: "Araras" }],
+    listMeetingsFresh: async () => [{ id: "rc", unit: "Rio Claro" }, { id: "ara", unit: "Araras" }],
     createMeeting: async () => { operations.push("create"); return "new"; },
     updateMeeting: async () => operations.push("edit"),
     archiveMeetingOccurrence: async () => operations.push("archive"),
     deleteMeeting: async () => operations.push("delete")
-  } } });
+  }, "@/lib/module-updates": { recordModuleUpdateSafely: async () => { throw Error("Não alterar registro legado neste teste"); } } } });
   const route = await h.evaluate("app/api/reunioes/route.ts");
   assert.deepEqual((await (await route.GET()).json()).items.map(v => v.id), ["rc"]);
   h.setActor(moduleActor("mrodini@gmail.com", { unit: "Geral" }));
@@ -296,7 +306,7 @@ test("Estoque: leitura, resumo e mutação usam unidade persistida, ignorando un
   const h = await harness({ actor: moduleActor(), extraMocks: {
     googleapis: { google: { auth: { OAuth2: class { setCredentials() {} } }, sheets: () => sheets } },
     "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} },
-    "@/lib/stock-notice-reads": { pendingStockIds: (_email, needs) => needs.map(v => v.id) }
+    "@/lib/stock-notice-reads": { pendingStockIdsForUser: (_user, needs) => needs.map(v => v.id) }
   } });
   const route = await h.evaluate("app/api/estoque/route.ts");
   const data = await (await route.GET()).json();
@@ -509,4 +519,68 @@ test("Trello: falta de chave do servidor impede gravação de credencial em text
   const lib = await h.evaluate("lib/trello-shared-credentials.ts");
   await assert.rejects(lib.saveSharedTrelloCredentials({ key: "key", token: "token" }), /Segredo/);
   assert.equal(writes, 0);
+});
+
+test("sessão e menu compartilham uma leitura na renderização; próxima requisição revalida bloqueio e falha", async () => {
+  const caches = [];
+  const requestCache = fn => {
+    const values = new Map(); caches.push(values);
+    return (...args) => {
+      const key = JSON.stringify(args);
+      if (!values.has(key)) values.set(key, fn(...args));
+      return values.get(key);
+    };
+  };
+  const nextRequest = () => caches.forEach(cache => cache.clear());
+  let reads = 0, active = true, fail = false;
+  const h = await harness({ realConfig: true, extraMocks: { react: { cache: requestCache } }, registryFetch: async () => {
+    reads++;
+    if (fail) throw Error("indisponível");
+    return Response.json({ values: [[cica.email, "Ciça", "Geral", "painel,estoque", "painel", "Sim", "Não", active ? "Sim" : "Não"]] });
+  } });
+  const config = await h.evaluate("lib/portal-config.ts");
+  const [state, user] = await Promise.all([config.getPortalUserSessionState("token", cica.email), config.getEffectivePortalUser("token", cica.email)]);
+  assert.equal(state.user.email, cica.email); assert.equal(user.email, cica.email);
+  assert.equal(reads, 1);
+  nextRequest(); active = false;
+  assert.equal(await config.getEffectivePortalUser("token", cica.email), null);
+  assert.equal(reads, 2);
+  nextRequest(); fail = true;
+  const unavailable = await config.getPortalUserSessionState("token", cica.email);
+  assert.equal(unavailable.user, null); assert.equal(unavailable.unavailable, true);
+  assert.equal(await config.getEffectivePortalUser("token", cica.email), null);
+  assert.equal(reads, 3);
+  nextRequest(); fail = false; active = true;
+  assert.equal((await config.getEffectivePortalUser("token", cica.email)).email, cica.email);
+  assert.equal(reads, 4);
+});
+
+test("cadastro oficial por ID permite contato repetido e recusa ID duplicado sem semear ou gravar", async () => {
+  let rows = [['id-um', 'Pessoa um', 'Araras', 'Sim', 'Não', '', 'comercialara@example.test'], ['id-dois', 'Pessoa dois', 'Araras', 'Sim', 'Não', '', 'comercialara@example.test']];
+  let fail = false;
+  const writes = [];
+  const h = await harness({ realConfig: true, registryFetch: async (_url, init) => {
+    if (init?.method && init.method !== 'GET') writes.push(init.method);
+    if (fail) throw Error('indisponível');
+    return Response.json({ values: rows });
+  } });
+  const config = await h.evaluate('lib/portal-config.ts');
+  assert.equal((await config.getOfficialCollaboratorForAccess('token', 'id-um')).name, 'Pessoa um');
+  assert.equal((await config.getOfficialCollaboratorForAccess('token', 'id-dois')).name, 'Pessoa dois');
+  assert.equal(await config.getOfficialCollaboratorForAccess('token', 'ausente'), null);
+  rows.push([...rows[0]]);
+  assert.equal(await config.getOfficialCollaboratorForAccess('token', 'id-um'), null);
+  fail = true;
+  await assert.rejects(config.getOfficialCollaboratorForAccess('token', 'id-dois'), /indisponível/);
+  assert.deepEqual(writes, []);
+});
+
+test("cadastro para acesso não presume unidade/ativação e não ignora duplicata com nome incompleto", async () => {
+  let rows = [['pessoa', 'Pessoa fictícia', '', '', '', '', 'contato@example.test']];
+  const h = await harness({ realConfig: true, registryFetch: async () => Response.json({ values: rows }) });
+  const config = await h.evaluate('lib/portal-config.ts');
+  const raw = await config.getOfficialCollaboratorForAccess('token-ficticio', 'pessoa');
+  assert.equal(raw.unit, ''); assert.equal(raw.active, false);
+  rows = [['pessoa', 'Pessoa fictícia', 'Araras', 'Sim'], ['pessoa', '', 'Araras', 'Sim']];
+  assert.equal(await config.getOfficialCollaboratorForAccess('token-ficticio', 'pessoa'), null);
 });

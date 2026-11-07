@@ -1,5 +1,6 @@
 "use client";
 
+import { createMotoristaReadLoader } from "@/lib/motorista-read-loader";
 import { useEffect, useMemo, useState } from "react";
 
 type Viagem = {
@@ -200,51 +201,35 @@ export default function MotoristaLeitura() {
 
   useEffect(() => {
     let ativo = true;
-    let primeiraCarga = true;
-
+    const loader = createMotoristaReadLoader();
     async function carregar() {
-      if (primeiraCarga) setLoading(true);
-      setErro("");
-      try {
-        const pares = await Promise.all(
-          dias.map(async (d) => {
-            const data = localDateString(d);
-            const resposta = await fetch(`/api/motorista-leitura?action=dia&data=${data}&_=${Date.now()}`, {
-              cache: "no-store",
-            });
-            const body = await resposta.json().catch(() => null);
-            if (!resposta.ok || !body?.ok) throw new Error(body?.erro || "Não foi possível carregar a agenda.");
-            return [data, body.viagens || []] as const;
-          }),
-        );
-        if (ativo) setViagens(Object.fromEntries(pares));
-      } catch (e) {
-        if (ativo) setErro(e instanceof Error ? e.message : "Não foi possível carregar a agenda.");
-      } finally {
-        if (ativo && primeiraCarga) setLoading(false);
-        primeiraCarga = false;
-      }
+      if (document.visibilityState !== "visible") return;
+      if (!navigator.onLine) { setErro("Sem conexão. Os dados exibidos serão atualizados ao reconectar."); setLoading(false); return; }
+      await loader.run(dias.map(localDateString), {
+        success: pares => { if (ativo) { setViagens(Object.fromEntries(pares) as Record<string, Viagem[]>); setErro(""); } },
+        error: error => { if (ativo) setErro(error instanceof Error ? error.message : "Não foi possível carregar a agenda."); },
+        done: () => { if (ativo) setLoading(false); },
+      });
     }
-
-    const atualizarAoVoltar = () => {
-      if (document.visibilityState === "visible") void carregar();
-    };
-
+    const atualizarAoVoltar = () => { void carregar(); };
+    setLoading(true);
     void carregar();
     const intervalo = window.setInterval(() => void carregar(), 15_000);
     window.addEventListener("focus", atualizarAoVoltar);
+    window.addEventListener("online", atualizarAoVoltar);
     document.addEventListener("visibilitychange", atualizarAoVoltar);
-
     return () => {
       ativo = false;
+      loader.dispose();
       window.clearInterval(intervalo);
       window.removeEventListener("focus", atualizarAoVoltar);
+      window.removeEventListener("online", atualizarAoVoltar);
       document.removeEventListener("visibilitychange", atualizarAoVoltar);
     };
   }, [dias]);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-3 py-4 sm:px-5">
+    <main className="ct-modern-calendar min-h-screen bg-slate-50 px-3 py-4 sm:px-5">
       <div className="mx-auto max-w-5xl">
         <header className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>

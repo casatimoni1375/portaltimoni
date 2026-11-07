@@ -255,6 +255,8 @@ export async function POST(request: Request) {
       enviadoEm: `${dataEnvio}T12:00:00-03:00`,
       previsaoEntrega: `${dataEntrega}T12:00:00-03:00`,
       unidade: unit,
+      descricao: description,
+      detalhesAtualizadosEm: new Date().toISOString(),
       });
     } catch (error) {
       acompanhamentoPendente = true;

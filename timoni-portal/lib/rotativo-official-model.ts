@@ -128,7 +128,9 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   const write = (r: number, c: number, value: sheets_v4.Schema$ExtendedValue) => requests.push({ updateCells: { start: { sheetId, rowIndex: r, columnIndex: c }, rows: [{ values: [{ userEnteredValue: value }] }], fields: "userEnteredValue" } });
   const top = rows.slice(0, headerIndex).flat();
   const standardized = top.find(c => /^Padronizada em /i.test(label(c)));
-  const updated = top.find(c => /^(?:Estoque\s+)?Rotativo atualizado em /i.test(label(c)));
+  const isUpdatedStatus = (cell?: Cell) => /^(?:Estoque\s+)?Rotativo atualizado em /i.test(label(cell));
+  const updated = (headerIndex > 2 && isUpdatedStatus(rows[2]?.[0]) ? rows[2][0] : undefined)
+    || top.find(isUpdatedStatus);
   let responsible: Cell | undefined = official ? rows[3]?.[0] : undefined;
   let date: Cell | undefined = official ? rows[4]?.[0] : undefined;
   if (!official) for (const row of rows.slice(0, headerIndex)) {

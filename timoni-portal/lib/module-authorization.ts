@@ -1,9 +1,12 @@
 import type { PortalModule, PortalUser } from "./access-control";
 import { ADMIN_IDENTITIES, can, getAuthorizationProfile, type AuthorizationAction, type AuthorizationContext, type PortalUnit } from "./authorization";
+import { canCollaboratorAction } from "./collaborator-access";
 
 /** Existing operation rules, centralized while APIs migrate from module-only checks. */
 export function canModuleOperation(user: PortalUser | null | undefined, module: PortalModule, action: AuthorizationAction, context: AuthorizationContext = {}) {
   if (!user) return false;
+  if (module === "pedido-de-compra" && action !== "visualizar") return false;
+  if (user.collaboratorAccess) return (module === "motorista" || module === "pedido-de-compra" || module === "reunioes" || module === "estoque" || module === "chat") && canCollaboratorAction(user.collaboratorAccess, module, action, context);
   let legacyAllowed = false;
   if (action === "visualizar") legacyAllowed = true;
   else if (module === "agenda") legacyAllowed = true;
@@ -54,7 +57,7 @@ export function canStockOperation(user: PortalUser, operation: string, unidade: 
   const action = stockAction(operation);
   if (!action || !canModuleOperation(user, "estoque", action, { unidade })) return false;
   if (["editar", "editar_observacao", "reabrir", "excluir"].includes(operation)) {
-    const profile = getAuthorizationProfile(user);
+    const profile = user.collaboratorAccess?.profile ?? getAuthorizationProfile(user);
     return profile === "administracao-cica" || (profile === "administracao-marcelo" && action === "editar");
   }
   return true;

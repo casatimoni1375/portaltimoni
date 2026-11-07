@@ -1,7 +1,7 @@
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { auth } from "@/lib/auth";
 import { hasModuleAccess } from "@/lib/access-control";
-import { cookies } from "next/headers";
+import { getGeminiServerKey, redactGeminiMessage } from "@/lib/gemini-config.server";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -100,11 +100,7 @@ export async function POST(request: Request) {
       throw new Error("O print ultrapassa 8 MB. Faça uma captura menor.");
     }
 
-    const cookieStore = await cookies();
-    const apiKey =
-      process.env.GEMINI_API_KEY?.trim() ||
-      process.env.GOOGLE_AI_STUDIO_API_KEY?.trim() ||
-      cookieStore.get("timoni_gemini_key")?.value?.trim();
+    const apiKey = getGeminiServerKey();
 
     if (!apiKey) {
       return NextResponse.json(
@@ -176,7 +172,7 @@ Formato obrigatório:
       const message =
         (payload as { error?: { message?: string } })?.error?.message ||
         "Não foi possível ler o print do pedido.";
-      return NextResponse.json({ error: message }, { status: 502 });
+      return NextResponse.json({ error: redactGeminiMessage(message) }, { status: 502 });
     }
 
     const text = extractText(payload);
@@ -214,9 +210,9 @@ Formato obrigatório:
     return NextResponse.json(
       {
         error:
-          error instanceof Error
+          redactGeminiMessage(error instanceof Error
             ? error.message
-            : "Não foi possível ler o print do pedido.",
+            : "Não foi possível ler o print do pedido."),
       },
       { status: 400 },
     );

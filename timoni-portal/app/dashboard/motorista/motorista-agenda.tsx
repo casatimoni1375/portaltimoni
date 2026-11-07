@@ -1,8 +1,11 @@
 "use client";
 
+import { escapePrintHtml, safePrintUrl } from "@/lib/motorista-print";
+import { createMotoristaReadLoader } from "@/lib/motorista-read-loader";
+
 // MOTORISTA DASHBOARD: manter Dia, Semana e Mês. A rota /motorista (relatório/leitura) não deve ser alterada nesta reestruturação.
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
 
 type Viagem = {
@@ -428,7 +431,7 @@ function formatarCep(value: string) {
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
 }
 
-export default function MotoristaAgenda({ readOnly = false, canCreate = false, canEdit = false, canDelete = false }: { readOnly?: boolean; canCreate?: boolean; canEdit?: boolean; canDelete?: boolean }) {
+export default function MotoristaAgenda({ readOnly = false, canCreate = false, canEdit = false, canDelete = false, actorName }: { readOnly?: boolean; canCreate?: boolean; canEdit?: boolean; canDelete?: boolean; actorName?: string }) {
   const hoje = localDateString();
   const [modo, setModo] = useState<Modo>("dia");
   const [selecionado, setSelecionado] = useState(hoje);
@@ -444,6 +447,13 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   const [invalidos, setInvalidos] = useState<Set<keyof FormState>>(new Set());
   const [opcoesVendedores, setOpcoesVendedores] = useState<VendedorOption[]>([]);
   const [layoutViewport, setLayoutViewport] = useState<"mobile" | "tablet" | "desktop">("desktop");
+  const leituraAtual = useRef<ReturnType<typeof createMotoristaReadLoader> | null>(null);
+  const ativo = useRef(false);
+
+  useEffect(() => {
+    ativo.current = true;
+    return () => { ativo.current = false; leituraAtual.current?.dispose(); };
+  }, []);
 
   const diasMes = useMemo(() => monthDays(mesBase), [mesBase]);
   const diasSemana = useMemo(() => weekDays(selecionado), [selecionado]);
@@ -502,68 +512,33 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       ativo = false;
     };
   }, []);
-  async function carregarDia(data = selecionado) {
+  const carregarDias = useCallback(async (datas: string[]) => {
+    if (!ativo.current) return;
+    leituraAtual.current?.dispose();
+    const loader = createMotoristaReadLoader(fetch, 30_000, "/api/agenda-motorista");
+    leituraAtual.current = loader;
     setLoading(true);
     setErro("");
-    try {
-      const response = await fetch(`/api/agenda-motorista?action=dia&data=${data}`, { cache: "no-store" });
-      const body = await parseResponse(response);
-      setViagens((current) => ({ ...current, [data]: body.viagens || [] }));
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não foi possível carregar a agenda.");
-    } finally {
-      setLoading(false);
-    }
+    await loader.run(datas, {
+      success: pares => setViagens(current => ({ ...current, ...Object.fromEntries(pares) as Record<string, Viagem[]> })),
+      error: error => setErro(error instanceof Error ? error.message : "Não foi possível carregar a agenda."),
+      done: () => setLoading(false),
+    });
+  }, []);
+
+  async function carregarDia(data = selecionado) {
+    await carregarDias([data]);
   }
 
   async function carregarMes() {
-    setLoading(true);
-    setErro("");
-    try {
-      const pares = await Promise.all(
-        diasMes.map(async (d) => {
-          const data = localDateString(d);
-          const response = await fetch(`/api/agenda-motorista?action=dia&data=${data}`, { cache: "no-store" });
-          const body = await parseResponse(response);
-          return [data, body.viagens || []] as const;
-        }),
-      );
-      setViagens(Object.fromEntries(pares));
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não foi possível carregar a agenda.");
-    } finally {
-      setLoading(false);
-    }
+    await carregarDias(diasMes.map(localDateString));
   }
 
   useEffect(() => {
-    if (modo === "dia") {
-      void carregarDia(selecionado);
-    } else if (modo === "semana") {
-      void (async () => {
-        setLoading(true);
-        setErro("");
-        try {
-          const pares = await Promise.all(
-            diasSemana.map(async (d) => {
-              const data = localDateString(d);
-              const response = await fetch(`/api/agenda-motorista?action=dia&data=${data}`, { cache: "no-store" });
-              const body = await parseResponse(response);
-              return [data, body.viagens || []] as const;
-            }),
-          );
-          setViagens((current) => ({ ...current, ...Object.fromEntries(pares) }));
-        } catch (e) {
-          setErro(e instanceof Error ? e.message : "Não foi possível carregar a semana.");
-        } finally {
-          setLoading(false);
-        }
-      })();
-    } else {
-      void carregarMes();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modo, selecionado, mesBase, diasSemana]);
+    const datas = modo === "dia" ? [selecionado] : (modo === "semana" ? diasSemana : diasMes).map(localDateString);
+    void carregarDias(datas);
+    return () => leituraAtual.current?.dispose();
+  }, [modo, selecionado, diasSemana, diasMes, carregarDias]);
 
   function abrirNova(data = selecionado) {
     setEditandoId(null);
@@ -641,6 +616,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     REQUIRED.forEach((key) => {
       if (!String(form[key] ?? "").trim()) faltando.add(key);
     });
+    if (actorName) faltando.delete("preenchidoPor");
     if (form.bloquear && (!form.bloqueioInicio || !form.bloqueioFim)) {
       faltando.add("bloqueioInicio");
       faltando.add("bloqueioFim");
@@ -770,15 +746,15 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     const linhas = itens.map((v, index) => {
       const tipo = lerMetaMotorista(v.notasJson).tipo;
       const endereco = formatarEnderecoExibicao(v.endereco, v.numero, v.complemento);
-      const link = separarEndereco(v.endereco).link;
+      const link = safePrintUrl(separarEndereco(v.endereco).link);
       const linha1 = linhaPrincipalRelatorio(v, index);
       const empresa = (v.clienteFornecedor || "").toUpperCase();
       const documento = documentoTexto(v.numeroPedido);
       const linha2 = [documento, empresa ? `${v.contatoNome ? "CLIENTE " : ""}${empresa}` : "", v.contatoNome ? `A/C: ${v.contatoNome.toUpperCase()}` : "", !v.contatoNome && v.volumes ? `VOLUME: ${String(v.volumes).toUpperCase()}` : ""].filter(Boolean).join(" | ");
-      const volume = v.contatoNome && v.volumes ? `<p><strong>VOLUME: ${String(v.volumes).toUpperCase()}</strong></p>` : "";
-      const detalhe = v.info ? `<p>${"Observação"}: ${String(v.info).replace(/^[\r\n]+/, "")}</p>` : "";
-      const maps = link ? ` | <a href="${link}" target="_blank"><strong>Google Maps</strong></a>` : "";
-      return `<div class="item"><p><strong>${linha1}</strong></p><p><strong>${linha2}</strong></p>${endereco ? `<p>End.: ${endereco}${maps}</p>` : ""}${volume}${detalhe}<p><strong>Preenchido por:</strong>${v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} | <strong>Forma de pagamento:</strong>${pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p></div>`;
+      const volume = v.contatoNome && v.volumes ? `<p><strong>VOLUME: ${escapePrintHtml(String(v.volumes).toUpperCase())}</strong></p>` : "";
+      const detalhe = v.info ? `<p>${"Observação"}: ${escapePrintHtml(String(v.info).replace(/^[\r\n]+/, ""))}</p>` : "";
+      const maps = link ? ` | <a href="${escapePrintHtml(link)}" target="_blank" rel="noopener noreferrer"><strong>Google Maps</strong></a>` : "";
+      return `<div class="item"><p><strong>${escapePrintHtml(linha1)}</strong></p><p><strong>${escapePrintHtml(linha2)}</strong></p>${endereco ? `<p>End.: ${escapePrintHtml(endereco)}${maps}</p>` : ""}${volume}${detalhe}<p><strong>Preenchido por:</strong>${v.preenchidoPor ? ` ${escapePrintHtml(v.preenchidoPor)}` : ""} | <strong>Forma de pagamento:</strong>${pagamentoTexto(v.notasJson) ? ` ${escapePrintHtml(pagamentoTexto(v.notasJson))}` : ""}</p></div>`;
     }).join("");
 
     const popup = window.open("", "_blank", "width=850,height=900");
@@ -977,7 +953,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="block min-w-0 text-sm font-medium text-slate-700">Preenchido por:<select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && ![...RESPONSAVEIS_RIO_CLARO, ...RESPONSAVEIS_ARARAS].includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}<optgroup label="Rio Claro">{RESPONSAVEIS_RIO_CLARO.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup><optgroup label="Araras">{RESPONSAVEIS_ARARAS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup></select></label>
+              <label className="block min-w-0 text-sm font-medium text-slate-700">Preenchido por:{actorName ? <input readOnly value={editandoId ? form.preenchidoPor : actorName} className={fieldClass("preenchidoPor")} /> : <select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && ![...RESPONSAVEIS_RIO_CLARO, ...RESPONSAVEIS_ARARAS].includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}<optgroup label="Rio Claro">{RESPONSAVEIS_RIO_CLARO.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup><optgroup label="Araras">{RESPONSAVEIS_ARARAS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup></select>}</label>
               <label className="block min-w-0 text-sm font-medium text-slate-700">Forma de pagamento:<select value={form.pagamento} onChange={(e) => set("pagamento", e.target.value as FormState["pagamento"])} className={fieldClass("pagamento")}><option value="">Selecione</option><option value="Boleto">Boleto</option><option value="Debite">Debite</option><option value="Pago">Pago</option><option value="Receber">Receber</option></select></label>
             </div>
 

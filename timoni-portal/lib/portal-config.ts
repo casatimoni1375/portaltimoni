@@ -193,19 +193,19 @@ export async function listConfiguredPortalUsers(accessToken: string) {
   return readUsers(accessToken);
 }
 
-async function fetchCollaborators(accessToken: string): Promise<ConfiguredCollaborator[]> {
+async function fetchCollaborators(accessToken: string, strictAccess = false): Promise<ConfiguredCollaborator[]> {
   const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${COLLABORATORS_SHEET}!A2:I500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
   return (response.values || []).map((row) => ({
     id: row[0] || "",
     name: row[1] || "",
-    unit: (row[2] || "Rio Claro") as TeamMember["unit"],
-    active: yes(row[3], true),
+    unit: (row[2] || (strictAccess ? "" : "Rio Claro")) as TeamMember["unit"],
+    active: yes(row[3], !strictAccess),
     noticeRequired: yes(row[4], true),
     updatedAt: row[5] || "",
     accessEmail: normalizeEmail(row[6] || ""),
     chatEnabled: yes(row[7], true),
     role: row[8] || "",
-  })).filter((member) => member.id && member.name);
+  })).filter((member) => member.id && (strictAccess || member.name));
 }
 
 const readCollaboratorsCached = unstable_cache(
@@ -215,6 +215,18 @@ const readCollaboratorsCached = unstable_cache(
 );
 
 const readCollaborators = cache(async (accessToken: string) => readCollaboratorsCached(accessToken));
+
+// Identificação de acesso não usa lista histórica, migração automática nem cache entre requisições.
+export const getOfficialCollaboratorsForAccess = cache(async (accessToken: string) => {
+  if (!accessToken) throw new Error("Conexão do cadastro não configurada.");
+  return fetchCollaborators(accessToken, true);
+});
+export const getOfficialCollaboratorForAccess = cache(async (accessToken: string, id: string) => {
+  if (!accessToken) throw new Error("Conexão do cadastro não configurada.");
+  if (!id || id.length > 128) return null;
+  const matches = (await getOfficialCollaboratorsForAccess(accessToken)).filter(member => member.id === id);
+  return matches.length === 1 ? matches[0] : null;
+});
 
 async function readHistory(accessToken: string): Promise<PortalAuditEntry[]> {
   const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${HISTORY_SHEET}!A2:D500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
@@ -511,10 +523,21 @@ export async function loadPortalConfiguration(accessToken: string): Promise<Port
   return { users, collaborators, history };
 }
 
+// A sessão distingue indisponibilidade do cadastro de usuário ausente/desativado.
+export const getPortalUserSessionState = cache(async (accessToken: string | undefined, email: string | null | undefined) => {
+  if (!accessToken) return { user: null, unavailable: true };
+  let unavailable = false;
+  const user = await resolveOfficialPortalUser(email, async () => {
+    try { return await fetchUsers(accessToken); }
+    catch { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
+  });
+  return { user, unavailable };
+});
+
 export const getEffectivePortalUser = cache(async (accessToken: string | undefined, email: string | null | undefined) => {
   if (!accessToken) return null;
   // Authorization is request-scoped and uncached across requests: revocations must not use a historical roster.
-  return resolveOfficialPortalUser(email, () => fetchUsers(accessToken));
+  return (await getPortalUserSessionState(accessToken, email)).user;
 });
 
 export async function getEffectivePanelData(accessToken: string | undefined, email: string | null | undefined) {
@@ -554,4 +577,3 @@ export async function recordPortalAccess(accessToken: string, email: string) {
     console.warn("[portal-config] Não foi possível registrar o último acesso.", error);
   }
 }
-

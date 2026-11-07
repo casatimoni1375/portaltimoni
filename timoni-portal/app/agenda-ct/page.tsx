@@ -35,7 +35,7 @@ export default async function AgendaCTPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
+    <div className="ct-modern-calendar mx-auto w-full max-w-5xl">
       <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5 [&_button]:py-2 [&_section]:mt-4 sm:[&_section]:mt-6 [&_.space-y-3]:space-y-2 sm:[&_.space-y-3]:space-y-3">
         <CalendarView
           initialEvents={initialEvents}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { createScreenRequest } from "@/lib/screen-request";
 
 const AVISOS_PATH = "/colaboradores";
 
@@ -12,36 +13,33 @@ export default function AvisosRequiredGate() {
   const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
-    let active = true;
-
-    async function checkPendingReads() {
-      try {
-        const response = await fetch("/api/comunicados", { cache: "no-store" });
+    if (pathname === "/login" || pathname.startsWith("/acesso/")) {
+      setChecking(false); setBlocked(false);
+      return;
+    }
+    const checker = createScreenRequest({
+      load: async signal => {
+        const response = await fetch("/api/comunicados", { cache: "no-store", signal });
         const data = await response.json();
-        if (!active) return;
-
-        const pending = response.ok && Number(data.activeCount || 0) > 0;
+        return response.ok && Number(data.activeCount || 0) > 0;
+      },
+      onData: pending => {
         setBlocked(pending);
-
         if (pending && pathname !== AVISOS_PATH) {
           router.replace(AVISOS_PATH);
-          return;
         }
-      } catch {
-        if (active) setBlocked(false);
-      } finally {
-        if (active) setChecking(false);
-      }
-    }
+      },
+      onError: () => setBlocked(false),
+      onBusy: busy => { if (!busy) setChecking(false); },
+    });
+    void checker.run();
 
-    checkPendingReads();
-
-    const refresh = () => checkPendingReads();
+    const refresh = () => void checker.run({ urgent: true });
     window.addEventListener("avisos:read-changed", refresh);
     window.addEventListener("comunicados:changed", refresh);
 
     return () => {
-      active = false;
+      checker.dispose();
       window.removeEventListener("avisos:read-changed", refresh);
       window.removeEventListener("comunicados:changed", refresh);
     };

@@ -1,6 +1,7 @@
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { canReadUnit } from "@/lib/module-authorization";
 import { NextRequest, NextResponse } from "next/server";
+import { redactMotoristaResponse } from "@/lib/motorista-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,6 +39,9 @@ async function buscarDia(webAppUrl: string, data: string) {
 
   try {
     const url = new URL(webAppUrl);
+    const token = process.env.MOTORISTA_API_TOKEN?.trim();
+    if (!token) throw new Error("Conexão da agenda não configurada.");
+    url.searchParams.set("token", token);
     url.searchParams.set("action", "dia");
     url.searchParams.set("data", data);
 
@@ -53,13 +57,14 @@ async function buscarDia(webAppUrl: string, data: string) {
       throw new Error(`Agenda respondeu com status ${resposta.status}.`);
     }
 
-    const dados = await resposta.json();
+    const dados = redactMotoristaResponse(await resposta.json(), token) as { ok?: boolean; viagens?: unknown; erro?: string } | null;
 
     if (!dados || dados.ok !== true) {
       throw new Error(dados?.erro || "Resposta inválida da agenda.");
     }
 
-    return Array.isArray(dados.viagens) ? dados.viagens : [];
+    if (!Array.isArray(dados.viagens) || dados.viagens.some(v => !v || typeof v !== "object" || Array.isArray(v))) throw new Error("Resposta inválida da agenda.");
+    return dados.viagens;
   } finally {
     clearTimeout(timeout);
   }
@@ -70,7 +75,7 @@ function mensagemErro(erro: unknown) {
     return "A agenda demorou demais para responder.";
   }
 
-  if (erro instanceof Error && erro.message) return erro.message;
+  if (erro instanceof Error && erro.message) return String(redactMotoristaResponse(erro.message, process.env.MOTORISTA_API_TOKEN?.trim() || ""));
   return "Não foi possível carregar este dia.";
 }
 
@@ -91,10 +96,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const webAppUrl = process.env.MOTORISTA_WEBAPP_URL || DEFAULT_WEBAPP_URL;
-  const resultados = await Promise.allSettled(
-    datas.map((data) => buscarDia(webAppUrl, data)),
-  );
+  const webAppUrl = process.env.MOTORISTA_WEBAPP_URL?.trim() || DEFAULT_WEBAPP_URL;
+  const resultados: PromiseSettledResult<Awaited<ReturnType<typeof buscarDia>>>[] = [];
+  const started = Date.now();
+  for (const data of datas) {
+    if (Date.now() - started > 12_000) {
+      resultados.push({ status: "rejected", reason: new Error("Consulta parcial. Atualize novamente para consultar os dias restantes.") });
+      continue;
+    }
+    try { resultados.push({ status: "fulfilled", value: await buscarDia(webAppUrl, data) }); }
+    catch (reason) { resultados.push({ status: "rejected", reason }); }
+  }
 
   const dias = resultados.map((resultado, indice) => {
     if (resultado.status === "fulfilled") {
