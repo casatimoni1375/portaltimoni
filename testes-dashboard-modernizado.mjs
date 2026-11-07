@@ -130,8 +130,8 @@ test('estrutura aprovada usa logo oficial e menu lateral, sem ampliar leitura do
   assert.ok(!restricted.includes('href="/agenda"'));
   const management = actor('mcrodini@gmail.com', ['painel', 'estoque', 'motorista', 'agenda'], { unit: 'Geral' });
   const allowed = await renderPortalPreview(management);
-  assert.ok(allowed.includes('href="/colaboradores#ct-aniversarios"'));
-  assert.ok(allowed.includes('href="/colaboradores#ct-ferias"'));
+  assert.ok(!allowed.includes('href="/colaboradores#ct-aniversarios"'));
+  assert.ok(!allowed.includes('href="/colaboradores#ct-ferias"'));
   assert.ok(!allowed.includes('Aniversários da semana'));
   assert.ok(allowed.includes('href="/dashboard"'));
   assert.ok(!allowed.includes('casa-timoni-logo.svg'));

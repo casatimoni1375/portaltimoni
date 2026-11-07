@@ -56,8 +56,6 @@ export default async function PortalHeader({ email }: { email: string; portalUse
         <Link href={startHref} className="ct-portal-nav-link">Visão geral</Link>
         {hasModuleAccess(email, "painel", effectivePortalUser) && <>
           <Link href="/colaboradores" className="ct-portal-nav-link">Painel Timoni</Link>
-          <Link href="/colaboradores#ct-aniversarios" className="ct-portal-nav-link">Aniversários</Link>
-          <Link href="/colaboradores#ct-ferias" className="ct-portal-nav-link">Férias</Link>
         </>}
         <ModuleUpdatesNav items={desktopItems} canViewUpdates={canViewUpdates} linkClass="ct-portal-nav-link" />
         {isManagement && <Link href="/configuracoes" className="ct-portal-nav-link">Configurações</Link>}
