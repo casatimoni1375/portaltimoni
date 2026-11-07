@@ -19,6 +19,13 @@ A disponibilidade dos módulos depende das integrações configuradas em cada am
 - Compilação de produção Next.js concluída e verificação TypeScript sem erro.
 - Diff sem problemas de espaços.
 
+## Conferência autenticada da prévia
+- Login Google concluído no endereço estável do bloco 2, sem redirect_uri_mismatch. Callback registrado no cliente existente.
+- Conferidos no navegador: logo oficial, sete grupos, prioridades reais, aniversários/férias da Agenda CT e links Comercial/Equipe/Configurações no perfil.
+- Encontrado e corrigido um caso da busca que usava módulos brutos em vez das permissões efetivas; os links da busca agora mantêm a unidade e os leads consultam ambas as unidades quando permitido.
+- Limites observados: /api/compras retornou configured:false; agenda do motorista informou conexão não configurada. A consulta de pedidos mostrou snapshot com aviso de atualização.
+- A captura de tela e a medição responsiva no navegador interromperam; validação visual em celular e medição de tempo de carregamento permanecem pendentes.
+
 ## Roteiro de conferência
 1. Entrar com Google na prévia e conferir Hoje, unidade e prioridades reais.
 2. Usar Ctrl+K e abrir um resultado permitido; navegar pelas abas de Compras e Agenda.
