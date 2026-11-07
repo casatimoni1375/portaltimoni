@@ -1,3 +1,4 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { rotatingStockFilterTitle, rotatingStockRowFilter } from "@/lib/rotativo-filter";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { canRotativoOperation, rotativoAction, type RotativoRole } from "@/lib/module-authorization";
@@ -610,7 +611,8 @@ function fingerprint(sourceRows: unknown[][], targetRows: unknown[][]) {
 async function context() {
   const gate = await requireModuleAuthorization("estoque-rotativo", "visualizar");
   if (!gate.current) throw new Error("Acesso não autorizado ao Rotativo.");
-  const { user, email, accessToken } = gate.current;
+  const { user, email } = gate.current;
+  const accessToken = await getAccessTokenFromRefreshToken();
   const oauth = new google.auth.OAuth2();
   oauth.setCredentials({ access_token: accessToken });
   return { user, email, sheets: google.sheets({ version: "v4", auth: oauth }) };

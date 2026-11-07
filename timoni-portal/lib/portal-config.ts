@@ -1,3 +1,5 @@
+import { isManagementEmail } from "@/lib/access-control";
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { cache } from "react";
 import { ADMIN_IDENTITIES, resolveOfficialPortalUser } from "./authorization";
 import {
@@ -51,6 +53,8 @@ function sheetsUrl(path = "", query?: Record<string, string>) {
 }
 
 async function sheetsRequest<T>(accessToken: string, url: string, init?: RequestInit): Promise<T> {
+  // A planilha é da empresa; a sessão continua sendo validada separadamente.
+  if (process.env.GOOGLE_REFRESH_TOKEN && (!init || !init.method || init.method === "GET")) accessToken = await getAccessTokenFromRefreshToken();
   let response: Response | null = null;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     response = await fetch(url, {
@@ -86,6 +90,7 @@ function csvModules(value: string | undefined): PortalModule[] {
 
 const EXISTING_ACCESS_LABELS: Record<string, string> = {
   "mcrodini@gmail.com": "Ciça",
+  "cecilia@casatimoni.com.br": "Ciça",
   "mrodini@gmail.com": "Marcelo",
   "balcaotimoni@gmail.com": "Vendedores Rio Claro",
   "caixarctimoni@gmail.com": "Caixa Rio Claro",
@@ -104,7 +109,7 @@ function defaultAccessLabel(email: string) {
 
 function defaultUnit(email: string): PortalUser["unit"] {
   const normalized = normalizeEmail(email);
-  if ([CICA_EMAIL, "mrodini@gmail.com"].includes(normalized)) return "Geral";
+  if (isManagementEmail(normalized)) return "Geral";
   if ([
     "estoqueararascasatimoni@gmail.com",
     "comercialara@casatimoni.com.br",
@@ -529,7 +534,10 @@ export const getPortalUserSessionState = cache(async (accessToken: string | unde
   let unavailable = false;
   const user = await resolveOfficialPortalUser(email, async () => {
     try { return await fetchUsers(accessToken); }
-    catch { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
+    catch {
+      try { return await fetchUsers(accessToken); }
+      catch { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
+    }
   });
   return { user, unavailable };
 });

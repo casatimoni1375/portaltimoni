@@ -1,3 +1,4 @@
+import { isCicaAccess } from "@/lib/access-control";
 import Image from "next/image";
 import { getPortalSession as auth } from "@/lib/portal-session";
 import { hasModuleAccess, type PortalModule, type PortalUser } from "@/lib/access-control";
@@ -30,7 +31,7 @@ export default async function PortalHeader({ email }: { email: string; portalUse
   const effectivePortalUser = await getEffectivePortalUser(session?.accessToken, email);
   const isManagement = can(effectivePortalUser, "configuracoes", "visualizar");
   const canViewUpdates = isManagement;
-  const canUseChat = email.trim().toLowerCase() === "mcrodini@gmail.com" && hasModuleAccess(email, "chat", effectivePortalUser);
+  const canUseChat = isCicaAccess(email.trim().toLowerCase()) && hasModuleAccess(email, "chat", effectivePortalUser);
   const mobileVisible = (module: PortalModule) => module === "motorista" || module === "pedido-de-compra" || effectivePortalUser?.mobileModules === undefined || effectivePortalUser.mobileModules.includes(module);
   const allowedItems = navItems
     .filter((item) => hasModuleAccess(email, item.module, effectivePortalUser))
@@ -46,7 +47,7 @@ export default async function PortalHeader({ email }: { email: string; portalUse
     ...(isManagement ? [{ href: "/configuracoes", targetHref: "/configuracoes", label: "Configurações", module: "painel" as PortalModule, updateModule: undefined, icon: "settings" as PortalIconName, color: "text-slate-800" }] : []),
   ];
   const startHref = "/dashboard";
-  const initials = email.trim().toLowerCase() === "mcrodini@gmail.com" ? "CR" : email.trim().toLowerCase() === "mrodini@gmail.com" ? "MR" : "CT";
+  const initials = isCicaAccess(email.trim().toLowerCase()) ? "CR" : email.trim().toLowerCase() === "mrodini@gmail.com" ? "MR" : "CT";
 
   return <div className="ct-modern-shell">
     <aside className="ct-portal-sidebar" aria-label="Navegação do Portal">
@@ -78,7 +79,7 @@ export default async function PortalHeader({ email }: { email: string; portalUse
     <div className="ct-portal-spacer" aria-hidden="true" />
     <div className="ct-portal-welcome">
       <p className="ct-portal-eyebrow">Casa Timoni · seu espaço de trabalho</p>
-      <p className="ct-portal-greeting">Olá, {email.trim().toLowerCase() === "mcrodini@gmail.com" ? "Ciça" : effectivePortalUser?.name?.split(" ")[0] || "equipe"}.</p>
+      <p className="ct-portal-greeting">Olá, {isCicaAccess(email.trim().toLowerCase()) ? "Ciça" : effectivePortalUser?.name?.split(" ")[0] || "equipe"}.</p>
     </div>
   </div>;
 }

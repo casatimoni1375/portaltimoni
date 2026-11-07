@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { hasModuleAccess, type PortalModule } from "@/lib/access-control";
 import { auth } from "@/lib/auth";
@@ -14,7 +15,7 @@ import { listAvisoLeituras } from "@/lib/aviso-leituras";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MANAGEMENT_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
+const MANAGEMENT_EMAILS = MANAGEMENT_IDENTITIES;
 const VISIBLE_NOTIFICATION_MODULES = new Set(["estoque", "compras", "leads"]);
 const NOTIFICATION_BASELINE_VERSION = "2026-09-03-estoque-compras-v1";
 

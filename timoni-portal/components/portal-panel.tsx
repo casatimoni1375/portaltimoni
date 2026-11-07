@@ -1,3 +1,5 @@
+import { isFutureMeeting } from "@/lib/block-one-utils";
+import { isCicaAccess, isManagementEmail } from "@/lib/access-control";
 import "@/app/colaboradores/panel-modern.css";
 import WeeklyPeopleHighlights, { UpcomingPeopleHighlights, WeeklyPeopleCards } from "@/components/weekly-people-highlights";
 import { Suspense } from "react";
@@ -15,20 +17,16 @@ type PanelStore = "geral" | "rio claro" | "araras";
 type Store = "rio claro" | "araras";
 type FixedMeeting = { date: string; time: string; label: string; frequency: string };
 
-function getPanelStore(email:string,portalUser?:PortalUser|null):PanelStore{const e=email.trim().toLowerCase();if(["mcrodini@gmail.com","mrodini@gmail.com"].includes(e))return "geral";if(portalUser?.unit==="Geral")return "geral";if(portalUser?.unit==="Araras")return "araras";if(portalUser?.unit==="Rio Claro")return "rio claro";if(["estoqueararascasatimoni@gmail.com","comercialara@casatimoni.com.br"].includes(e))return "araras";return "rio claro"}
+function getPanelStore(email:string,portalUser?:PortalUser|null):PanelStore{const e=email.trim().toLowerCase();if(isManagementEmail(e))return "geral";if(portalUser?.unit==="Geral")return "geral";if(portalUser?.unit==="Araras")return "araras";if(portalUser?.unit==="Rio Claro")return "rio claro";if(["estoqueararascasatimoni@gmail.com","comercialara@casatimoni.com.br"].includes(e))return "araras";return "rio claro"}
 function parseEventDate(value:string){return new Date(value.includes("T")?value:`${value}T12:00:00-03:00`)}
-const PANEL_TIME_ZONE="America/Sao_Paulo";
-const PANEL_UTC_OFFSET="-03:00";
 function formatDate(value:string|Date){const d=typeof value==="string"?parseEventDate(value):value;return new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric"}).format(d)}
 function formatMeeting(m:FixedMeeting){return formatDate(m.date)}
 
 function meetings(items:Meeting[],now:Date,unit:Store):FixedMeeting[]{
- const parts=new Intl.DateTimeFormat("en-CA",{timeZone:PANEL_TIME_ZONE,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(now);
- const today=`${parts.find(item=>item.type==="year")?.value}-${parts.find(item=>item.type==="month")?.value}-${parts.find(item=>item.type==="day")?.value}`;
  const expectedUnit=unit==="araras"?"Araras":"Rio Claro";
  return items.filter(item=>item.status==="agendada"&&item.unit===expectedUnit)
   .flatMap(item=>[{date:item.date,time:item.time,frequency:item.frequency},{date:item.secondDate,time:item.secondTime,frequency:item.frequency},...(item.additionalDates||[]).map(occurrence=>({...occurrence,frequency:item.frequency}))])
-  .filter(item=>item.date&&item.date>=today)
+  .filter(item=>item.date&&isFutureMeeting(item.date,item.time,now))
   .sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))
   .slice(0,2)
   .map((item,index)=>({date:item.date,time:item.time,label:index===0?"Próxima":"Seguinte",frequency:item.frequency||"Mensal"}));
@@ -44,7 +42,7 @@ async function PanelContent({showDates}:{showDates:boolean}){
   :Promise.resolve([] as Meeting[]);
  const panelData=await getEffectivePanelData(session?.accessToken,normalized);
  if(!hasModuleAccess(normalized,"painel",panelData.user))return null;
- const effectiveUser=panelData.user;const collaborators=panelData.collaborators;const panelStore=getPanelStore(email,effectiveUser??session?.portalUser);const isCica=normalized==="mcrodini@gmail.com";const isManagement=["mcrodini@gmail.com","mrodini@gmail.com"].includes(normalized);const canConfirmRead=!isManagement&&Boolean(effectiveUser?.noticeRequired);
+ const effectiveUser=panelData.user;const collaborators=panelData.collaborators;const panelStore=getPanelStore(email,effectiveUser??session?.portalUser);const isCica=isCicaAccess(normalized);const isManagement=isManagementEmail(normalized);const canConfirmRead=!isManagement&&Boolean(effectiveUser?.noticeRequired);
  return <>
  {showDates&&<Suspense fallback={<WeeklyPeopleCards events={[]} loading/>}><WeeklyPeopleHighlights accessToken={session?.accessToken}/></Suspense>}
  {isManagement&&<ModuleArrivalSummary module="avisos"/>}

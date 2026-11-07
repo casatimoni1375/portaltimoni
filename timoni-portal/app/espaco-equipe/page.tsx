@@ -1,11 +1,11 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES, isCicaAccess } from "@/lib/access-control";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import PortalHeader from "@/components/portal-header";
 import EspacoEquipeForm from "@/app/colaboradores/espaco-equipe-form";
 import EspacoEquipeInbox from "@/app/colaboradores/espaco-equipe-inbox";
 
-const GESTAO_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
-const CICA_EMAIL = "mcrodini@gmail.com";
+const GESTAO_EMAILS = MANAGEMENT_IDENTITIES;
 
 export default async function EspacoEquipePage() {
   const session = await auth();
@@ -16,7 +16,7 @@ export default async function EspacoEquipePage() {
 
   const email = session.user.email.trim().toLowerCase();
   const isGestao = GESTAO_EMAILS.has(email);
-  const canDelete = email === CICA_EMAIL;
+  const canDelete = isCicaAccess(email);
 
   return (
     <div className="min-h-screen bg-slate-50">

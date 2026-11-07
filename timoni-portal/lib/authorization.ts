@@ -2,6 +2,7 @@ import type { PortalModule, PortalUser } from "./access-control";
 
 export const ADMIN_IDENTITIES = {
   cica: "mcrodini@gmail.com",
+  cicaBusiness: "cecilia@casatimoni.com.br",
   marcelo: "mrodini@gmail.com",
 } as const;
 
@@ -56,7 +57,7 @@ export function normalizeIdentity(email?: string | null) {
 export function getAuthorizationProfile(user: PortalUser): AuthorizationProfile {
   const email = normalizeIdentity(user.email);
   // These administrative identities cannot be reassigned by a display label.
-  if (email === ADMIN_IDENTITIES.cica) return "administracao-cica";
+  if (email === ADMIN_IDENTITIES.cica || email === ADMIN_IDENTITIES.cicaBusiness) return "administracao-cica";
   if (email === ADMIN_IDENTITIES.marcelo) return "administracao-marcelo";
   if (user.profile && AUTHORIZATION_PROFILES.includes(user.profile)
     && user.profile !== "administracao-cica" && user.profile !== "administracao-marcelo") return user.profile;
@@ -107,6 +108,7 @@ export function can(
     if (profile === "motorista-leitura" && (resource !== "motorista" || action !== "visualizar")) return false;
     if (user.mobileModules !== undefined && !user.mobileModules.includes(resource as PortalModule)) return false;
   }
+  if (resource === "conferencia" && normalizeIdentity(user.email) !== ADMIN_IDENTITIES.cica && normalizeIdentity(user.email) !== ADMIN_IDENTITIES.cicaBusiness) return false;
   if (profile === "administracao-cica") return true;
   if (resource === "publicacao" || context.operation === "publicar-codigo") return false;
   if (profile === "administracao-marcelo") {

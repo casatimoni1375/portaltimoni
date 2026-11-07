@@ -1,10 +1,10 @@
+import { isCicaAccess } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { requireAuthorization } from "@/lib/authorization-server";
 import { can, canEditConfigurationRecord } from "@/lib/authorization";
 import { normalizeEmail, type PortalBox, type PortalModule, type PortalUser } from "@/lib/access-control";
 import {
   appendAudit,
-  CICA_EMAIL,
   deleteCollaborator,
   deletePortalUser,
   loadPortalConfiguration,
@@ -29,7 +29,7 @@ export async function DELETE(request: Request) {
     const body = await request.json();
     if (body.kind === "user") {
       const email = normalizeEmail(String(body.email || ""));
-      if (!email || email === CICA_EMAIL) return NextResponse.json({ error: "Este acesso não pode ser excluído." }, { status: 400 });
+      if (!email || isCicaAccess(email)) return NextResponse.json({ error: "Este acesso não pode ser excluído." }, { status: 400 });
       const configuration = await loadPortalConfiguration(current.accessToken);
       const user = configuration.users.find((item) => item.email === email);
       if (!user) return NextResponse.json({ error: "Acesso não encontrado." }, { status: 404 });
@@ -78,7 +78,7 @@ function cleanUser(value: Record<string, unknown>): PortalUser {
     mobileModules: Array.isArray(value.mobileModules) ? cleanModules(value.mobileModules).filter((module) => modules.includes(module)) : undefined,
     requiresPassword: Boolean(value.requiresPassword),
     readOnly: Boolean(value.readOnly),
-    active: email === CICA_EMAIL ? true : value.active !== false,
+    active: isCicaAccess(email) ? true : value.active !== false,
     directPainel: Boolean(value.directPainel),
     lastAccess: String(value.lastAccess || ""),
     noticeRequired: Boolean(value.noticeRequired),

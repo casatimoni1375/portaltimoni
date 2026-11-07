@@ -1,3 +1,4 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { google } from "googleapis";
 import { auth } from "@/lib/auth";
@@ -28,7 +29,7 @@ async function sheetContext() {
     throw new Error("Sessão expirada. Saia e entre novamente no Portal.");
   }
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: session.accessToken });
+  oauth.setCredentials({ access_token: await getAccessTokenFromRefreshToken() });
   return { email, sheets: google.sheets({ version: "v4", auth: oauth }) };
 }
 

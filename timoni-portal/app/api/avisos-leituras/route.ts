@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getPortalUser, type PortalUser } from "@/lib/access-control";
@@ -9,8 +10,7 @@ import {
   registerAvisoLeitura,
 } from "@/lib/aviso-leituras";
 
-const ADMIN_EMAIL = "mcrodini@gmail.com";
-const MANAGEMENT_EMAILS = new Set([ADMIN_EMAIL, "mrodini@gmail.com"]);
+const MANAGEMENT_EMAILS = MANAGEMENT_IDENTITIES;
 const ARARAS_EMAILS = new Set([
   "estoqueararascasatimoni@gmail.com",
   "comercialara@casatimoni.com.br",

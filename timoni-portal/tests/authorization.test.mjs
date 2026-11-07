@@ -153,3 +153,17 @@ test("Motorista: nomes reais das lojas respeitam a unidade sem alterar o formul�
   assert.equal(modulePolicy.canReadUnit(ara, "motorista", "Casa Timoni"), true);
   assert.equal(modulePolicy.canReadUnit(rc, "motorista", "Casa Timoni"), false);
 });
+
+
+test("Ciça corporativa mantém administração e Conferência exige identidade Ciça ativa", () => {
+  const corporate = user("cecilia@casatimoni.com.br");
+  for (const action of actions) assert.equal(can(corporate, "configuracoes", action), true);
+  assert.equal(can(corporate, "conferencia", "visualizar"), true);
+  assert.equal(can({ ...corporate, active: false }, "conferencia", "visualizar"), false);
+  assert.equal(can(user("mrodini@gmail.com", { modules: ["conferencia"] }), "conferencia", "visualizar"), false);
+  assert.equal(can(user("vendas@example.test", { modules: ["conferencia"] }), "conferencia", "visualizar"), false);
+  assert.equal(access.isCicaAccess(" CECILIA@CASATIMONI.COM.BR "), true);
+  assert.equal(access.isManagementEmail("mrodini@gmail.com"), true);
+  assert.equal(access.isCicaAccess("mrodini@gmail.com"), false);
+  assert.equal(access.getPortalUser(corporate.email, null), null);
+});

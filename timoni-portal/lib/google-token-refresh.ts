@@ -16,6 +16,7 @@ export function createGoogleTokenRefresher(fetcher: typeof fetch = fetch, now = 
     let entry = pending.get(key);
     if (!entry) {
       const result = (async (): Promise<Patch> => {
+        for (let attempt = 0; attempt < 2; attempt++) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
@@ -25,12 +26,18 @@ export function createGoogleTokenRefresher(fetcher: typeof fetch = fetch, now = 
             body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, grant_type: "refresh_token", refresh_token: token.refreshToken! }),
           });
           const body = await response.json();
-          if (!response.ok) return response.status === 400 && body?.error === "invalid_grant" ? revoked() : transient();
+          if (!response.ok) {
+            if (response.status === 400 && body?.error === "invalid_grant") return revoked();
+            if (attempt === 0) continue;
+            return transient();
+          }
           const duration = Number(body?.expires_in);
           if (typeof body?.access_token !== "string" || !body.access_token || !Number.isFinite(duration) || duration <= 0) return transient();
           return { accessToken: body.access_token, refreshToken: typeof body.refresh_token === "string" && body.refresh_token ? body.refresh_token : token.refreshToken, expiresAt: Math.floor(now() / 1000) + duration, error: undefined, refreshRetryAt: undefined };
-        } catch { return transient(); }
+        } catch { if (attempt === 1) return transient(); }
         finally { clearTimeout(timer); }
+        }
+        return transient();
       })();
       entry = { until: now() + 15_000, result };
       if (pending.size >= 256) pending.delete(pending.keys().next().value!);

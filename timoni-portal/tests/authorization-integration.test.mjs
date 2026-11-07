@@ -39,6 +39,7 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
     recordPortalAccess: async () => writes.push(["access"]),
   };
   const mocks = {
+    "@/lib/google-calendar": { getAccessTokenFromRefreshToken: async () => "central-test-token" },
     "next/server": { NextRequest: Request, NextResponse: class extends Response {
       static json(value, options) { return Response.json(value, options); }
       static redirect(url) { return Response.redirect(url); }
@@ -549,10 +550,10 @@ test("sessão e menu compartilham uma leitura na renderização; próxima requis
   const unavailable = await config.getPortalUserSessionState("token", cica.email);
   assert.equal(unavailable.user, null); assert.equal(unavailable.unavailable, true);
   assert.equal(await config.getEffectivePortalUser("token", cica.email), null);
-  assert.equal(reads, 3);
+  assert.equal(reads, 4); // uma nova tentativa na falha transitória
   nextRequest(); fail = false; active = true;
   assert.equal((await config.getEffectivePortalUser("token", cica.email)).email, cica.email);
-  assert.equal(reads, 4);
+  assert.equal(reads, 5);
 });
 
 test("cadastro oficial por ID permite contato repetido e recusa ID duplicado sem semear ou gravar", async () => {
@@ -583,4 +584,28 @@ test("cadastro para acesso não presume unidade/ativação e não ignora duplica
   assert.equal(raw.unit, ''); assert.equal(raw.active, false);
   rows = [['pessoa', 'Pessoa fictícia', 'Araras', 'Sim'], ['pessoa', '', 'Araras', 'Sim']];
   assert.equal(await config.getOfficialCollaboratorForAccess('token-ficticio', 'pessoa'), null);
+});
+
+test("Leads: página contém 25 itens, busca alcança páginas posteriores e unidade segue o cadastro", async () => {
+  const leads = Array.from({length:61},(_,i)=>({row:i+2,cliente:`Empresa ${i}`,segmento:i%2?"Cerâmica":"Ceramico",contato:"",canal:"",observacoes:"",status:"hoje"}));
+  let seenLocation;
+  const h=await harness({actor:person("comercialrc@casatimoni.com.br",{unit:"Rio Claro",modules:["leads"]}),extraMocks:{
+    "@/lib/leads":Object.fromEntries(["addLead","addProspect","createLeadsReport","importLeads","listLeadActivities","listLeads","listProspects","moveLeadToProspects","reactivateProspect","updateLeadFollowUp"].map(name=>[name,async(_token,location)=>{if(name==="listLeads"){seenLocation=location;return leads;}return [];} ])),
+    "@/lib/module-updates":{recordModuleUpdateSafely:async()=>{}},
+  }});
+  const api=await h.evaluate("app/api/leads/route.ts");
+  const page=await(await api.GET(new Request("https://portal.test/api/leads?page=2&location=ara"))).json();
+  assert.equal(seenLocation,"rc");assert.equal(page.leads.length,25);assert.equal(page.leads[0].row,27);assert.equal(page.summary.pendentes,61);assert.equal(page.pagination.leadPages,3);assert.equal(page.activities.length,0);assert.equal(page.duplicateSegments[0].length,2);
+  const search=await(await api.GET(new Request("https://portal.test/api/leads?q=Empresa%2060"))).json();assert.equal(search.leads[0].row,62);assert.equal(search.pagination.leadTotal,1);
+});
+
+test("Cadastro fixo usa credencial central, sem herdar a conta Google do colaborador", async () => {
+  const tokens=[];
+  const h=await harness({realConfig:true,env:{GOOGLE_REFRESH_TOKEN:"test-central"},registryFetch:async(_url,init)=>{
+    tokens.push(init.headers.Authorization);
+    return Response.json({values:[[cica.email,"Ciça","Geral","painel","painel","Sim","Não","Sim"]]});
+  }});
+  const config=await h.evaluate("lib/portal-config.ts");
+  const state=await config.getPortalUserSessionState("personal-test-token",cica.email);
+  assert.equal(state.user.email,cica.email);assert.deepEqual(tokens,["Bearer central-test-token"]);
 });

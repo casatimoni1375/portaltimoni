@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES, isCicaAccess } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
@@ -12,9 +13,8 @@ import { getPortalUser, type PortalUser } from "@/lib/access-control";
 import { getEffectiveCollaborators, listConfiguredPortalUsers } from "@/lib/portal-config";
 import { listAvisoLeituras } from "@/lib/aviso-leituras";
 
-const ADMIN_EMAIL = "mcrodini@gmail.com";
 const VALID_UNITS = new Set<ComunicadoUnidade>(["geral", "araras", "rio claro"]);
-const MANAGEMENT_EMAILS = new Set([ADMIN_EMAIL, "mrodini@gmail.com"]);
+const MANAGEMENT_EMAILS = MANAGEMENT_IDENTITIES;
 const ARARAS_EMAILS = new Set([
   "estoqueararascasatimoni@gmail.com",
   "comercialara@casatimoni.com.br",
@@ -99,7 +99,7 @@ export async function GET() {
       item.status === "ativo" &&
       (!item.startsAt || Date.parse(item.startsAt) <= now) &&
       isWithinDisplayEndDate(item.expiresAt, now) &&
-      (context.email === ADMIN_EMAIL || canViewComunicado(item, context.email, unit))
+      (isCicaAccess(context.email) || canViewComunicado(item, context.email, unit))
     );
     const activeCount = activeItems.filter((item) => {
       const membersForNotice = requiredMembers.filter((member) =>
@@ -112,7 +112,7 @@ export async function GET() {
         !reads.some((read) => read.avisoId === item.id && read.employee === member.name && read.unit === member.unit)
       );
     }).length;
-    const isAdmin = context.email === ADMIN_EMAIL;
+    const isAdmin = isCicaAccess(context.email);
     let recipientOptions: Array<{ email: string; name: string; unit?: string }> = [];
     let recipientOptionsError = false;
     if (isAdmin) {
@@ -131,7 +131,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const context = await getSessionContext();
-  if (!context || context.email !== ADMIN_EMAIL) {
+  if (!context || !isCicaAccess(context.email)) {
     return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
   }
 
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const context = await getSessionContext();
-  if (!context || context.email !== ADMIN_EMAIL) {
+  if (!context || !isCicaAccess(context.email)) {
     return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
   }
 
@@ -196,7 +196,7 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   const context = await getSessionContext();
-  if (!context || context.email !== ADMIN_EMAIL) {
+  if (!context || !isCicaAccess(context.email)) {
     return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
   }
 

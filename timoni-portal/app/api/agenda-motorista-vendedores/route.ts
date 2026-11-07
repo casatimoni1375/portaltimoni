@@ -1,10 +1,10 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { canReadUnit } from "@/lib/module-authorization";
 import type { PortalUser } from "@/lib/access-control";
 import { loadPortalConfiguration } from "@/lib/portal-config";
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
-import { getPortalCentralIntegrationToken } from "@/lib/collaborator-auth.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,7 +65,7 @@ export async function GET() {
   if (!gate.current) return gate.errorResponse;
   const { user: actor } = gate.current;
   try {
-    const accessToken = actor.collaboratorAccess ? await getPortalCentralIntegrationToken() : gate.current.accessToken;
+    const accessToken = await getAccessTokenFromRefreshToken();
     const configuration = actor.collaboratorAccess ? null : await loadPortalConfiguration(accessToken);
     const responsaveis: Responsible[] = actor.collaboratorAccess ? [{ email: actor.email, name: actor.name, unit: actor.unit || "" }] : configuration!.users
       .filter((user) => user.active !== false && user.readOnly !== true && user.modules.includes("motorista"))

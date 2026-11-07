@@ -1,3 +1,4 @@
+import { isCicaAccess } from "@/lib/access-control";
 import JSZip from "jszip";
 import { requireAuthorization } from "@/lib/authorization-server";
 import { normalizeEmail, type PortalUser } from "@/lib/access-control";
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     const backup = JSON.parse(await entry.async("string")) as unknown;
     validateBackup(backup);
 
-    const cicaDefault = defaultPortalUsers().find((user) => user.email === CICA_EMAIL)!;
+    const cicaDefault = defaultPortalUsers().find((user) => isCicaAccess(user.email))!;
     const users = backup.users.some((user) => normalizeEmail(user.email) === CICA_EMAIL) ? backup.users : [...backup.users, cicaDefault];
     await writeUsers(current.accessToken, users);
     await writeCollaborators(current.accessToken, backup.collaborators);

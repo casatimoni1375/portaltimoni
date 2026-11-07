@@ -1,9 +1,9 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES, isCicaAccess } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { appendTeamMessage, deleteTeamMessage, listTeamMessages } from "@/lib/espaco-equipe";
 
-const GESTAO_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
-const CICA_EMAIL = "mcrodini@gmail.com";
+const GESTAO_EMAILS = MANAGEMENT_IDENTITIES;
 const FINAL_STATUSES = new Set(["concluido", "concluído", "resolvido", "feito", "finalizado"]);
 
 export async function GET() {
@@ -65,7 +65,7 @@ export async function DELETE(request: Request) {
   const session = await auth();
   const email = session?.user?.email?.trim().toLowerCase() ?? "";
 
-  if (email !== CICA_EMAIL) {
+  if (!isCicaAccess(email)) {
     return NextResponse.json({ error: "Ação exclusiva do acesso da Ciça." }, { status: 403 });
   }
 

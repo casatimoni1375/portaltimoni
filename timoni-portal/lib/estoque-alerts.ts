@@ -28,7 +28,8 @@ function normalizeUnit(input: unknown): "rio_claro" | "araras" {
 }
 
 async function getSheetsClient(sessionAccessToken?: string) {
-  const accessToken = sessionAccessToken?.trim() || await getAccessTokenFromRefreshToken();
+  void sessionAccessToken;
+  const accessToken = await getAccessTokenFromRefreshToken();
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth });
@@ -40,7 +41,7 @@ export async function listStockAlerts(sessionAccessToken?: string): Promise<Stoc
     spreadsheetId: SPREADSHEET_ID,
     range: SHEET_RANGE,
     valueRenderOption: "FORMATTED_VALUE",
-  });
+  }, { timeout: 6_000, retry: false });
 
   return ((response.data.values ?? []) as unknown[][])
     .map((row) => ({

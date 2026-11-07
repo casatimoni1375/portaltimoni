@@ -30,6 +30,7 @@ interface Supplier {
 
 interface TrelloPayload {
   configured: boolean;
+  duplicateWarnings?: Array<{ names: string[]; urls: string[] }>;
   boardName?: string;
   summary?: Summary;
   suppliers?: Supplier[];
@@ -244,6 +245,7 @@ export default function ComprasClient() {
 
   return (
     <div className="space-y-5">
+      {!!trello.duplicateWarnings?.length && <div role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><strong>Possíveis cartões duplicados. Nenhum foi removido.</strong><ul>{trello.duplicateWarnings.map((group, index) => <li key={index}>{group.names.join(" / ")}{group.urls.map((url, i) => url ? <a key={i} href={url} target="_blank" rel="noreferrer" className="ml-2 underline">Abrir cartão {i + 1}</a> : null)}</li>)}</ul></div>}
       <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -261,8 +263,8 @@ export default function ComprasClient() {
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Pedidos para fazer", summary?.pedidosParaFazer],
-          ["Urgentes", summary?.urgentes],
+          ["Pedidos para fazer", summary?.pedidosParaFazer ?? (trello.configured && trello.suppliers ? suppliers.length : undefined)],
+          ["Urgentes", summary?.urgentes ?? (trello.configured && trello.suppliers ? suppliers.filter(item => item.urgent).length : undefined)],
           ["Enviados — Rio Claro", summary?.enviadosRioClaro],
           ["Enviados — Araras", summary?.enviadosAraras],
         ].map(([label, value]) => (

@@ -2,23 +2,6 @@
 
 import { useRef, useState } from "react";
 
-const GUIDE = [
-  { name: "Painel / Avisos", steps: ["Abra o Painel e acompanhe os boxes disponíveis para o seu acesso.", "Entre no módulo desejado pelo box ou pelo cabeçalho.", "Em Avisos, consulte os comunicados e registre a leitura quando solicitado."] },
-  { name: "Compras", steps: ["Abra Pedidos pendentes e selecione o pedido.", "Revise itens, fornecedor, unidade e informações do Trello.", "Confirme e finalize; depois acompanhe em Pedidos enviados."] },
-  { name: "Motorista", steps: ["Abra Motorista para consultar a programação do dia.", "Cadastre ou ajuste viagens e bloqueios quando necessário.", "Acompanhe as rotas pela visualização operacional."] },
-  { name: "Agenda Ciça", steps: ["Abra a Agenda Ciça.", "Escolha Dia, Semana ou Mês e localize o compromisso.", "Abra o compromisso para consultar, editar ou concluir quando permitido."] },
-  { name: "Agenda CT", steps: ["Abra a Agenda CT.", "Consulte somente os compromissos da Casa Timoni.", "Use Dia, Semana ou Mês; a agenda pessoal permanece separada."] },
-  { name: "Leads", steps: ["Abra Leads e consulte a unidade correspondente.", "Atualize Status e próxima ação conforme o andamento.", "Use Reativar quando um lead de A Prospectar precisar voltar ao Follow Up."] },
-  { name: "Estoque", steps: ["Abra Estoque e consulte pedidos e solicitações da unidade.", "Use Consultar e solicitar produto para uma nova demanda.", "Acompanhe a situação até a conclusão."] },
-  { name: "Rotativo", steps: ["Abra Rotativo e realize a atualização do estoque.", "Finalize mantendo as regras aprovadas da planilha.", "Use Rotativo atualizado para abrir somente os itens daquela execução."] },
-  { name: "Conferência", steps: ["Envie juntos os documentos necessários.", "Execute a conferência e revise as divergências.", "Baixe a planilha final mantendo o modelo aprovado."] },
-  { name: "Reuniões", steps: ["Consulte PRÓXIMA e SEGUINTE.", "Abra a reunião para editar, salvar novamente ou consultar o histórico.", "Arquive ou desarquive somente de forma manual."] },
-  { name: "OS — Ordem de Serviço", steps: ["Abra OS e selecione o tipo de serviço.", "Preencha os campos do fluxo correspondente e anexe print ou foto quando necessário.", "Salve e acompanhe a OS até a conclusão."] },
-  { name: "Equipe", steps: ["Abra Equipe para consultar as mensagens internas.", "Leia as informações destinadas à sua unidade ou acesso.", "Use o módulo somente para comunicação interna da equipe."] },
-  { name: "Chat", steps: ["Abra o Chat e selecione o colaborador.", "Envie e acompanhe mensagens 1:1; as não lidas aparecem com indicador.", "Edite ou exclua apenas as suas próprias mensagens quando necessário."] },
-  { name: "Configurações", steps: ["Cadastre ou edite colaboradores e vincule o e-mail de acesso.", "Defina os módulos permitidos e o que deve aparecer no mobile.", "Use Backup para salvar uma cópia e Recuperar backup somente quando precisar restaurar o Portal."] },
-];
-
 export default function GuiaBackupClient() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<"backup" | "restore" | "">("");
@@ -100,33 +83,6 @@ export default function GuiaBackupClient() {
         {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>}
       </section>
 
-      <section id="guia" className="scroll-mt-24 mb-5 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
-        <div className="mb-3">
-          <h2 className="text-base font-semibold text-slate-950">Guia de uso</h2>
-          <p className="mt-0.5 text-xs text-slate-600">Abra somente o módulo que deseja consultar.</p>
-        </div>
-        <div className="grid gap-2">
-          {GUIDE.map((module) => (
-            <details key={module.name} className="group overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
-                <span>{module.name}</span>
-                <span className="text-lg leading-none text-[#13038D] group-open:hidden">+</span>
-                <span className="hidden text-lg leading-none text-[#13038D] group-open:inline">−</span>
-              </summary>
-              <div className="border-t border-slate-100 px-4 py-3">
-                <ol className="grid gap-2 text-xs leading-5 text-slate-700 sm:text-sm">
-                  {module.steps.map((step, index) => (
-                    <li key={step} className="flex gap-2">
-                      <span className="font-semibold text-[#13038D]">{index + 1}.</span>
-                      <span>{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </details>
-          ))}
-        </div>
-      </section>
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { normalizedText, segmentKey, positivePage } from "@/lib/block-one-utils";
 import { canModuleOperation } from "@/lib/module-authorization";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -36,11 +37,31 @@ export async function GET(request: Request) {
         { headers: { "Cache-Control": "no-store" } },
       );
     }
-    const [leads, prospects, activities] = await Promise.all([listLeads(context.accessToken, location), listProspects(context.accessToken, location), listLeadActivities(context.accessToken, location)]);
+    const [leads, prospects, activities] = await Promise.all([listLeads(context.accessToken, location), listProspects(context.accessToken, location), params.get("purpose") === "report" ? listLeadActivities(context.accessToken, location) : Promise.resolve([])]);
     const atrasados = leads.filter((x) => x.status === "atrasado").length;
     const hoje = leads.filter((x) => x.status === "hoje").length;
     const semData = leads.filter((x) => x.status === "sem-data").length;
-    return NextResponse.json({ leads, prospects, activities, location, canViewBothLocations: canViewBothLeadsLocations(context.email), summary: { atrasados, hoje, semData, pendentes: atrasados + hoje, prospectar: prospects.length } });
+    const summary = { atrasados, hoje, semData, pendentes: atrasados + hoje, prospectar: prospects.length };
+    if (params.get("purpose") === "report") return NextResponse.json({ leads, prospects, activities, location, canViewBothLocations: canViewBothLeadsLocations(context.email), summary }, { headers: { "Cache-Control": "private, no-store" } });
+    const variants = new Map<string, Set<string>>();
+    for (const item of [...leads, ...prospects]) {
+      if (item.segmento) { const key = segmentKey(item.segmento); const values = variants.get(key) || new Set<string>(); values.add(item.segmento); variants.set(key, values); }
+    }
+    const status = params.get("status") || "pendentes", segment = params.get("segment") || "";
+    const query = normalizedText(params.get("q") || ""), company = normalizedText(params.get("company") || "");
+    const selectedLeads = leads.filter(item => (status === "todos" || (status === "pendentes" ? item.status === "hoje" || item.status === "atrasado" : item.status === status)) && (!segment || item.segmento === segment) && (!query || normalizedText(`${item.cliente} ${item.segmento} ${item.contato} ${item.canal} ${item.observacoes}`).includes(query)));
+    const selectedProspects = prospects.filter(item => (!company || normalizedText(item.cliente).includes(company)) && (!query || normalizedText(`${item.cliente} ${item.segmento} ${item.cidade} ${item.oportunidade} ${item.observacoes}`).includes(query)));
+    const pageSize = 25, leadPages = Math.max(1, Math.ceil(selectedLeads.length / pageSize)), prospectPages = Math.max(1, Math.ceil(selectedProspects.length / pageSize));
+    const page = Math.min(positivePage(params.get("page")), leadPages), prospectPage = Math.min(positivePage(params.get("prospectPage")), prospectPages);
+    return NextResponse.json({
+      leads: selectedLeads.slice((page - 1) * pageSize, page * pageSize), prospects: selectedProspects.slice((prospectPage - 1) * pageSize, prospectPage * pageSize), activities: [],
+      location, canViewBothLocations: canViewBothLeadsLocations(context.email), summary,
+      segments: [...new Set(leads.map(item => item.segmento).filter(Boolean))].sort(),
+      duplicateSegments: [...variants.values()].filter(values => values.size > 1).map(values => [...values]),
+      // Só nomes para a conferência de importação; detalhes completos são carregados sob demanda.
+      existingClients: [...new Set([...leads, ...prospects].map(item => item.cliente.trim().toLocaleLowerCase("pt-BR")))],
+      pagination: { page, prospectPage, pageSize, leadPages, prospectPages, leadTotal: selectedLeads.length, prospectTotal: selectedProspects.length },
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível carregar os leads." }, { status: 500 });
   }

@@ -1,7 +1,7 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { canModuleOperation, canReadUnit, canStockOperation, normalizeUnit as authorizationUnit, stockAction } from "@/lib/module-authorization";
 import { pendingStockIdsForUser } from "@/lib/stock-notice-reads";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
-import { getPortalCentralIntegrationToken } from "@/lib/collaborator-auth.server";
 import type { PortalUser } from "@/lib/access-control";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
@@ -108,12 +108,10 @@ function summarize(needs: Need[]) {
 
 
 class StockIntegrationUnavailable extends Error {}
-async function getSheets(context: { user: PortalUser; accessToken: string }) {
-  let accessToken = context.accessToken;
-  if (context.user.collaboratorAccess) {
-    try { accessToken = await getPortalCentralIntegrationToken(); }
-    catch { throw new StockIntegrationUnavailable("Integração do Estoque temporariamente indisponível. Tente novamente."); }
-  }
+async function getSheets() {
+  let accessToken: string;
+  try { accessToken = await getAccessTokenFromRefreshToken(); }
+  catch { throw new StockIntegrationUnavailable("Integração do Estoque não configurada. Avise a gestão."); }
   const oauth = new google.auth.OAuth2();
   oauth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth: oauth });
@@ -154,7 +152,7 @@ export async function GET() {
   if (!gate.current) return gate.errorResponse;
   const { user } = gate.current;
   try {
-    const sheets = await getSheets(gate.current);
+    const sheets = await getSheets();
     const data = await readAll(sheets);
     const storedUnits = new Map(data.needRows.slice(1).map(row => [value(row, 0), value(row, 10)]));
     data.necessidades = data.necessidades.filter((item) => canReadUnit(user, "estoque", storedUnits.get(item.id)));
@@ -191,7 +189,7 @@ export async function POST(request: Request) {
     const permissionAction = stockAction(action);
     if (!permissionAction) return NextResponse.json({ error: "Ação desconhecida." }, { status: 400 });
     if (!canModuleOperation(user, "estoque", permissionAction)) return NextResponse.json({ error: "Ação não permitida." }, { status: 403 });
-    const sheets = await getSheets(gate.current);
+    const sheets = await getSheets();
     const data = await readAll(sheets);
 
     if (action === "criar") {

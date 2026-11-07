@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import { Suspense } from "react";
 import { getPortalSession as auth } from "@/lib/portal-session";
 import { redirect } from "next/navigation";
@@ -6,7 +7,7 @@ import PortalHeader from "@/components/portal-header";
 import Link from "next/link";
 import { canCollaboratorAction, resolveCollaboratorAccess } from "@/lib/collaborator-access";
 
-const STORE_SWITCHER_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
+const STORE_SWITCHER_EMAILS = MANAGEMENT_IDENTITIES;
 
 export default async function DashboardLayout({
   children,

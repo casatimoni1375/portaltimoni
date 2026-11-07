@@ -1,3 +1,4 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { planRotativoRestore } from "@/lib/rotativo-restore";
 import { applyOfficialRotativoModel } from "@/lib/rotativo-official-model";
 import { withStandardizationLock } from "@/lib/rotativo-standardization-lock";
@@ -20,7 +21,7 @@ async function context() {
   const gate = await requireModuleAuthorization("estoque-rotativo", "administrar");
   if (!gate.current) throw new Error("Seu acesso não permite esta ação.");
   const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: gate.current.accessToken });
+  oauth.setCredentials({ access_token: await getAccessTokenFromRefreshToken() });
   return { sheets: google.sheets({ version: "v4", auth: oauth }) };
 }
 
