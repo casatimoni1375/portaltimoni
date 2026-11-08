@@ -584,3 +584,52 @@ test("cadastro para acesso não presume unidade/ativação e não ignora duplica
   rows = [['pessoa', 'Pessoa fictícia', 'Araras', 'Sim'], ['pessoa', '', 'Araras', 'Sim']];
   assert.equal(await config.getOfficialCollaboratorForAccess('token-ficticio', 'pessoa'), null);
 });
+
+test("Leads agenda: unidade forjada e usuário sem módulo não leem nem gravam", async () => {
+  const calls = [];
+  const h = await harness({ actor: moduleActor(), extraMocks: {
+    "@/lib/leads-workspace.server": { getLeadsWorkspace: async () => { calls.push('read'); return { items: [], events: [] }; }, saveLeadWorkspace: async () => { calls.push('write'); return { ok: true }; } }
+  } });
+  const route = await h.evaluate("app/api/leads/workspace/route.ts");
+  assert.equal((await route.GET(new Request('https://portal.test/api/leads/workspace?location=ara'))).status, 403);
+  assert.equal((await route.POST(new Request('https://portal.test/api/leads/workspace', { method: 'POST', body: JSON.stringify({ location: 'ara', kind: 'contato' }) }))).status, 403);
+  h.setActor(moduleActor('user@example.test', { modules: [] }));
+  assert.equal((await route.GET(new Request('https://portal.test/api/leads/workspace?location=rc'))).status, 401);
+  assert.equal(calls.length, 0);
+});
+test("Leads agenda: somente leitura não escreve; editar não concede criar", async () => {
+  const calls = [];
+  const h = await harness({ actor: moduleActor('mrodini@gmail.com', { unit: 'Geral' }), extraMocks: {
+    "@/lib/leads-workspace.server": { getLeadsWorkspace: async () => ({ items: [], events: [] }), saveLeadWorkspace: async () => { calls.push('write'); return { ok: true }; } }
+  } });
+  const route = await h.evaluate('app/api/leads/workspace/route.ts');
+  const request = kind => new Request('https://portal.test/api/leads/workspace', { method: 'POST', body: JSON.stringify({ location: 'rc', kind }) });
+  assert.equal((await route.POST(request('cadastro'))).status, 403);
+  assert.equal((await route.POST(request('edicao'))).status, 200);
+  h.setActor(moduleActor('user@example.test', { readOnly: true }));
+  assert.equal((await route.POST(request('contato'))).status, 403);
+  assert.deepEqual(calls, ['write']);
+});
+
+test("Leads monitor: resumo usa agenda atual, respeita unidade e exige token antes de ler", async () => {
+  const reads = [];
+  let allowed = false;
+  const h = await harness({ extraMocks: {
+    "@/lib/leads-monitor-access": { hasLeadsMonitorAccess: () => allowed },
+    "@/lib/google-calendar": { getAccessTokenFromRefreshToken: async () => 'central-token' },
+    "@/lib/leads-workspace.server": { getLeadsWorkspace: async (_token, unit) => { reads.push(unit); return { items: [], today: '2026-11-08' }; } }
+  } });
+  const route = await h.evaluate('app/api/leads-monitor/route.ts');
+  const request = value => new Request(`https://portal.test/api/leads-monitor${value}`);
+  assert.equal((await route.GET(request(''))).status, 401);
+  assert.equal(reads.length, 0);
+  allowed = true;
+  assert.equal((await route.GET(request('?location=invalid'))).status, 400);
+  assert.equal(reads.length, 0);
+  const response = await route.GET(request('?location=ara'));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.location, 'ara');
+  assert.equal(body.porResponsavel[0].responsavel, 'Paulo');
+  assert.deepEqual(reads, ['ara']);
+});

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       ? readJson(request, "/api/espaco-equipe")
       : null,
     leads: modules.has("leads")
-      ? readJson(request, "/api/leads?summary=1")
+      ? readJson(request, "/api/leads/workspace?summary=1")
       : null,
     rotativo: modules.has("estoque-rotativo")
       ? Promise.all([

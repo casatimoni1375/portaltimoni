@@ -1,271 +1,1282 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import * as XLSX from "xlsx";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  companyKey,
+  dailyProgress,
+  deadline,
+  isActive,
+  OWNERS,
+  prioritySort,
+  STAGES,
+  type LeadEvent,
+  type LeadUnit,
+  type Opportunity,
+} from "@/lib/leads-workflow";
 
-type Lead = { row:number; cliente:string; segmento:string; contato:string; canal:string; ultimoContato:string; proximoContato:string; observacoes:string; status:"atrasado"|"hoje"|"proximo"|"sem-data" };
-type Prospect = { id:string; cliente:string; segmento:string; cidade:string; contato:string; canal:string; oportunidade:string; observacoes:string; origem:"historico"|"portal" };
-type Activity = { data:string; tipo:"CONTATO"|"CADASTRO"|"REATIVAÇÃO"|"IMPORTAÇÃO"; cliente:string; proximoContato:string; observacoes:string };
-type ResponseData = { location:"rc"|"ara"; canViewBothLocations:boolean; leads: Lead[]; prospects: Prospect[]; activities:Activity[]; summary: { atrasados:number; hoje:number; semData:number; pendentes:number; prospectar:number } };
-type ImportRow = { cliente:string; segmento:string; contato:string; canal:string; ultimoContato:string; proximoContato:string; observacoes:string; sourceRow:number; duplicate?:boolean; error?:string };
-type ReportMetric = "realizados"|"pendentes"|"atrasados"|"novos"|"reativados"|"semData";
-type ReportClient = { cliente:string; data:string; detalhe:string };
-
-const reportMetricLabels:Record<ReportMetric,string>={realizados:"Realizados",pendentes:"Pendentes",atrasados:"Atrasados",novos:"Novos leads",reativados:"Reativados",semData:"Sem próxima data"};
-
-const normalizeHeader=(value:unknown)=>String(value??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").replace(/[^a-z0-9]/g,"");
-const normalizeImportDate=(value:string)=>{
-  const match=value.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if(!match)return value;
-  const year=match[3].length===2?`20${match[3]}`:match[3];
-  return `${match[1].padStart(2,"0")}/${match[2].padStart(2,"0")}/${year}`;
+type LegacyActivity = {
+  data: string;
+  tipo: string;
+  cliente: string;
+  observacoes: string;
+  proximoContato: string;
 };
-const toDateInput=(value:string)=>{
-  const iso=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(iso)return value;
-  const br=value.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if(!br)return "";
-  const year=br[3].length===2?`20${br[3]}`:br[3];
-  return `${year}-${br[2].padStart(2,"0")}-${br[1].padStart(2,"0")}`;
+type Workspace = {
+  legacyActivities: LegacyActivity[];
+  items: Opportunity[];
+  events: LeadEvent[];
+  today: string;
+  location: LeadUnit;
+  canViewBothLocations: boolean;
+  canEdit: boolean;
+  canCreate: boolean;
 };
-const displayDate=(value:string)=>{
-  if(!value)return "—";
-  const input=toDateInput(value);
-  if(!input)return value;
-  const [year,month,day]=input.split("-");
-  return `${day}/${month}/${year}`;
-};
-const localIso=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-const startOfWeek=(date:Date)=>{const result=new Date(date);result.setHours(0,0,0,0);const day=result.getDay();result.setDate(result.getDate()-(day===0?6:day-1));return result;};
-const endOfWeek=(date:Date)=>{const result=startOfWeek(date);result.setDate(result.getDate()+6);return result;};
-const dateInPeriod=(value:string,start:string,end:string)=>{const input=toDateInput(value);return Boolean(input&&input>=start&&input<=end);};
-function ContactLinks({value}:{value:string}){
-  if(!value)return <span>—</span>;
-  const parts=value.split(/\s*(?:\n|;|\||\s\/\s)\s*/).map(item=>item.trim()).filter(Boolean);
-  return <div className="space-y-0.5">{parts.map((item,index)=>{
-    const email=item.replace(/^mailto:/i,"").trim();
-    if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return <a key={`${item}-${index}`} href={`mailto:${email}`} className="block break-all font-medium text-blue-700 underline decoration-blue-300 underline-offset-2">{item}</a>;
-    const digits=item.replace(/\D/g,"");
-    if(!/[a-zá-ú]/i.test(item)&&digits.length>=10&&digits.length<=13){const whatsapp=digits.startsWith("55")?digits:`55${digits}`;return <a key={`${item}-${index}`} href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" className="block font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-2" title="Abrir no WhatsApp">{item}</a>;}
-    return <span key={`${item}-${index}`} className="block break-words">{item}</span>;
-  })}</div>;
+type View = "agenda" | "prospeccao" | "funil" | "historico";
+type Kind = LeadEvent["kind"];
+const inputClass =
+  "mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-950 focus:border-[#14038D] focus:outline-none focus:ring-2 focus:ring-indigo-100";
+const secondary =
+  "rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-base font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+const primary =
+  "rounded-xl bg-[#14038D] px-4 py-2.5 text-base font-bold text-white hover:bg-indigo-900 disabled:opacity-50";
+const dateLabel = (value: string) =>
+  value ? value.split("-").reverse().join("/") : "Agendar retorno";
+function Contact({ value }: { value: string }) {
+  const parts = value.split(/\s*(?:\n|;|\||\s\/\s)\s*/).filter(Boolean);
+  return (
+    <div className="flex flex-wrap gap-2">
+      {parts.map((part, index) => {
+        const digits = part.replace(/\D/g, "");
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(part))
+          return (
+            <a
+              key={index}
+              href={`mailto:${part}`}
+              className="break-all font-semibold text-blue-800 underline"
+            >
+              {part}
+            </a>
+          );
+        if (
+          !/[a-zá-ú]/i.test(part) &&
+          digits.length >= 10 &&
+          digits.length <= 13
+        )
+          return (
+            <a
+              key={index}
+              href={`https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg bg-emerald-50 px-3 py-1.5 font-bold text-emerald-800"
+            >
+              WhatsApp ↗
+            </a>
+          );
+        return (
+          <span key={index} className="break-all text-slate-600">
+            {part}
+          </span>
+        );
+      })}
+    </div>
+  );
 }
-const headerAliases:Record<Exclude<keyof ImportRow,"sourceRow"|"duplicate"|"error">,string[]>={
-  cliente:["cliente","empresa","razaosocial","nomefantasia"], segmento:["segmento","ramo","atividade"], contato:["contato","pessoa","responsavel"],
-  canal:["canal","telefone","email","telefoneemail","whatsapp","whatsappemail"], ultimoContato:["ultimocontato","dataultimocontato","datadocontato"],
-  proximoContato:["proximocontato","dataproximocontato","datadoproximocontato","datafollowup","datafollowupcliente","retorno"], observacoes:["observacoes","observacao","observacoesperiocidadeprodutosetc","observacoesperiodicidadeprodutosetc","notas"],
-};
-
 export default function LeadsPage() {
-  const [data,setData]=useState<ResponseData|null>(null);
-  const [location,setLocation]=useState<"rc"|"ara">("rc");
-  const [filter,setFilter]=useState("pendentes");
-  const [editing,setEditing]=useState<Lead|null>(null);
-  const [reactivating,setReactivating]=useState<Prospect|null>(null);
-  const [saving,setSaving]=useState(false);
-  const [showForm,setShowForm]=useState(false);
-  const [showSearch,setShowSearch]=useState(false);
-  const [text,setText]=useState("");
-  const [segment,setSegment]=useState("");
-  const [prospectSearch,setProspectSearch]=useState("");
-  const fileInputRef=useRef<HTMLInputElement>(null);
-  const [importRows,setImportRows]=useState<ImportRow[]|null>(null);
-  const [importName,setImportName]=useState("");
-  const [importError,setImportError]=useState("");
-  const [showReports,setShowReports]=useState(false);
-  const [reportPreset,setReportPreset]=useState<"atual"|"anterior"|"30dias"|"personalizado">("atual");
-  const [reportStart,setReportStart]=useState(()=>localIso(startOfWeek(new Date())));
-  const [reportEnd,setReportEnd]=useState(()=>localIso(endOfWeek(new Date())));
-  const [generatingReport,setGeneratingReport]=useState(false);
-  const [reportError,setReportError]=useState("");
-  const [selectedReportMetric,setSelectedReportMetric]=useState<ReportMetric|null>(null);
-
-  async function load(){ const r=await fetch(`/api/leads?location=${location}`,{cache:"no-store"}); const result=await r.json(); if(r.ok){setData(result);if(result.location!==location)setLocation(result.location);setImportError("");}else{setData(null);setImportError(result.error??"Não foi possível carregar os dados atuais do Leads.");} }
-  useEffect(()=>{ void load(); },[location]);
-
-  const segments=useMemo(()=>Array.from(new Set((data?.leads??[]).map(x=>x.segmento).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"pt-BR")),[data]);
-  const leads=useMemo(()=>{ let all=data?.leads??[]; if(filter==="pendentes") all=all.filter(x=>x.status==="atrasado"||x.status==="hoje"); else if(filter!=="todos") all=all.filter(x=>x.status===filter); if(segment) all=all.filter(x=>x.segmento===segment); const q=text.trim().toLocaleLowerCase("pt-BR"); if(q) all=all.filter(x=>`${x.cliente} ${x.segmento} ${x.contato} ${x.canal} ${x.observacoes}`.toLocaleLowerCase("pt-BR").includes(q)); return all; },[data,filter,segment,text]);
-  const prospects=useMemo(()=>{ const q=text.trim().toLocaleLowerCase("pt-BR"); const company=prospectSearch.trim().toLocaleLowerCase("pt-BR"); return (data?.prospects??[]).filter(x=>(!q||`${x.cliente} ${x.segmento} ${x.cidade} ${x.oportunidade} ${x.observacoes}`.toLocaleLowerCase("pt-BR").includes(q))&&(!company||x.cliente.toLocaleLowerCase("pt-BR").includes(company))); },[data,text,prospectSearch]);
-  useEffect(()=>{
-    if(reportPreset==="personalizado")return;
-    const today=new Date();
-    if(reportPreset==="atual"){setReportStart(localIso(startOfWeek(today)));setReportEnd(localIso(endOfWeek(today)));return;}
-    if(reportPreset==="anterior"){const previous=new Date(today);previous.setDate(previous.getDate()-7);setReportStart(localIso(startOfWeek(previous)));setReportEnd(localIso(endOfWeek(previous)));return;}
-    const start=new Date(today);start.setDate(start.getDate()-29);setReportStart(localIso(start));setReportEnd(localIso(today));
-  },[reportPreset]);
-  const report=useMemo(()=>{
-    const current=data?.leads??[];
-    const activities=(data?.activities??[]).filter(item=>dateInPeriod(item.data,reportStart,reportEnd));
-    const completedNames=new Set(activities.filter(item=>item.tipo==="CONTATO").map(item=>item.cliente.toLocaleLowerCase("pt-BR")));
-    current.filter(item=>dateInPeriod(item.ultimoContato,reportStart,reportEnd)).forEach(item=>completedNames.add(item.cliente.toLocaleLowerCase("pt-BR")));
-    const today=localIso(new Date());
-    const pendingClients=current.filter(item=>{const date=toDateInput(item.proximoContato);return Boolean(date&&date>=today&&date>=reportStart&&date<=reportEnd);});
-    const overdueClients=current.filter(item=>{const date=toDateInput(item.proximoContato);return Boolean(date&&date<today&&date<=reportEnd);});
-    const pending=pendingClients.length;
-    const overdue=overdueClients.length;
-    const completed=completedNames.size;
-    const total=completed+pending+overdue;
-    const progress=total?Math.round((completed/total)*100):0;
-    const weekly=Array.from({length:6},(_,position)=>{
-      const base=startOfWeek(new Date());
-      base.setDate(base.getDate()-((5-position)*7));
-      const finish=endOfWeek(base);
-      const start=localIso(base),end=localIso(finish);
-      const done=new Set<string>();
-      (data?.activities??[]).filter(item=>item.tipo==="CONTATO"&&dateInPeriod(item.data,start,end)).forEach(item=>done.add(item.cliente.toLocaleLowerCase("pt-BR")));
-      current.filter(item=>dateInPeriod(item.ultimoContato,start,end)).forEach(item=>done.add(item.cliente.toLocaleLowerCase("pt-BR")));
-      const scheduled=current.filter(item=>dateInPeriod(item.proximoContato,start,end));
-      const late=scheduled.filter(item=>toDateInput(item.proximoContato)<today).length;
-      const open=Math.max(0,scheduled.length-late);
-      const baseTotal=done.size+open+late;
-      return {label:`${displayDate(start).slice(0,5)}–${displayDate(end).slice(0,5)}`,completed:done.size,pending:open,overdue:late,progress:baseTotal?Math.round((done.size/baseTotal)*100):0};
-    });
-    const newActivities=activities.filter(item=>item.tipo==="CADASTRO"||item.tipo==="IMPORTAÇÃO");
-    const reactivatedActivities=activities.filter(item=>item.tipo==="REATIVAÇÃO");
-    const activityDetails=(items:Activity[]):ReportClient[]=>Array.from(new Map(items.map(item=>[item.cliente.toLocaleLowerCase("pt-BR"),item])).values()).map(item=>({cliente:item.cliente,data:item.data,detalhe:item.observacoes}));
-    const details:Record<ReportMetric,ReportClient[]>={
-      realizados:Array.from(completedNames).map(key=>{const lead=current.find(item=>item.cliente.toLocaleLowerCase("pt-BR")===key);const activity=activities.find(item=>item.tipo==="CONTATO"&&item.cliente.toLocaleLowerCase("pt-BR")===key);return {cliente:lead?.cliente??activity?.cliente??key,data:lead?.ultimoContato??activity?.data??"",detalhe:lead?.observacoes??activity?.observacoes??""};}),
-      pendentes:pendingClients.map(item=>({cliente:item.cliente,data:item.proximoContato,detalhe:item.observacoes})),
-      atrasados:overdueClients.map(item=>({cliente:item.cliente,data:item.proximoContato,detalhe:item.observacoes})),
-      novos:activityDetails(newActivities),
-      reativados:activityDetails(reactivatedActivities),
-      semData:current.filter(item=>!toDateInput(item.proximoContato)).map(item=>({cliente:item.cliente,data:"",detalhe:item.observacoes})),
-    };
-    return {completed,pending,overdue,progress,newLeads:newActivities.length,reactivated:reactivatedActivities.length,withoutDate:details.semData.length,weekly,details};
-  },[data,reportStart,reportEnd]);
-
-  async function saveFollowup(e:React.FormEvent<HTMLFormElement>){ e.preventDefault(); if(!editing)return; setSaving(true); const fd=new FormData(e.currentTarget); const r=await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({row:editing.row,cliente:fd.get("cliente"),segmento:fd.get("segmento"),contato:fd.get("contato"),canal:fd.get("canal"),ultimoContato:fd.get("ultimoContato"),proximoContato:fd.get("proximoContato"),observacoes:fd.get("observacoes"),location})}); setSaving(false); if(r.ok){setEditing(null); await load();} else alert((await r.json()).error??"Erro ao salvar"); }
-  async function createLead(e:React.FormEvent<HTMLFormElement>){ e.preventDefault(); setSaving(true); const fd=new FormData(e.currentTarget); const payload={...Object.fromEntries(fd.entries()),location}; const r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); setSaving(false); if(r.ok){setShowForm(false); await load();} else alert((await r.json()).error??"Erro ao cadastrar"); }
-  async function reactivate(e:React.FormEvent<HTMLFormElement>){ e.preventDefault(); if(!reactivating)return; setSaving(true); const fd=new FormData(e.currentTarget); const r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"reativar",id:reactivating.id,cliente:fd.get("cliente"),segmento:fd.get("segmento"),contato:fd.get("contato"),canal:fd.get("canal"),proximoContato:fd.get("proximoContato"),observacoes:fd.get("observacoes"),location})}); const result=await r.json(); setSaving(false); if(r.ok){setReactivating(null);setFilter("todos");await load();}else alert(result.error??"Erro ao reativar"); }
-  async function moveToProspects(lead:Lead){ if(!window.confirm(`Alterar o status de ${lead.cliente} para A Prospectar?`))return; setSaving(true); const r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"mover_para_prospectar",row:lead.row,location})}); const result=await r.json();setSaving(false);if(r.ok){await load();}else alert(result.error??"Erro ao alterar o status"); }
-  async function readImportFile(file:File){
-    setImportError("");
+  const [data, setData] = useState<Workspace | null>(null);
+  const [unit, setUnit] = useState<LeadUnit | "">("");
+  const [owner, setOwner] = useState("");
+  const [view, setView] = useState<View>("agenda");
+  const [filter, setFilter] = useState("pendentes");
+  const [query, setQuery] = useState("");
+  const [segment, setSegment] = useState("");
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [modal, setModal] = useState<{
+    item: Opportunity;
+    kind: Kind;
+    requestId: string;
+  } | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
+  const [searchCompanies, setSearchCompanies] = useState(false);
+  const [imports, setImports] = useState<Record<string, string>[] | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const generation = useRef(0);
+  const busy = useRef(false);
+  const location = data?.location ?? (unit || "rc");
+  const owners = OWNERS[location];
+  const load = useCallback(async () => {
+    const current = ++generation.current;
+    setLoading(true);
+    setError("");
     try {
-      if(!data) throw new Error("Os dados atuais do Leads ainda não foram carregados. Atualize a página e tente novamente.");
-      const workbook=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:false});
-      const sheet=workbook.Sheets[workbook.SheetNames[0]];
-      const matrix=XLSX.utils.sheet_to_json<unknown[]>(sheet,{header:1,defval:"",raw:false});
-      if(matrix.length<2) throw new Error("O arquivo está vazio ou não possui linhas de dados.");
-      const headers=(matrix[0]??[]).map(normalizeHeader);
-      const indexes=Object.fromEntries(Object.entries(headerAliases).map(([field,aliases])=>[field,headers.findIndex(h=>aliases.includes(h))])) as Record<string,number>;
-      if(indexes.cliente<0) throw new Error("Não encontrei a coluna Empresa ou Cliente.");
-      const existing=new Set([...(data?.leads??[]),...(data?.prospects??[])].map(x=>x.cliente.trim().toLocaleLowerCase("pt-BR")));
-      const seen=new Set<string>();
-      const value=(row:unknown[],field:string)=>indexes[field]>=0?String(row[indexes[field]]??"").trim():"";
-      const parsed=matrix.slice(1).map((raw,index)=>({raw,index})).filter(({raw})=>Array.isArray(raw)&&raw.some(cell=>String(cell??"").trim())).map(({raw,index})=>{
-        const row=Array.isArray(raw)?raw:[];
-        const cliente=value(row,"cliente");
-        const key=cliente.toLocaleLowerCase("pt-BR");
-        const duplicate=Boolean(cliente)&&(existing.has(key)||seen.has(key));
-        if(cliente&&!duplicate) seen.add(key);
-        return {cliente,segmento:value(row,"segmento"),contato:value(row,"contato"),canal:value(row,"canal"),ultimoContato:normalizeImportDate(value(row,"ultimoContato")),proximoContato:normalizeImportDate(value(row,"proximoContato")),observacoes:value(row,"observacoes"),sourceRow:index+2,duplicate,error:cliente?undefined:"Empresa não informada"};
-      });
-      if(!parsed.length) throw new Error("O arquivo não possui registros preenchidos.");
-      setImportName(file.name); setImportRows(parsed);
-    } catch(error) { setImportRows(null); setImportError(error instanceof Error?error.message:"Não foi possível ler o arquivo."); }
-    finally { if(fileInputRef.current) fileInputRef.current.value=""; }
+      const response = await fetch(
+        `/api/leads/workspace${unit ? `?location=${unit}` : ""}`,
+        { cache: "no-store" },
+      );
+      const result = await response.json();
+      if (!response.ok)
+        throw Error(result.error ?? "Não foi possível carregar os contatos.");
+      if (current === generation.current) {
+        setData(result);
+        setOwner((previous) =>
+          previous &&
+          (OWNERS[result.location as LeadUnit] as readonly string[]).includes(
+            previous,
+          )
+            ? previous
+            : OWNERS[result.location as LeadUnit][0],
+        );
+      }
+    } catch (err) {
+      if (current === generation.current) {
+        setData(null);
+        setError(err instanceof Error ? err.message : "Falha ao carregar.");
+      }
+    } finally {
+      if (current === generation.current) setLoading(false);
+    }
+  }, [unit]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [owner, view, filter, query, segment]);
+  useEffect(() => {
+    if (modal) dialogRef.current?.showModal();
+  }, [modal]);
+  const selected = useMemo(
+    () =>
+      (data?.items ?? []).filter(
+        (item) =>
+          (!owner || item.responsavel === owner) &&
+          (!segment || item.segmento === segment) &&
+          (!query ||
+            `${item.empresa} ${item.contato} ${item.telefone} ${item.segmento} ${item.oportunidade}`
+              .toLocaleLowerCase("pt-BR")
+              .includes(query.toLocaleLowerCase("pt-BR"))),
+      ),
+    [data, owner, query, segment],
+  );
+  const active = selected.filter(isActive);
+  const progress = dailyProgress(
+    data?.items ?? [],
+    data?.events ?? [],
+    owner,
+    data?.today,
+  );
+  const filtered = selected
+    .filter((item) => {
+      if (view === "prospeccao") return item.etapa === "A contatar";
+      if (view !== "agenda") return true;
+      const status = deadline(item, data?.today);
+      if (filter === "todos") return isActive(item);
+      if (filter === "pendentes")
+        return ["atrasado", "hoje", "sem-data"].includes(status);
+      return status === filter;
+    })
+    .sort(prioritySort);
+  const doneIds = new Set(
+    (data?.events ?? [])
+      .filter(
+        (event) =>
+          event.kind === "contato" &&
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/Sao_Paulo",
+          }).format(new Date(event.at)) === data?.today,
+      )
+      .map((event) => event.item.id),
+  );
+  const focus = active
+    .filter(
+      (item) =>
+        ["atrasado", "hoje", "sem-data"].includes(
+          deadline(item, data?.today),
+        ) && !doneIds.has(item.id),
+    )
+    .sort(prioritySort)[0];
+  const history = (data?.events ?? [])
+    .filter((event) => selected.some((item) => item.id === event.item.id))
+    .slice()
+    .reverse();
+  function open(item: Opportunity, kind: Kind) {
+    setError("");
+    setNotice("");
+    if (kind === "agendamento" && item.etapa === "Ganho") {
+      item = {
+        ...item,
+        etapa: "Pós-venda / Recompra",
+        proximaAcao: "Acompanhar entrega e próxima compra",
+        proximoContato: "",
+      };
+    }
+    setModal({ item, kind, requestId: crypto.randomUUID() });
   }
-  async function confirmImport(){
-    if(!importRows)return;
-    const valid=importRows.filter(row=>!row.duplicate&&!row.error).map(row=>({cliente:row.cliente,segmento:row.segmento,contato:row.contato,canal:row.canal,ultimoContato:row.ultimoContato,proximoContato:row.proximoContato,observacoes:row.observacoes}));
-    if(!valid.length)return;
+  function create() {
+    open(
+      {
+        id: "",
+        empresa: "",
+        segmento: "",
+        cidade: "",
+        contato: "",
+        telefone: "",
+        oportunidade: "",
+        observacoes: "",
+        responsavel: owner || owners[0],
+        etapa: "A contatar",
+        proximaAcao: "Fazer a primeira abordagem",
+        proximoContato: data?.today ?? "",
+        ultimoContato: "",
+        motivo: "",
+        revision: "",
+      },
+      "cadastro",
+    );
+  }
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!modal || busy.current) return;
+    const fields = new FormData(event.currentTarget);
+    const payload = { ...modal.item, ...Object.fromEntries(fields.entries()) };
+    busy.current = true;
     setSaving(true);
-    const r=await fetch("/api/leads",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({rows:valid,location})});
-    const result=await r.json(); setSaving(false);
-    if(!r.ok){setImportError(result.error??"Erro ao importar");return;}
-    alert(`${result.imported} empresa(s) importada(s) para Follow-up.`); setImportRows(null); setImportName(""); await load();
+    setError("");
+    try {
+      const response = await fetch("/api/leads/workspace", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          location,
+          item: payload,
+          kind: modal.kind,
+          requestId: modal.requestId,
+          resultado: fields.get("resultado"),
+          nota: fields.get("nota"),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error ?? "Não foi possível salvar.");
+      const message =
+        modal.kind === "contato"
+          ? "Contato registrado. Próximo passo organizado!"
+          : modal.kind === "agendamento"
+            ? "Retorno agendado. O histórico foi preservado."
+            : "Dados salvos.";
+      setModal(null);
+      setNotice(message);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível salvar.");
+    } finally {
+      busy.current = false;
+      setSaving(false);
+    }
   }
-  async function generateGoogleReport(){
-    setGeneratingReport(true);setReportError("");
-    try{
-      const response=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"gerar_relatorio",startDate:reportStart,endDate:reportEnd,location})});
-      const result=await response.json();
-      if(!response.ok)throw new Error(result.error??"Não foi possível gerar o relatório.");
-      window.open(result.url,"_blank","noopener,noreferrer");
-    }catch(error){setReportError(error instanceof Error?error.message:"Não foi possível gerar o relatório.");}
-    finally{setGeneratingReport(false);}
+  async function readImport(file: File) {
+    try {
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
+        workbook.Sheets[workbook.SheetNames[0]],
+        { defval: "", raw: false },
+      );
+      const aliases: Record<string, string[]> = {
+        cliente: ["empresa", "cliente", "razaosocial", "nomefantasia"],
+        segmento: ["segmento", "ramo"],
+        contato: ["contato", "pessoa", "responsavel"],
+        canal: ["telefone", "email", "telefoneemail", "canal", "whatsapp"],
+        proximoContato: ["proximocontato", "retorno", "datafollowup"],
+        ultimoContato: ["ultimocontato"],
+        observacoes: ["observacoes", "observacao", "notas"],
+      };
+      const clean = (value: string) =>
+        companyKey(value).replace(/[^a-z0-9]/g, "");
+      const known = new Set(
+        (data?.items ?? []).map((item) => companyKey(item.empresa)),
+      );
+      const parsed = rows
+        .map((row) =>
+          Object.fromEntries(
+            Object.entries(aliases).map(([field, names]) => [
+              field,
+              String(
+                Object.entries(row).find(([key]) =>
+                  names.includes(clean(key)),
+                )?.[1] ?? "",
+              ).trim(),
+            ]),
+          ),
+        )
+        .filter((row) => row.cliente && !known.has(companyKey(row.cliente)));
+      const unique = [
+        ...new Map(
+          parsed.map((row) => [companyKey(row.cliente), row]),
+        ).values(),
+      ];
+      if (!unique.length)
+        throw Error(
+          "Nenhuma empresa nova encontrada. Confira as colunas Empresa ou Cliente.",
+        );
+      if (unique.length > 1000)
+        throw Error("Importe até 1.000 empresas por arquivo.");
+      setImports(unique);
+      setError("");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Não foi possível ler o arquivo.",
+      );
+    }
+    if (fileRef.current) fileRef.current.value = "";
   }
-  function googleSearch(e:React.FormEvent<HTMLFormElement>){ e.preventDefault(); const fd=new FormData(e.currentTarget); const segmento=String(fd.get("segmento")??"").trim(); const regiao=String(fd.get("regiao")??"").trim(); const oportunidade=String(fd.get("oportunidade")??"").trim(); const query=[segmento,regiao,oportunidade].filter(Boolean).join(" "); if(!query) return; window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`,"_blank","noopener,noreferrer"); window.open(`https://www.google.com/maps/search/${encodeURIComponent([segmento,regiao].filter(Boolean).join(" "))}`,"_blank","noopener,noreferrer"); }
-
-  const badge=(s:Lead["status"])=> s==="atrasado"?"bg-red-100 text-red-700":s==="hoje"?"bg-amber-100 text-amber-800":s==="sem-data"?"bg-slate-100 text-slate-600":"bg-emerald-50 text-emerald-700";
-  return <div className="ct-modern-workspace pb-8">
-    <div className="mb-5 flex flex-wrap items-start justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[.2em] text-blue-700">Casa Timoni</p><h1 className="text-2xl font-semibold text-slate-950">Leads {location==="rc"?"RC":"ARA"}</h1><p className="mt-1 text-sm text-slate-600">Follow up e prospecção sem complicação.</p></div><div className="flex flex-wrap gap-2"><input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e=>{const file=e.target.files?.[0];if(file)void readImportFile(file)}}/><button onClick={()=>setShowReports(value=>!value)} className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700">Avanço comercial</button><button onClick={()=>fileInputRef.current?.click()} className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700">Importar arquivo</button><button onClick={()=>setShowSearch(true)} className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">Buscar empresas</button><button onClick={()=>setShowForm(true)} className="rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white">+ Cadastrar</button></div></div>
-    {data?.canViewBothLocations&&<div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Arquivo de Leads"><button type="button" aria-pressed={location==="rc"} onClick={()=>{setLocation("rc");setFilter("pendentes");setText("");setSegment("");}} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${location==="rc"?"border-blue-700 bg-blue-700 text-white":"border-slate-200 bg-white text-slate-700"}`}>Leads RC</button><button type="button" aria-pressed={location==="ara"} onClick={()=>{setLocation("ara");setFilter("pendentes");setText("");setSegment("");}} className={`rounded-xl border px-4 py-2 text-sm font-semibold ${location==="ara"?"border-blue-700 bg-blue-700 text-white":"border-slate-200 bg-white text-slate-700"}`}>Leads ARA</button></div>}
-    {importError&&!importRows&&<div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{importError}</div>}
-
-    <section className="grid gap-3 sm:grid-cols-5">
-      <button onClick={()=>{setFilter("pendentes")}} className="rounded-2xl border border-red-200 bg-red-50 p-4 text-left"><b className="text-3xl">{data?.summary.pendentes??"—"}</b><p className="text-xs">para agir hoje</p></button>
-      <button onClick={()=>{setFilter("atrasado")}} className="rounded-2xl border p-4 text-left"><b className="text-3xl">{data?.summary.atrasados??"—"}</b><p className="text-xs">atrasados</p></button>
-      <button onClick={()=>{setFilter("hoje")}} className="rounded-2xl border p-4 text-left"><b className="text-3xl">{data?.summary.hoje??"—"}</b><p className="text-xs">para hoje</p></button>
-      <button onClick={()=>{setFilter("sem-data")}} className="rounded-2xl border p-4 text-left"><b className="text-3xl">{data?.summary.semData??"—"}</b><p className="text-xs">sem próxima data</p></button>
-      <button onClick={()=>document.getElementById("leads-prospectar")?.scrollIntoView({behavior:"smooth",block:"start"})} className="rounded-2xl border p-4 text-left"><b className="text-3xl">{data?.summary.prospectar??"—"}</b><p className="text-xs">a prospectar</p></button>
-    </section>
-
-    {showReports&&<section className="mt-5 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[.16em] text-blue-700">Relatórios</p><h2 className="text-xl font-semibold text-slate-950">Avanço comercial</h2><p className="mt-1 text-sm text-slate-500">Acompanhe o realizado e o que ainda precisa de ação.</p></div><button onClick={()=>void generateGoogleReport()} disabled={generatingReport||!data} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{generatingReport?"Gerando...":"Gerar no Google Planilhas"}</button></div>
-      <div className="mt-4 flex flex-wrap gap-2"><select value={reportPreset} onChange={event=>setReportPreset(event.target.value as typeof reportPreset)} className="rounded-xl border bg-white px-3 py-2 text-sm font-semibold"><option value="atual">Semana atual</option><option value="anterior">Semana anterior</option><option value="30dias">Últimos 30 dias</option><option value="personalizado">Período personalizado</option></select>{reportPreset==="personalizado"&&<><label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold">De <input type="date" value={reportStart} onChange={event=>setReportStart(event.target.value)} className="bg-transparent"/></label><label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold">Até <input type="date" value={reportEnd} onChange={event=>setReportEnd(event.target.value)} className="bg-transparent"/></label></>}</div>
-      {reportError&&<div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{reportError}</div>}
-      <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <button type="button" onClick={()=>setSelectedReportMetric("realizados")} className="rounded-xl bg-emerald-50 p-3 text-left transition hover:ring-2 hover:ring-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-400"><b className="text-2xl text-emerald-700">{report.completed}</b><p className="text-xs text-emerald-800">realizados · ver clientes</p></button>
-        <button type="button" onClick={()=>setSelectedReportMetric("pendentes")} className="rounded-xl bg-blue-50 p-3 text-left transition hover:ring-2 hover:ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"><b className="text-2xl text-blue-700">{report.pending}</b><p className="text-xs text-blue-800">pendentes · ver clientes</p></button>
-        <button type="button" onClick={()=>setSelectedReportMetric("atrasados")} className="rounded-xl bg-red-50 p-3 text-left transition hover:ring-2 hover:ring-red-200 focus:outline-none focus:ring-2 focus:ring-red-400"><b className="text-2xl text-red-700">{report.overdue}</b><p className="text-xs text-red-800">atrasados · ver clientes</p></button>
-        <button type="button" onClick={()=>setSelectedReportMetric("novos")} className="rounded-xl bg-violet-50 p-3 text-left transition hover:ring-2 hover:ring-violet-200 focus:outline-none focus:ring-2 focus:ring-violet-400"><b className="text-2xl text-violet-700">{report.newLeads}</b><p className="text-xs text-violet-800">novos leads · ver clientes</p></button>
-        <button type="button" onClick={()=>setSelectedReportMetric("reativados")} className="rounded-xl bg-amber-50 p-3 text-left transition hover:ring-2 hover:ring-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400"><b className="text-2xl text-amber-700">{report.reactivated}</b><p className="text-xs text-amber-800">reativados · ver clientes</p></button>
-        <button type="button" onClick={()=>setSelectedReportMetric("semData")} className="rounded-xl bg-slate-100 p-3 text-left transition hover:ring-2 hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400"><b className="text-2xl text-slate-700">{report.withoutDate}</b><p className="text-xs text-slate-600">sem próxima data · ver clientes</p></button>
-      </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(360px,1.2fr)]">
-        <div className="rounded-xl border p-4"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Avanço do período</p><b className="text-4xl text-blue-800">{report.progress}%</b></div><span className="text-xs text-slate-500">{displayDate(reportStart)} a {displayDate(reportEnd)}</span></div><div className="mt-4 h-4 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-700 transition-all" style={{width:`${report.progress}%`}}/></div><div className="mt-3 flex flex-wrap gap-4 text-xs"><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-emerald-500"/>Realizado</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-blue-500"/>Pendente</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-red-500"/>Atrasado</span></div></div>
-        <div className="overflow-x-auto rounded-xl border"><table className="min-w-full text-xs"><thead className="bg-slate-50 text-left text-slate-600"><tr><th className="px-3 py-2">Semana</th><th className="px-3 py-2 text-center">Realizados</th><th className="px-3 py-2 text-center">Pendentes</th><th className="px-3 py-2 text-center">Atrasados</th><th className="px-3 py-2 text-right">Avanço</th></tr></thead><tbody>{report.weekly.map(item=><tr key={item.label} className="border-t"><td className="whitespace-nowrap px-3 py-2 font-semibold">{item.label}</td><td className="px-3 py-2 text-center text-emerald-700">{item.completed}</td><td className="px-3 py-2 text-center text-blue-700">{item.pending}</td><td className="px-3 py-2 text-center text-red-700">{item.overdue}</td><td className="px-3 py-2 text-right font-semibold">{item.progress}%</td></tr>)}</tbody></table></div>
-      </div>
-      <p className="mt-3 text-xs text-slate-500">O histórico passa a ser registrado automaticamente a partir desta atualização. As comparações ficarão mais completas a cada semana de uso.</p>
-    </section>}
-
-    {selectedReportMetric&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-3" onMouseDown={event=>{if(event.currentTarget===event.target)setSelectedReportMetric(null)}}><div className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl"><div className="flex shrink-0 items-start justify-between gap-3 border-b p-4 sm:p-5"><div><p className="text-xs font-semibold uppercase tracking-[.16em] text-blue-700">Avanço comercial</p><h3 className="text-lg font-semibold">Clientes — {reportMetricLabels[selectedReportMetric]}</h3><p className="mt-1 text-sm text-slate-500">{displayDate(reportStart)} a {displayDate(reportEnd)} · {report.details[selectedReportMetric].length} cliente(s)</p></div><button type="button" onClick={()=>setSelectedReportMetric(null)} className="rounded-lg border px-3 py-1 text-lg leading-none" aria-label="Fechar">×</button></div><div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">{report.details[selectedReportMetric].length?<div className="divide-y rounded-xl border">{report.details[selectedReportMetric].map((item,index)=><div key={`${item.cliente}-${index}`} className="p-3"><div className="flex flex-wrap items-start justify-between gap-2"><b className="text-sm text-slate-900">{item.cliente}</b>{item.data&&<span className="whitespace-nowrap text-xs font-semibold text-slate-500">{displayDate(item.data)}</span>}</div>{item.detalhe&&<p className="mt-1 text-xs leading-relaxed text-slate-600">{item.detalhe}</p>}</div>)}</div>:<p className="rounded-xl bg-slate-50 p-5 text-center text-sm text-slate-500">Nenhum cliente neste grupo para o período selecionado.</p>}</div><div className="shrink-0 border-t bg-white p-3 text-right"><button type="button" onClick={()=>setSelectedReportMetric(null)} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Fechar</button></div></div></div>}
-
-    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-      <input value={text} onChange={e=>setText(e.target.value)} placeholder="Buscar empresa, contato, produto..." className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm sm:min-w-72"/>
-      <span className="px-1 text-xs text-slate-500">A busca filtra os dois quadros.</span>
-    </div>
-
-    <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
-      <section id="leads-followup" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+  async function confirmImport() {
+    if (!imports || busy.current) return;
+    busy.current = true;
+    setSaving(true);
+    setError("");
+    try {
+      const response = await fetch("/api/leads", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location, rows: imports }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error ?? "Falha na importação.");
+      setImports(null);
+      setNotice(
+        `${result.imported} empresas importadas. Complete as próximas ações na agenda.`,
+      );
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha na importação.");
+    } finally {
+      busy.current = false;
+      setSaving(false);
+    }
+  }
+  async function exportList() {
+    const XLSX = await import("xlsx");
+    const rows = [
+      [
+        "Empresa",
+        "Responsável",
+        "Etapa",
+        "Próxima ação",
+        "Próximo contato",
+        "Último contato",
+        "Contato",
+        "Telefone/e-mail",
+        "Produto",
+        "Observações",
+      ],
+      ...selected.map((item) => [
+        item.empresa,
+        item.responsavel,
+        item.etapa,
+        item.proximaAcao,
+        dateLabel(item.proximoContato),
+        item.ultimoContato ? dateLabel(item.ultimoContato) : "",
+        item.contato,
+        item.telefone,
+        item.oportunidade,
+        item.observacoes,
+      ]),
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.aoa_to_sheet(rows),
+      "Acompanhamento",
+    );
+    XLSX.writeFile(workbook, `Leads-${location}-${data?.today}.xlsx`);
+  }
+  function badge(item: Opportunity) {
+    const status = deadline(item, data?.today);
+    return (
+      <span
+        className={`shrink-0 rounded-full px-3 py-1 text-sm font-bold ${status === "atrasado" ? "bg-red-100 text-red-800" : status === "hoje" ? "bg-amber-100 text-amber-900" : "bg-slate-100 text-slate-700"}`}
+      >
+        {status === "atrasado"
+          ? "Atrasado · "
+          : status === "hoje"
+            ? "Hoje · "
+            : ""}
+        {isActive(item) ? dateLabel(item.proximoContato) : item.etapa}
+      </span>
+    );
+  }
+  function card(item: Opportunity, compact = false) {
+    return (
+      <article
+        key={item.id}
+        className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+      >
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">1. Acompanhamento</p><h2 className="text-xl font-semibold text-slate-950">Follow up</h2><p className="mt-1 text-sm text-slate-500">{leads.length} empresa(s) nesta lista</p></div>
-          <button onClick={()=>setFilter("todos")} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">Ver todos</button>
+          <button
+            onClick={() => setDetail(item.id)}
+            className="break-words text-left text-lg font-bold text-slate-950 hover:underline"
+          >
+            {item.empresa}
+          </button>
+          {badge(item)}
         </div>
-        <div className="mt-4"><label className="mb-1 block text-xs font-semibold text-slate-600">Segmento</label><select value={segment} onChange={e=>setSegment(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"><option value="">Todos os segmentos</option>{segments.map(x=><option key={x}>{x}</option>)}</select></div>
-        <div className="mt-4 max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-          {leads.length?leads.map(x=><article key={x.row} className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm ${x.status==="atrasado"?"border-red-200 bg-red-50/60":""}`}>
-            <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-[15px] font-bold leading-snug text-slate-950">{x.cliente}</h3><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge(x.status)}`}>{x.proximoContato?displayDate(x.proximoContato):"SEM DATA"}</span></div>
-            <div className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2"><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Segmento</p><p className="mt-0.5 font-medium text-slate-800">{x.segmento||"—"}</p></div><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contato</p><p className="mt-0.5 text-slate-800">{x.contato||"—"}</p><div className="mt-0.5 text-xs"><ContactLinks value={x.canal}/></div></div><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Último contato</p><p className="mt-0.5 text-sm text-slate-700">{displayDate(x.ultimoContato)}</p></div></div>
-            {x.observacoes&&<div className="mt-3 border-t border-slate-100 pt-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Observações</p><p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{x.observacoes}</p></div>}
-            <div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>setEditing(x)} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white">Editar</button><button disabled={saving} onClick={()=>void moveToProspects(x)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50">Status</button></div>
-          </article>):<p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center text-sm text-slate-500">Nenhuma empresa encontrada no Follow-up.</p>}
+        <p className="mt-1 text-sm text-slate-500">
+          {item.responsavel} · {item.etapa}
+          {item.segmento ? ` · ${item.segmento}` : ""}
+        </p>
+        <p className="mt-4 text-base font-semibold text-slate-900">
+          {item.proximaAcao || "Definir a próxima ação"}
+        </p>
+        {!compact && (
+          <>
+            <p className="mt-1 text-sm text-slate-600">
+              Último contato:{" "}
+              {item.ultimoContato
+                ? dateLabel(item.ultimoContato)
+                : "Ainda não registrado"}
+              {item.contato ? ` · ${item.contato}` : ""}
+            </p>
+            {item.oportunidade && (
+              <p className="mt-2 text-base text-slate-700">
+                Interesse: {item.oportunidade}
+              </p>
+            )}
+          </>
+        )}
+        <div className="mt-3">
+          <Contact value={item.telefone} />
         </div>
-      </section>
-
-      <section id="leads-prospectar" className="min-w-0 scroll-mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">2. Prospecção</p><h2 className="text-xl font-semibold text-slate-950">Prospecção</h2><p className="mt-1 text-sm text-slate-500">{prospects.length} empresa(s) nesta lista</p></div></div>
-        <div className="mt-4"><label htmlFor="prospect-company-search" className="mb-1 block text-xs font-semibold text-slate-600">Pesquisar</label><input id="prospect-company-search" type="search" value={prospectSearch} onChange={e=>setProspectSearch(e.target.value)} placeholder="Pesquisar empresa cadastrada..." className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"/></div>
-        <div className="mt-4 max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-          {prospects.length?prospects.map(x=><article key={x.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-[15px] font-bold leading-snug text-slate-950">{x.cliente}</h3>{x.segmento&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{x.segmento}</span>}</div>
-            <div className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2"><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Cidade/região</p><p className="mt-0.5 text-slate-800">{x.cidade||"—"}</p></div><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contato</p><p className="mt-0.5 text-slate-800">{x.contato||"—"}</p><div className="mt-0.5 text-xs"><ContactLinks value={x.canal}/></div></div><div className="sm:col-span-2"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Oportunidade</p><p className="mt-0.5 text-sm text-slate-700">{x.oportunidade||"—"}</p></div></div>
-            {x.observacoes&&<div className="mt-3 border-t border-slate-100 pt-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Observações</p><p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{x.observacoes}</p></div>}
-            <div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>setReactivating(x)} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">Status</button></div>
-          </article>):<p className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center text-sm text-slate-500">Nenhuma empresa encontrada em Prospecção.</p>}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {data?.canEdit && (
+            <>
+              <button className={primary} onClick={() => open(item, "contato")}>
+                Registrar contato
+              </button>
+              <button
+                className={secondary}
+                onClick={() => open(item, "agendamento")}
+              >
+                {item.etapa === "Ganho"
+                  ? "Agendar pós-venda"
+                  : "Agendar retorno"}
+              </button>
+            </>
+          )}
+          <button
+            className="px-2 py-2 text-base font-semibold text-[#14038D] underline"
+            onClick={() => setDetail(item.id)}
+          >
+            Ver histórico
+          </button>
         </div>
-      </section>
+      </article>
+    );
+  }
+  const detailItem = data?.items.find((item) => item.id === detail);
+  return (
+    <div className="ct-modern-workspace pb-10 text-base">
+      <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wider text-[#14038D]">
+            Casa Timoni · {location === "rc" ? "Rio Claro" : "Araras"}
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-slate-950">
+            Prospecção e Follow-up
+          </h1>
+          <p className="mt-1 text-base text-slate-600">
+            Cada contato com um próximo passo.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {data?.canCreate && (
+            <button onClick={create} className={primary}>
+              + Nova empresa
+            </button>
+          )}
+          <button
+            className={secondary}
+            disabled={loading}
+            onClick={() => void load()}
+          >
+            Atualizar
+          </button>
+        </div>
+      </header>
+      {data?.canViewBothLocations && (
+        <div className="mb-4 flex gap-2" aria-label="Unidade">
+          {(["rc", "ara"] as LeadUnit[]).map((value) => (
+            <button
+              key={value}
+              className={value === location ? primary : secondary}
+              aria-pressed={value === location}
+              onClick={() => {
+                setUnit(value);
+                setData(null);
+                setOwner("");
+                setSegment("");
+                setQuery("");
+                setDetail(null);
+                setModal(null);
+              }}
+            >
+              {value === "rc" ? "Rio Claro" : "Araras"}
+            </button>
+          ))}
+        </div>
+      )}
+      {error && !modal && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-red-300 bg-red-50 p-4 text-red-800"
+        >
+          {error}
+        </div>
+      )}
+      {notice && (
+        <div
+          role="status"
+          className="mb-4 rounded-xl bg-emerald-50 p-4 font-semibold text-emerald-900"
+        >
+          {notice}
+        </div>
+      )}
+      {loading ? (
+        <p role="status" className="rounded-2xl bg-white p-8 text-lg">
+          Carregando sua agenda…
+        </p>
+      ) : (
+        data && (
+          <>
+            <div
+              className="mb-5 flex flex-wrap items-center gap-2"
+              role="group"
+              aria-label="Responsável"
+            >
+              {owners.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => setOwner(name)}
+                  aria-pressed={owner === name}
+                  className={owner === name ? primary : secondary}
+                >
+                  {name}
+                  {location === "rc" && name === "Jaqueline"
+                    ? " · principal"
+                    : ""}
+                </button>
+              ))}
+              <button
+                onClick={() => setOwner("")}
+                aria-pressed={!owner}
+                className={!owner ? primary : secondary}
+              >
+                Toda a equipe
+              </button>
+            </div>
+            <section className="mb-5 rounded-3xl bg-[#14038D] p-5 text-white sm:p-7">
+              <div className="flex flex-wrap items-start justify-between gap-5">
+                <div>
+                  <p className="text-base font-semibold text-indigo-100">
+                    {owner ? `Agenda de ${owner}` : "Agenda da equipe"}
+                  </p>
+                  <h2 className="mt-1 text-2xl font-bold">
+                    {progress.remaining
+                      ? `${progress.remaining} empresas precisam de ação`
+                      : active.length
+                        ? "Retornos do dia em ordem"
+                        : "Comece sua prospecção"}
+                  </h2>
+                  <p className="mt-2 text-base text-indigo-100">
+                    {progress.done} empresa(s) com contato registrado hoje.
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/10 px-5 py-3 text-center">
+                  <b className="text-3xl">
+                    {progress.done}/{progress.total}
+                  </b>
+                  <p className="text-sm">contatos da agenda</p>
+                </div>
+              </div>
+              <div
+                className="mt-4 h-3 overflow-hidden rounded-full bg-white/20"
+                role="progressbar"
+                aria-label="Contatos realizados"
+                aria-valuemin={0}
+                aria-valuemax={progress.total || 1}
+                aria-valuenow={progress.done}
+              >
+                <div
+                  className="h-full rounded-full bg-yellow-300 transition-all"
+                  style={{
+                    width: `${progress.total ? Math.min(100, (progress.done / progress.total) * 100) : 0}%`,
+                  }}
+                />
+              </div>
+              {focus ? (
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-4 text-slate-950">
+                  <div>
+                    <p className="text-sm font-bold uppercase text-[#14038D]">
+                      Seu próximo contato
+                    </p>
+                    <p className="mt-1 text-xl font-bold">{focus.empresa}</p>
+                    <p className="mt-1 text-base">
+                      {focus.proximaAcao} · {dateLabel(focus.proximoContato)}
+                    </p>
+                    <div className="mt-3">
+                      <Contact value={focus.telefone} />
+                    </div>
+                  </div>
+                  {data.canEdit && (
+                    <button
+                      className="rounded-xl bg-yellow-300 px-5 py-3 text-base font-bold text-indigo-950 hover:bg-yellow-200"
+                      onClick={() => open(focus, "contato")}
+                    >
+                      Começar por este contato →
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-4 text-base text-indigo-100">
+                  {active.length
+                    ? "Confira os próximos retornos ou faça uma nova abordagem."
+                    : "Cadastre uma empresa para organizar a primeira abordagem."}
+                </p>
+              )}
+            </section>
+            <nav
+              className="mb-4 flex flex-wrap gap-2"
+              aria-label="Visualização"
+            >
+              {(
+                [
+                  ["agenda", "Minha agenda"],
+                  ["prospeccao", "Prospecção"],
+                  ["funil", "Funil comercial"],
+                  ["historico", "Histórico"],
+                ] as [View, string][]
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  aria-current={view === key ? "page" : undefined}
+                  className={view === key ? primary : secondary}
+                  onClick={() => setView(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+            <div className="mb-4 flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <label className="min-w-48 flex-1 text-sm font-semibold">
+                Buscar empresa ou contato
+                <input
+                  aria-label="Buscar empresa ou contato"
+                  className={inputClass}
+                  placeholder="Digite o nome, contato ou produto"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Segmento
+                <select
+                  className={inputClass}
+                  value={segment}
+                  onChange={(event) => setSegment(event.target.value)}
+                >
+                  <option value="">Todos os segmentos</option>
+                  {[
+                    ...new Set(
+                      data.items.map((item) => item.segmento).filter(Boolean),
+                    ),
+                  ]
+                    .sort()
+                    .map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                </select>
+              </label>
+            </div>
+            {view === "agenda" && (
+              <div
+                className="mb-4 flex flex-wrap gap-2"
+                aria-label="Prazo do retorno"
+              >
+                {[
+                  ["pendentes", "Precisam de ação"],
+                  ["atrasado", "Atrasados"],
+                  ["hoje", "Hoje"],
+                  ["proximo", "Próximos"],
+                  ["sem-data", "Sem data"],
+                  ["todos", "Todos os ativos"],
+                ].map(([key, label]) => (
+                  <button
+                    key={key}
+                    aria-pressed={filter === key}
+                    onClick={() => setFilter(key)}
+                    className={`rounded-full border px-4 py-2 text-base font-semibold ${filter === key ? "border-indigo-800 bg-indigo-50 text-indigo-950" : "border-slate-300 bg-white text-slate-700"}`}
+                  >
+                    {label}
+                    {key !== "pendentes" && key !== "todos"
+                      ? ` (${active.filter((item) => deadline(item, data.today) === key).length})`
+                      : ""}
+                  </button>
+                ))}
+              </div>
+            )}
+            {view === "funil" ? (
+              <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {STAGES.map((stage) => (
+                  <section key={stage} className="rounded-2xl bg-slate-100 p-3">
+                    <h2 className="mb-3 px-1 text-lg font-bold">
+                      {stage}{" "}
+                      <span className="text-slate-500">
+                        {selected.filter((item) => item.etapa === stage).length}
+                      </span>
+                    </h2>
+                    <div className="space-y-3">
+                      {selected
+                        .filter((item) => item.etapa === stage)
+                        .map((item) => card(item, true))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : view === "historico" ? (
+              <div className="space-y-3">
+                {history.length ? (
+                  history.map((event) => (
+                    <article
+                      key={event.id}
+                      className="rounded-2xl border bg-white p-5"
+                    >
+                      <p className="text-sm text-slate-500">
+                        {new Date(event.at).toLocaleString("pt-BR", {
+                          timeZone: "America/Sao_Paulo",
+                        })}{" "}
+                        · {event.item.responsavel}
+                      </p>
+                      <h2 className="mt-1 text-lg font-bold">
+                        {event.item.empresa}
+                      </h2>
+                      <p className="mt-1 font-semibold">
+                        {event.kind === "contato"
+                          ? event.resultado
+                          : event.kind === "agendamento"
+                            ? "Retorno reagendado"
+                            : event.kind === "cadastro"
+                              ? "Empresa cadastrada"
+                              : "Cadastro atualizado"}
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-slate-700">
+                        {event.nota}
+                      </p>
+                      <p className="mt-2 text-sm text-slate-500">
+                        Registrado por {event.actor}
+                      </p>
+                    </article>
+                  ))
+                ) : (
+                  <p className="rounded-2xl bg-white p-7 text-slate-600">
+                    Os novos contatos e alterações aparecerão aqui. As
+                    observações anteriores continuam na ficha da empresa.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filtered.length ? (
+                  filtered.slice(0, visibleCount).map((item) => card(item))
+                ) : (
+                  <p className="rounded-2xl border border-dashed bg-white p-8 text-center text-lg text-slate-600">
+                    Nenhuma empresa neste filtro. Confira os próximos retornos
+                    ou a prospecção.
+                  </p>
+                )}
+              </div>
+            )}
+            {(view === "agenda" || view === "prospeccao") &&
+              filtered.length > visibleCount && (
+                <button
+                  className={`${secondary} mt-4 w-full`}
+                  onClick={() => setVisibleCount((value) => value + 10)}
+                >
+                  Mostrar mais 10 empresas ({visibleCount} de {filtered.length})
+                </button>
+              )}
+            <footer className="mt-6 flex flex-wrap gap-3 border-t border-slate-200 pt-5">
+              <button
+                className={secondary}
+                onClick={() => setSearchCompanies(true)}
+              >
+                Buscar novas empresas
+              </button>
+              {data.canCreate && (
+                <button
+                  className={secondary}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  Importar planilha
+                </button>
+              )}
+              <button className={secondary} onClick={exportList}>
+                Exportar acompanhamento
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void readImport(file);
+                }}
+              />
+            </footer>
+          </>
+        )
+      )}
+      {modal && (
+        <dialog
+          ref={dialogRef}
+          onCancel={(event) => {
+            if (saving) event.preventDefault();
+            else {
+              setModal(null);
+              setError("");
+            }
+          }}
+          className="m-auto max-h-[90dvh] w-[min(95vw,720px)] overflow-y-auto rounded-3xl bg-white p-5 text-slate-950 shadow-2xl backdrop:bg-slate-950/50 sm:p-7"
+        >
+          <form onSubmit={save}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {modal.kind === "contato"
+                    ? "Registrar contato"
+                    : modal.kind === "agendamento"
+                      ? "Agendar retorno"
+                      : modal.kind === "cadastro"
+                        ? "Nova empresa"
+                        : "Editar empresa"}
+                </h2>
+                <p className="mt-1 text-base text-slate-600">
+                  {modal.item.empresa || "Organize a primeira abordagem."}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar"
+                disabled={saving}
+                className={secondary}
+                onClick={() => {
+                  setModal(null);
+                  setError("");
+                }}
+              >
+                ×
+              </button>
+            </div>
+            {error && (
+              <p
+                role="alert"
+                className="mt-4 rounded-xl bg-red-50 p-3 text-red-800"
+              >
+                {error}
+              </p>
+            )}
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {(modal.kind === "cadastro" || modal.kind === "edicao") && (
+                <>
+                  {[
+                    ["empresa", "Empresa", true],
+                    ["segmento", "Segmento", false],
+                    ["contato", "Pessoa de contato", false],
+                    ["telefone", "WhatsApp / e-mail", false],
+                    ["cidade", "Cidade / região", false],
+                    ["oportunidade", "Produto de interesse", false],
+                  ].map(([key, label, required]) => (
+                    <label
+                      key={String(key)}
+                      className="text-base font-semibold"
+                    >
+                      {label}
+                      <input
+                        className={inputClass}
+                        name={String(key)}
+                        required={Boolean(required)}
+                        defaultValue={String(
+                          modal.item[key as keyof Opportunity],
+                        )}
+                      />
+                    </label>
+                  ))}
+                </>
+              )}
+              {modal.kind === "contato" && (
+                <label className="text-base font-semibold sm:col-span-2">
+                  Resultado do contato
+                  <select
+                    required
+                    name="resultado"
+                    defaultValue=""
+                    onChange={(event) => {
+                      const stage = (
+                        {
+                          "Cotação enviada": "Cotação enviada",
+                          "Venda realizada": "Ganho",
+                          "Sem interesse": "Perdido",
+                        } as Record<string, Opportunity["etapa"]>
+                      )[event.target.value];
+                      if (stage)
+                        setModal({
+                          ...modal,
+                          item: { ...modal.item, etapa: stage },
+                        });
+                    }}
+                    className={inputClass}
+                  >
+                    <option value="" disabled>
+                      Selecione o que aconteceu
+                    </option>
+                    {[
+                      "Conversou com o cliente",
+                      "Sem resposta",
+                      "Cotação enviada",
+                      "Venda realizada",
+                      "Sem interesse",
+                    ].map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className="text-base font-semibold">
+                Responsável
+                <select
+                  name="responsavel"
+                  defaultValue={modal.item.responsavel}
+                  className={inputClass}
+                >
+                  {owners.map((name) => (
+                    <option key={name}>{name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-base font-semibold">
+                Etapa comercial
+                <select
+                  name="etapa"
+                  value={modal.item.etapa}
+                  onChange={(event) =>
+                    setModal({
+                      ...modal,
+                      item: {
+                        ...modal.item,
+                        etapa: event.target.value as Opportunity["etapa"],
+                      },
+                    })
+                  }
+                  className={inputClass}
+                >
+                  {STAGES.map((stage) => (
+                    <option key={stage}>{stage}</option>
+                  ))}
+                </select>
+              </label>
+              {isActive(modal.item) && (
+                <>
+                  <label className="text-base font-semibold sm:col-span-2">
+                    Próxima ação *
+                    <input
+                      required
+                      name="proximaAcao"
+                      defaultValue={modal.item.proximaAcao}
+                      placeholder="Ex.: confirmar recebimento da cotação"
+                      className={inputClass}
+                    />
+                  </label>
+                  <label className="text-base font-semibold sm:col-span-2">
+                    Data do próximo contato *
+                    <input
+                      required
+                      type="date"
+                      name="proximoContato"
+                      min={
+                        modal.kind === "contato" || modal.kind === "agendamento"
+                          ? data?.today
+                          : undefined
+                      }
+                      defaultValue={
+                        modal.kind === "edicao"
+                          ? modal.item.proximoContato
+                          : modal.item.proximoContato &&
+                              modal.item.proximoContato >= (data?.today ?? "")
+                            ? modal.item.proximoContato
+                            : data?.today
+                      }
+                      className={inputClass}
+                    />
+                  </label>
+                </>
+              )}
+              {modal.item.etapa === "Perdido" && (
+                <label className="text-base font-semibold sm:col-span-2">
+                  Motivo da perda *
+                  <input
+                    required
+                    name="motivo"
+                    defaultValue={modal.item.motivo}
+                    className={inputClass}
+                  />
+                </label>
+              )}
+              {modal.kind === "contato" || modal.kind === "agendamento" ? (
+                <label className="text-base font-semibold sm:col-span-2">
+                  {modal.kind === "contato"
+                    ? "O que aconteceu? *"
+                    : "Motivo do reagendamento *"}
+                  <textarea
+                    required
+                    name="nota"
+                    rows={3}
+                    className={inputClass}
+                    placeholder={
+                      modal.kind === "contato"
+                        ? "Ex.: cliente pediu cotação de filme stretch."
+                        : "Ex.: cliente pediu retorno na próxima semana."
+                    }
+                  />
+                </label>
+              ) : (
+                <label className="text-base font-semibold sm:col-span-2">
+                  Observações
+                  <textarea
+                    name="observacoes"
+                    defaultValue={modal.item.observacoes}
+                    rows={3}
+                    className={inputClass}
+                  />
+                </label>
+              )}
+            </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className={secondary}
+                disabled={saving}
+                onClick={() => {
+                  setModal(null);
+                  setError("");
+                }}
+              >
+                Cancelar
+              </button>
+              <button disabled={saving} className={primary}>
+                {saving
+                  ? "Salvando…"
+                  : modal.kind === "contato"
+                    ? "Salvar contato e próximo passo"
+                    : "Salvar"}
+              </button>
+            </div>
+          </form>
+        </dialog>
+      )}
+      {detailItem && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/50 p-3 sm:p-6">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Ficha e histórico da empresa"
+            className="mx-auto max-w-3xl rounded-3xl bg-white p-5 sm:p-7"
+          >
+            <div className="flex justify-between gap-3">
+              <h2 className="text-2xl font-bold">{detailItem.empresa}</h2>
+              <button
+                autoFocus
+                className={secondary}
+                onClick={() => setDetail(null)}
+              >
+                Fechar
+              </button>
+            </div>
+            <p className="mt-2">
+              {detailItem.responsavel} · {detailItem.etapa} ·{" "}
+              {detailItem.segmento}
+            </p>
+            <div className="mt-3">
+              <Contact value={detailItem.telefone} />
+            </div>
+            <p className="mt-3 whitespace-pre-wrap text-slate-700">
+              {detailItem.observacoes}
+            </p>
+            {detailItem.motivo && (
+              <p className="mt-3">Motivo da perda: {detailItem.motivo}</p>
+            )}
+            <p className="mt-3 font-semibold">
+              Próxima ação: {detailItem.proximaAcao} ·{" "}
+              {dateLabel(detailItem.proximoContato)}
+            </p>
+            {data?.canEdit && (
+              <button
+                className={`${secondary} mt-4`}
+                onClick={() => {
+                  setDetail(null);
+                  open(detailItem, "edicao");
+                }}
+              >
+                Editar cadastro / etapa
+              </button>
+            )}
+            <h3 className="mb-3 mt-6 text-xl font-bold">Histórico</h3>
+            <div className="space-y-3">
+              {(data?.legacyActivities ?? [])
+                .filter(
+                  (event) =>
+                    companyKey(event.cliente) ===
+                      companyKey(detailItem.empresa) ||
+                    detailItem.id === `base:${companyKey(event.cliente)}`,
+                )
+                .slice()
+                .reverse()
+                .map((event, index) => (
+                  <div
+                    key={`anterior-${index}`}
+                    className="rounded-xl bg-slate-50 p-4"
+                  >
+                    <p className="font-semibold">
+                      Registro anterior · {event.tipo}
+                    </p>
+                    <p className="text-sm text-slate-500">{event.data}</p>
+                    <p className="mt-2 whitespace-pre-wrap">
+                      {event.observacoes}
+                    </p>
+                  </div>
+                ))}
+              {(data?.events ?? [])
+                .filter((event) => event.item.id === detailItem.id)
+                .slice()
+                .reverse()
+                .map((event) => (
+                  <div key={event.id} className="rounded-xl bg-slate-50 p-4">
+                    <p className="font-semibold">
+                      {event.resultado ||
+                        (event.kind === "agendamento"
+                          ? "Retorno reagendado"
+                          : "Cadastro atualizado")}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {new Date(event.at).toLocaleString("pt-BR", {
+                        timeZone: "America/Sao_Paulo",
+                      })}{" "}
+                      · {event.actor}
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap">{event.nota}</p>
+                  </div>
+                ))}
+            </div>
+          </section>
+        </div>
+      )}
+      {searchCompanies && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/50 p-5">
+          <form
+            className="mx-auto mt-12 max-w-lg rounded-3xl bg-white p-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const fields = new FormData(event.currentTarget);
+              const search = `${fields.get("segmento")} ${fields.get("regiao")}`;
+              window.open(
+                `https://www.google.com/maps/search/${encodeURIComponent(search)}`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+            }}
+          >
+            <h2 className="text-2xl font-bold">Buscar novas empresas</h2>
+            <label className="mt-4 block font-semibold">
+              Segmento
+              <input
+                required
+                name="segmento"
+                className={inputClass}
+                placeholder="Ex.: indústrias de alimentos"
+              />
+            </label>
+            <label className="mt-4 block font-semibold">
+              Cidade / região
+              <input
+                required
+                name="regiao"
+                className={inputClass}
+                defaultValue={location === "rc" ? "Rio Claro SP" : "Araras SP"}
+              />
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                className={secondary}
+                onClick={() => setSearchCompanies(false)}
+              >
+                Fechar
+              </button>
+              <button className={primary}>Buscar no Maps ↗</button>
+            </div>
+          </form>
+        </div>
+      )}
+      {imports && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/50 p-5">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Prévia da importação"
+            className="mx-auto max-w-2xl rounded-3xl bg-white p-6"
+          >
+            <h2 className="text-2xl font-bold">Conferir importação</h2>
+            <p className="mt-2">
+              {imports.length} empresas novas. Empresas já cadastradas e
+              duplicadas no arquivo foram excluídas desta prévia.
+            </p>
+            {error && (
+              <p role="alert" className="mt-3 text-red-700">
+                {error}
+              </p>
+            )}
+            <div className="mt-4 max-h-96 overflow-y-auto divide-y">
+              {imports.map((row) => (
+                <p key={row.cliente} className="py-3 font-semibold">
+                  {row.cliente}{" "}
+                  <span className="font-normal text-slate-500">
+                    {row.segmento}
+                  </span>
+                </p>
+              ))}
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                className={secondary}
+                disabled={saving}
+                onClick={() => setImports(null)}
+              >
+                Cancelar
+              </button>
+              <button
+                className={primary}
+                disabled={saving}
+                onClick={() => void confirmImport()}
+              >
+                {saving ? "Importando…" : "Confirmar importação"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
-
-    {showSearch&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"><form onSubmit={googleSearch} className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl"><h3 className="text-lg font-semibold">Buscar empresas</h3><p className="mb-4 text-sm text-slate-500">A busca abre Google e Google Maps. Depois, cadastre apenas o que fizer sentido.</p><label className="text-xs font-semibold">Segmento *</label><input name="segmento" required className="mb-3 mt-1 w-full rounded-lg border p-2" placeholder="Ex.: cerâmica, transportadora"/><label className="text-xs font-semibold">Cidade/região *</label><input name="regiao" required className="mb-3 mt-1 w-full rounded-lg border p-2" placeholder={location==="ara"?"Ex.: Araras SP":"Ex.: Rio Claro SP"}/><label className="text-xs font-semibold">Produto/demanda</label><input name="oportunidade" className="mt-1 w-full rounded-lg border p-2" placeholder="Ex.: plástico bolha"/><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setShowSearch(false)} className="rounded-lg border px-4 py-2">Cancelar</button><button className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white">Buscar</button></div></form></div>}
-
-    {importRows&&<div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 p-2 sm:items-center sm:p-4"><div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl sm:max-h-[calc(100dvh-2rem)]"><div className="shrink-0 border-b p-4 sm:p-5"><div className="flex items-start justify-between gap-3"><div><h3 className="text-lg font-semibold">Prévia da importação</h3><p className="break-all text-sm text-slate-500">{importName}</p></div><button onClick={()=>{setImportRows(null);setImportName("");setImportError("")}} className="rounded-lg border px-3 py-1 text-lg leading-none" aria-label="Fechar">×</button></div>{importError&&<div className="mt-3 max-h-28 overflow-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{importError}</div>}<div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold"><span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">{importRows.filter(x=>!x.duplicate&&!x.error).length} novos</span><span className="rounded-full bg-amber-100 px-3 py-1 text-amber-800">{importRows.filter(x=>x.duplicate).length} duplicados</span><span className="rounded-full bg-red-100 px-3 py-1 text-red-700">{importRows.filter(x=>x.error).length} com erro</span></div></div><div className="min-h-0 flex-1 overflow-auto"><table className="min-w-full text-sm"><thead className="sticky top-0 bg-slate-50 text-left text-xs text-slate-600"><tr><th className="px-3 py-3">Linha</th><th className="px-3 py-3">Empresa</th><th className="px-3 py-3">Segmento</th><th className="px-3 py-3">Contato</th><th className="px-3 py-3">Situação</th></tr></thead><tbody>{importRows.map(x=><tr key={x.sourceRow} className="border-t"><td className="px-3 py-3">{x.sourceRow}</td><td className="px-3 py-3 font-semibold">{x.cliente||"—"}</td><td className="px-3 py-3">{x.segmento||"—"}</td><td className="px-3 py-3">{x.contato||x.canal||"—"}</td><td className="px-3 py-3">{x.error?<span className="text-red-700">{x.error}</span>:x.duplicate?<span className="text-amber-700">Duplicado — não será importado</span>:<span className="text-emerald-700">Pronto para importar</span>}</td></tr>)}</tbody></table></div><div className="flex shrink-0 flex-wrap justify-end gap-2 border-t bg-white p-3 sm:p-4"><button onClick={()=>{setImportRows(null);setImportName("");setImportError("")}} className="rounded-lg border px-4 py-2">Cancelar</button><button disabled={saving||!importRows.some(x=>!x.duplicate&&!x.error)} onClick={()=>void confirmImport()} className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white disabled:opacity-50">{saving?"Importando...":`Confirmar importação (${importRows.filter(x=>!x.duplicate&&!x.error).length})`}</button></div></div></div>}
-
-    {showForm&&<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"><form onSubmit={createLead} className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl"><h3 className="text-lg font-semibold">Cadastrar empresa</h3><div className="mt-4 grid gap-3 sm:grid-cols-2"><div><label className="text-xs font-semibold">Destino</label><select name="destino" className="mt-1 w-full rounded-lg border p-2"><option value="prospectar">Prospecção</option><option value="followup">Follow-up</option></select></div><div><label className="text-xs font-semibold">Empresa *</label><input name="cliente" required className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Segmento</label><input name="segmento" className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Cidade/região</label><input name="cidade" className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Contato</label><input name="contato" className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Telefone/e-mail</label><input name="canal" className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Produto/oportunidade</label><input name="oportunidade" className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Próximo contato (se Follow-up)</label><input name="proximoContato" type="date" className="mt-1 w-full rounded-lg border p-2"/></div></div><label className="mt-3 block text-xs font-semibold">Observações</label><textarea name="observacoes" rows={3} className="mt-1 w-full rounded-lg border p-2"/><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setShowForm(false)} className="rounded-lg border px-4 py-2">Cancelar</button><button disabled={saving} className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white">{saving?"Salvando...":"Salvar"}</button></div></form></div>}
-
-    {editing&&<div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 p-2 sm:items-center sm:p-4"><form onSubmit={saveFollowup} className="my-2 w-full max-w-2xl rounded-2xl bg-white p-4 shadow-xl sm:p-5"><h3 className="text-lg font-semibold">Editar Follow-up</h3><p className="mb-4 text-sm text-slate-500">Atualize os dados e programe o próximo contato.</p><div className="grid gap-3 sm:grid-cols-2"><div><label className="text-xs font-semibold">Empresa *</label><input name="cliente" required defaultValue={editing.cliente} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Segmento</label><input name="segmento" defaultValue={editing.segmento} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Contato</label><input name="contato" defaultValue={editing.contato} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">WhatsApp / e-mail</label><input name="canal" defaultValue={editing.canal} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Data do contato</label><input name="ultimoContato" type="date" defaultValue={toDateInput(editing.ultimoContato)} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Próximo contato *</label><input name="proximoContato" type="date" required defaultValue={toDateInput(editing.proximoContato)} className="mt-1 w-full rounded-lg border p-2"/></div></div><label className="mt-3 block text-xs font-semibold">Observações</label><textarea name="observacoes" defaultValue={editing.observacoes} rows={4} className="mt-1 w-full rounded-lg border p-2"/><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setEditing(null)} className="rounded-lg border px-4 py-2">Cancelar</button><button disabled={saving} className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white">{saving?"Salvando...":"Salvar alterações"}</button></div></form></div>}
-
-    {reactivating&&<div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/30 p-2 sm:items-center sm:p-4"><form onSubmit={reactivate} className="my-2 w-full max-w-2xl rounded-2xl bg-white p-4 shadow-xl sm:p-5"><h3 className="text-lg font-semibold">Alterar status para Follow-up</h3><p className="mb-4 text-sm text-slate-500">Complete os dados e programe o próximo contato.</p><div className="grid gap-3 sm:grid-cols-2"><div><label className="text-xs font-semibold">Empresa *</label><input name="cliente" required defaultValue={reactivating.cliente} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Segmento</label><input name="segmento" defaultValue={reactivating.segmento} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">Contato</label><input name="contato" defaultValue={reactivating.contato} className="mt-1 w-full rounded-lg border p-2"/></div><div><label className="text-xs font-semibold">WhatsApp / e-mail</label><input name="canal" defaultValue={reactivating.canal} className="mt-1 w-full rounded-lg border p-2"/></div><div className="sm:col-span-2"><label className="text-xs font-semibold">Próximo contato *</label><input name="proximoContato" type="date" required className="mt-1 w-full rounded-lg border p-2"/></div></div><label className="mt-3 block text-xs font-semibold">Observações</label><textarea name="observacoes" defaultValue={reactivating.observacoes} rows={4} className="mt-1 w-full rounded-lg border p-2"/><div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setReactivating(null)} className="rounded-lg border px-4 py-2">Cancelar</button><button disabled={saving} className="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white">{saving?"Alterando...":"Transferir para Follow-up"}</button></div></form></div>}
-  </div>;
+  );
 }
