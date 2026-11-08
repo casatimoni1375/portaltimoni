@@ -52,3 +52,7 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
   .ct-clean-brand { flex-basis:100%;height:32px;min-height:32px; }
   .ct-clean-spacer { height:104px; }
 }
+
+/* Leitura ampliada do formulário de Compras, mantendo títulos e indicadores. */
+.ct-clean-purchases :is(.text-sm,.text-base,label,input,select,textarea,button){font-size:18px!important;line-height:1.5;}
+.ct-clean-purchases .text-xs{font-size:16px!important;line-height:1.5;}

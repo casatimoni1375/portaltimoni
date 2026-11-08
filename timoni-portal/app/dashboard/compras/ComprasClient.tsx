@@ -250,7 +250,7 @@ export default function ComprasClient() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="ct-clean-purchases space-y-5">
       {!!trello.duplicateWarnings?.length && <div role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><strong>Possíveis cartões duplicados. Nenhum foi removido.</strong><ul>{trello.duplicateWarnings.map((group, index) => <li key={index}>{group.names.join(" / ")}{group.urls.map((url, i) => url ? <a key={i} href={url} target="_blank" rel="noreferrer" className="ml-2 underline">Abrir cartão {i + 1}</a> : null)}</li>)}</ul></div>}
       <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -579,11 +579,7 @@ export default function ComprasClient() {
           </label>
         </div>
 
-        {!canFinalize && (
-          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-            {!unit ? "Falta escolher a unidade." : "Falta informar a previsão de entrega."}
-          </p>
-        )}
+
 
         <button
           type="button"
