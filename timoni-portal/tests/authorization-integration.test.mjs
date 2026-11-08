@@ -644,3 +644,7 @@ test("Conferência: compara com acesso autorizado e bloqueia outros perfis sem c
  const response=await route.POST(request());assert.equal(response.status,200);const body=await response.json();assert.equal(body.itens[0].codigo_fornecedor_documento,"001");assert.equal(body.itens[0].divergencias.length,0);assert.equal(h.writes.length,0);
  h.setActor(marcelo);assert.equal((await route.POST(request())).status,403);
 });
+
+test('Conferência: importar PDF exige o mesmo acesso antes de ler o arquivo',async()=>{
+ const h=await harness({actor:marcelo});const route=await h.evaluate('app/api/conferencia-pedidos/importar-pdf/route.ts');assert.equal((await route.POST(new Request('https://portal.test/api/conferencia-pedidos/importar-pdf',{method:'POST'}))).status,403);
+});

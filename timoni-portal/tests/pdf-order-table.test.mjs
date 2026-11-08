@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {stripTypeScriptTypes} from 'node:module';import vm from 'node:vm';
+const source=stripTypeScriptTypes(await readFile(new URL('../lib/pdf-order-table.ts',import.meta.url),'utf8'));
+const m=new vm.SourceTextModule(source);await m.link(()=>{throw Error('Sem serviço externo');});await m.evaluate();const {pdfPagesToGrid}=m.namespace;
+const cell=(text,x,y,width=20)=>({text,x,y,width});
+const headers=[cell('Item',10,700),cell('Código',45,700),cell('Descrição',130,700,100),cell('Qtd',300,700),cell('Unid',340,700),cell('Unitário',400,700),cell('Total',450,700)];
+const row=(code='001',y=680)=>[cell('1',10,y),cell(code,45,y),cell('Produto de teste',130,y,100),cell('2',300,y),cell('UN',340,y),cell('10,00',400,y),cell('20,00',450,y)];
+test('PDF: preserva códigos, colunas e localização sem incluir totais como itens',()=>{const result=pdfPagesToGrid([[...headers,...row(),cell('P10 L2',45,665),cell('Total Produtos:',130,650,100),cell('20,00',450,650)]]);assert.equal(result.length,2);assert.equal(result[1][1],'001');assert.equal(result[1][7],'P10 L2');assert.equal(result[1][5],'10,00');});
+test('PDF: todas as páginas são lidas, sem duplicar os títulos',()=>{const result=pdfPagesToGrid([[...headers,...row('001')],[...headers,...row('002')]]);assert.equal(result.length,3);assert.equal(result[2][1],'002');});
+test('PDF: imagem sem texto ou página sem tabela não produz resultado parcial',()=>{assert.throws(()=>pdfPagesToGrid([[...headers,...row()],[]]));assert.throws(()=>pdfPagesToGrid([[cell('Documento sem tabela',100,700)]]));});
+test('PDF: quantidade ilegível bloqueia importação',()=>{assert.throws(()=>pdfPagesToGrid([[...headers,...row().filter(c=>c.x!==300)]]));});
+test('PDF: descrições em várias linhas mantêm a ordem acima e abaixo do item',()=>{const result=pdfPagesToGrid([[...headers,...row('001',660).filter(c=>c.x!==130),cell('Parte inicial',130,680,100),cell('Parte central',130,670,100),cell('Parte final',130,650,100)]]);assert.equal(result[1][2],'Parte inicial Parte central Parte final');});
