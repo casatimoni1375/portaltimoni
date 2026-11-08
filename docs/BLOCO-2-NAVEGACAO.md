@@ -40,3 +40,10 @@ Nenhuma mudança desta etapa foi mesclada em main ou promovida à produção.
 - Produção confirmou API do Motorista com ok:true, diretório Google com 19 vendedores e fallback:false, e Gemini configurado no servidor (sem teste de geração).
 - MOTORISTA_WEBAPP_URL também habilitada em prévia. Liberação de MOTORISTA_API_TOKEN em prévia rejeitada pela revisão automática; GEMINI_API_KEY segue somente produção.
 - Removida a frase “Isto precisa de você hoje.”; permanece somente saudação e nome.
+
+## Padrão de leitura ampliado — 08/11/2026
+- Roboto preservada em todo o Portal. Corpo principal: 18 px no computador e 16 px no celular; legendas: 14 px; títulos de página: 32/28 px; seções: 24/22 px.
+- Escala compartilhada nas variáveis globais e nas classes de tipografia, aplicada a Hoje e aos módulos existentes. O tamanho-base do celular deixa de ser reduzido a 12,5 px.
+- Cartões e cabeçalhos podem crescer/quebrar linha; indicadores no celular usam colunas adaptáveis. Logo mantém proporção original.
+- Chaves mantidas salvas no servidor Vercel: Google, banco, Motorista e Gemini em produção/prévia; chave das rotinas agendadas somente em produção. Nenhuma chave incorporada ao código.
+- Autorização específica de 08/11 resolveu o bloqueio anterior de Motorista/Gemini na prévia; o Motorista respondeu ok:true e o servidor reconheceu Gemini. Geração Gemini não testada.

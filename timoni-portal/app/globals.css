@@ -4,17 +4,19 @@
 
 /* Escala tipográfica padronizada — Roboto em todos os módulos. */
 :root {
-  --ct-font-body: 15px;
-  --ct-font-page-title: 30px;
-  --ct-font-section-title: 20px;
-  --ct-font-subtitle: 16px;
-  --ct-font-caption: 12px;
+  --ct-font-body: 18px;
+  --ct-font-page-title: 32px;
+  --ct-font-section-title: 24px;
+  --ct-font-subtitle: 20px;
+  --ct-font-caption: 14px;
   --ct-font-weight-regular: 400;
   --ct-font-weight-medium: 500;
   --ct-font-weight-strong: 600;
 }
 
 body {
+  font-size: var(--ct-font-body);
+  line-height: 1.5;
   background: radial-gradient(circle at 90% 0%, rgba(37, 99, 235, .08), transparent 25rem), #f8fafc;
   font-weight: var(--ct-font-weight-regular);
 }
@@ -109,14 +111,14 @@ main table { line-height: 1.35; }
 /* Regras mobile consolidadas: preservam o padrão visual aprovado sem sobrescritas duplicadas. */
 @media (max-width: 640px) {
   :root {
-    --ct-font-body: 13px;
-    --ct-font-page-title: 19px;
-    --ct-font-section-title: 15px;
-    --ct-font-subtitle: 13px;
+    --ct-font-body: 16px;
+    --ct-font-page-title: 28px;
+    --ct-font-section-title: 22px;
+    --ct-font-subtitle: 18px;
   }
 
   html {
-    font-size: 12.5px;
+    font-size: 16px;
     -webkit-text-size-adjust: 100%;
     width: 100%;
     max-width: 100%;
@@ -145,7 +147,7 @@ main table { line-height: 1.35; }
     line-height: 1.3 !important;
   }
 
-  p, label, li, td, th, input, select, textarea, button, a { font-size: .78rem; }
+  p, label, li, td, th, input, select, textarea, button, a { font-size: var(--ct-font-body); }
 
   input, select, textarea {
     min-height: 2.05rem;
@@ -251,7 +253,7 @@ main table { line-height: 1.35; }
   }
 
   main [class~="text-sm"] { font-size: var(--ct-font-body) !important; }
-  main [class~="text-base"] { font-size: 15px !important; }
+  main [class~="text-base"] { font-size: var(--ct-font-body) !important; }
 
   main input, main select, main textarea,
   main button, main a[role="button"], main a.inline-flex { min-height: 40px; }
@@ -261,7 +263,7 @@ main table { line-height: 1.35; }
     row-gap: .55rem;
   }
 
-  .portal-dashboard h1 { font-size: 20px !important; }
+  .portal-dashboard h1 { font-size: var(--ct-font-page-title) !important; }
 
   .portal-dashboard section > a {
     min-height: 4.6rem !important;
@@ -269,7 +271,7 @@ main table { line-height: 1.35; }
   }
 
   .portal-dashboard section > a p:first-of-type {
-    font-size: 12px !important;
+    font-size: var(--ct-font-caption) !important;
     line-height: 1.2 !important;
   }
 
@@ -289,7 +291,7 @@ main table { line-height: 1.35; }
     min-height: 2.35rem !important;
     max-height: 5rem !important;
     padding: .42rem .5rem !important;
-    font-size: 12px !important;
+    font-size: var(--ct-font-caption) !important;
     line-height: 1.15rem !important;
   }
 
@@ -308,10 +310,14 @@ main table { line-height: 1.35; }
     min-height: 2.35rem !important;
     padding-left: .7rem !important;
     padding-right: .7rem !important;
-    font-size: 11px !important;
+    font-size: var(--ct-font-caption) !important;
   }
 
   main section.portal-comms-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* Legendas legadas seguem a mesma escala; o corpo nunca é reduzido a 9–13 px. */
+main :is([class~="text-[9px]"], [class~="text-[10px]"], [class~="text-[11px]"], [class~="text-[12px]"], [class~="text-[13px]"]) { font-size: var(--ct-font-caption) !important; line-height: 1.5; }
+main :is(input,select,textarea) { font-size: max(16px, 1em); }
