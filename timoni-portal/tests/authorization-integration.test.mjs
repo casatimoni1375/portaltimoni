@@ -636,3 +636,11 @@ test("Equipe mensal filtra a unidade do cadastro, mesmo com unidade forjada na U
  const data=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=todas"))).json();assert.deepEqual(data.events.map(item=>item.id),["rc"]);assert.deepEqual(data.people.map(item=>item.name),["Adriel"]);
  const foreign=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=araras"))).json();assert.equal(foreign.events.length,0);assert.equal(foreign.people.length,0);
 });
+
+test("Conferência: compara com acesso autorizado e bloqueia outros perfis sem chamadas externas",async()=>{
+ const h=await harness({actor:cica});const route=await h.evaluate("app/api/conferencia-pedidos/route.ts");
+ const row={code:"001",description:"Produto",quantity:2,price:10,ipi:null};const document={filename:"teste.csv",sheet:"Itens",rows:[row]};
+ const request=()=>new Request("https://portal.test/api/conferencia-pedidos",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({order:document,supplier:document})});
+ const response=await route.POST(request());assert.equal(response.status,200);const body=await response.json();assert.equal(body.itens[0].codigo_fornecedor_documento,"001");assert.equal(body.itens[0].divergencias.length,0);assert.equal(h.writes.length,0);
+ h.setActor(marcelo);assert.equal((await route.POST(request())).status,403);
+});

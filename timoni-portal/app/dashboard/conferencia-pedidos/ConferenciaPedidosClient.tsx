@@ -1,235 +1,55 @@
 "use client";
+import {useRef,useState} from "react";
+import type {WorkBook} from "xlsx";
+import {type ConferenciaResult,downloadWorkbook} from "./xlsx";
+import {MAX_COMPARISON_ROWS,parseComparisonNumber,type ComparisonDocument} from "@/lib/order-comparison";
 
-import { useEffect, useRef, useState } from "react";
-import { type ConferenciaResult, downloadWorkbook } from "./xlsx";
-import { createScreenRequest } from "@/lib/screen-request";
-
-const ACCEPTED_TYPES = new Set([
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-]);
-const EXCEL_EXTENSIONS = new Set(["xls", "xlsx"]);
-const MAX_FILES = 16;
-const MAX_TOTAL_BYTES = 4_200_000;
-
-function fileSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+type Field="code"|"description"|"quantity"|"price"|"ipi"|"internalCode"|"location";
+type Columns=Record<Field,string>;
+type DocumentState={filename:string;book:WorkBook;sheet:string;grid:string[][];header:number;end:number;decimal:"comma"|"dot";columns:Columns};
+const fields:Array<[Field,string]>= [["code","Código do fornecedor"],["description","Descrição"],["quantity","Quantidade"],["price","Preço unitário"],["ipi","IPI (%)"],["internalCode","Código interno"],["location","P-L / localização"]];
+const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const aliases:Record<Field,string[]>={code:["codigo fornecedor","cod forn","cod fornecedor","cod forn pedido mcr","codigo fornecedor pedido","codigo do produto","codigo","cod","referencia","ref"],description:["descricao","produto","descricao produto","descricao especificacoes","especificacao"],quantity:["quantidade","qtd","qtde","quant","qtd pedido","qtd fornecedor","quantidade mcr","quantidade fornecedor"],price:["preco unitario","preco","valor unitario","vl unit","unitario","preco liquido","preco unitario liquido","preco pedido","preco fornecedor","valor unit"],ipi:["ipi","ipi pedido","ipi fornecedor","aliquota ipi"],internalCode:["codigo mcr","cod mcr","codigo interno"],location:["p l","pl","localizacao","p l local","local"]};
+const detect=(row:string[]):Columns=>Object.fromEntries(fields.map(([key])=>{const found=aliases[key].map(alias=>row.findIndex(cell=>normalize(cell)===alias)).find(index=>index>=0);return [key,found===undefined?"":String(found)];})) as Columns;
+function bestHeader(grid:string[][]){let header=0,score=-1;grid.slice(0,30).forEach((row,i)=>{const columns=detect(row);const current=fields.reduce((sum,[key])=>sum+(columns[key]!==""?(["code","quantity","price"].includes(key)?3:1):0),0);if(current>score){score=current;header=i;}});return header;}
+const emptyColumns=():Columns=>Object.fromEntries(fields.map(([key])=>[key,""])) as Columns;
+const statuses:Record<string,string>={preco:"Preço",quantidade:"Quantidade",ipi:"IPI",preco_bruto:"Preço com IPI",descricao:"Descrição",codigo:"Código",item_faltante:"Faltante",item_extra:"Extra",pareamento_incerto:"Código ausente ou repetido",outra:"Informação ausente"};
+function toDocument(doc:DocumentState):ComparisonDocument{
+ for(const key of ["code","quantity","price"] as Field[])if(doc.columns[key]==="")throw Error(`${doc.filename}: indique as colunas de código, quantidade e preço unitário.`);
+ const selected=Object.values(doc.columns).filter(Boolean);if(new Set(selected).size!==selected.length)throw Error(`${doc.filename}: cada campo deve usar uma coluna diferente.`);
+ const rows=doc.grid.slice(doc.header+1,doc.end).map((row,rowIndex)=>{const cell=(key:Field)=>doc.columns[key]===""?"":String(row[Number(doc.columns[key])]??"").trim();const numeric=(key:Field)=>{if(doc.columns[key]==="")return null;const column=Number(doc.columns[key]);let n=column+1,name="";while(n){name=String.fromCharCode(65+(n-1)%26)+name;n=Math.floor((n-1)/26);}const source=doc.book.Sheets[doc.sheet][`${name}${doc.header+rowIndex+2}`];return source?.t==="n"?parseComparisonNumber(key==="ipi"&&String(source.z||"").includes("%")?Number(source.v)*100:source.v):parseComparisonNumber(cell(key),doc.decimal);};return {code:cell("code"),description:cell("description"),quantity:numeric("quantity"),price:numeric("price"),ipi:numeric("ipi"),internalCode:cell("internalCode"),location:cell("location")};}).filter(row=>row.code||row.description||row.quantity!==null||row.price!==null);
+ if(!rows.length||rows.length>MAX_COMPARISON_ROWS)throw Error(`${doc.filename}: selecione uma tabela com 1 a ${MAX_COMPARISON_ROWS} itens, sem linhas de totais.`);
+ return {filename:doc.filename,sheet:doc.sheet,rows};
 }
-
-function uniqueFiles(current: File[], incoming: File[]) {
-  const seen = new Set(current.map((file) => `${file.name}|${file.size}|${file.lastModified}`));
-  return [...current, ...incoming.filter((file) => {
-    const key = `${file.name}|${file.size}|${file.lastModified}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  })];
-}
-
-function isAcceptedFile(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase() || "";
-  return ACCEPTED_TYPES.has(file.type) || EXCEL_EXTENSIONS.has(extension);
-}
-
-async function optimizeImage(file: File) {
-  if (!file.type.startsWith("image/") || file.size <= 1_100_000) return file;
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 1900 / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const context = canvas.getContext("2d");
-    if (!context) return file;
-    context.fillStyle = "#fff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
-    if (!blob || blob.size >= file.size) return file;
-    return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "imagem"}.jpg`, { type: "image/jpeg", lastModified: file.lastModified });
-  } catch {
-    return file;
-  }
-}
-
-export default function ConferenciaPedidosClient() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [dragging, setDragging] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState("");
-  const [result, setResult] = useState<ConferenciaResult | null>(null);
-  const [geminiStatus, setGeminiStatus] = useState<"checking" | "ready" | "missing" | "unavailable">("checking");
-  const checkerRef = useRef<{ run: (options?: { urgent?: boolean }) => Promise<void> } | null>(null);
-  const geminiReady = useRef(false);
-
-  const checkGemini = async () => { await checkerRef.current?.run({ urgent: true }); return geminiReady.current; };
-
-  useEffect(() => {
-    const checker = createScreenRequest({
-      load: async signal => {
-        const response = await fetch("/api/configurar-gemini", { cache: "no-store", signal });
-        const payload = await response.json();
-        if (!response.ok || typeof payload.configured !== "boolean") throw Error("Integração indisponível");
-        return payload.configured as boolean;
-      },
-      onData: ready => { geminiReady.current = ready; setGeminiStatus(ready ? "ready" : "missing"); },
-      onError: () => { geminiReady.current = false; setGeminiStatus("unavailable"); },
-    });
-    checkerRef.current = checker;
-    void checker.run();
-    const refresh = () => { if (document.visibilityState === "visible" && navigator.onLine) void checker.run(); };
-    window.addEventListener("focus", refresh);
-    return () => { checker.dispose(); checkerRef.current = null; window.removeEventListener("focus", refresh); };
-  }, []);
-
-  function addFiles(incoming: File[]) {
-    setError("");
-    const invalid = incoming.find((file) => !isAcceptedFile(file));
-    if (invalid) return setError(`${invalid.name}: use PDF, JPG, PNG, WEBP, XLSX ou XLS.`);
-    setFiles((current) => {
-      const next = uniqueFiles(current, incoming);
-      if (next.length > MAX_FILES) {
-        setError(`Máximo de ${MAX_FILES} arquivos por conferência.`);
-        return current;
-      }
-      return next;
-    });
-  }
-
-  async function submit() {
-    setError("");
-    setResult(null);
-    if (files.length < 2) return setError("Insira pelo menos dois arquivos para comparar.");
-    setStatus("Preparando documentos...");
-    if (!(await checkGemini())) {
-      setStatus("");
-      return setError("Não foi possível confirmar a integração central. Tente novamente ou avise a administração.");
-    }
-    setLoading(true);
-    try {
-      const optimized = await Promise.all(files.map(optimizeImage));
-      if (optimized.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL_BYTES) {
-        throw new Error("Os arquivos ultrapassam 4,2 MB. Reduza o tamanho ou envie menos arquivos.");
-      }
-      const formData = new FormData();
-      optimized.forEach((file) => formData.append("arquivos", file));
-      setStatus("Conferindo documentos...");
-      const response = await fetch("/api/conferencia-pedidos", { method: "POST", body: formData });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || "Não foi possível concluir a conferência.");
-      const data = payload as ConferenciaResult;
-      setResult(data);
-      setStatus("Conferência concluída.");
-      downloadWorkbook(data);
-    } catch (caught) {
-      setStatus("");
-      setError(caught instanceof Error ? caught.message : "Falha inesperada durante a conferência.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function reset() {
-    setFiles([]);
-    setResult(null);
-    setError("");
-    setStatus("");
-  }
-
-  const disabled = loading || geminiStatus !== "ready";
-
-  return (
-    <div className="space-y-4">
-      {geminiStatus === "missing" && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
-          <p role="status" className="text-sm text-amber-900">A administração precisa concluir a configuração central da Conferência de Preços. Não é necessário informar uma chave neste navegador.</p>
-        </div>
-      )}
-      {geminiStatus === "unavailable" && <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"><p>Não foi possível verificar a integração. Tente novamente em instantes.</p><button type="button" onClick={() => void checkGemini()} className="mt-2 min-h-11 rounded-lg border border-amber-400 px-4 font-medium">Tentar novamente</button></div>}
-
-      <section className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="text-xl text-blue-700">📎</div>
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-slate-950">Inserir arquivos</h2>
-            <p className="mt-1 text-sm text-slate-500">Envie os documentos que serão conferidos.</p>
-          </div>
-        </div>
-
-        <div role="button" tabIndex={disabled ? -1 : 0} aria-disabled={disabled}
-          onClick={() => !disabled && inputRef.current?.click()}
-          onKeyDown={(event) => { if (!disabled && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); inputRef.current?.click(); } }}
-          onPaste={(event) => {
-            if (disabled) return;
-            const pasted = Array.from(event.clipboardData.items).map((item) => item.getAsFile()).filter((file): file is File => Boolean(file));
-            if (pasted.length) { event.preventDefault(); addFiles(pasted); }
-          }}
-          onDragEnter={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
-          onDragOver={(event) => event.preventDefault()}
-          onDragLeave={(event) => { event.preventDefault(); setDragging(false); }}
-          onDrop={(event) => { event.preventDefault(); setDragging(false); if (!disabled) addFiles(Array.from(event.dataTransfer.files)); }}
-          className={`mt-3 cursor-pointer rounded-xl border-2 border-dashed px-4 py-6 text-center transition ${dragging ? "border-blue-500 bg-blue-50" : "border-blue-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50"} ${disabled ? "cursor-not-allowed opacity-60" : ""}`}>
-          <input ref={inputRef} type="file" multiple disabled={disabled} accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.xls,application/pdf,image/jpeg,image/png,image/webp,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" className="hidden" onChange={(event) => { if (event.target.files) addFiles(Array.from(event.target.files)); event.target.value = ""; }} />
-          <p className="font-semibold text-blue-700">Clique, arraste ou cole com Ctrl+V</p>
-          <p className="mt-1 text-sm text-slate-500">PDF, imagens ou Excel (XLSX/XLS)</p>
-          <p className="mt-1 text-xs text-slate-400">inclusive foto de anotação manuscrita</p>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-semibold text-slate-950">Arquivos adicionados</h2>
-          <span className="text-sm font-medium text-slate-500">{files.length} arquivo(s)</span>
-        </div>
-        {files.length === 0 ? (
-          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm text-slate-400">Nenhum arquivo selecionado.</div>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {files.map((file, index) => (
-              <div key={`${file.name}-${file.size}-${file.lastModified}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2">
-                <div className="min-w-0"><p className="truncate text-sm font-medium text-slate-800">{file.name}</p><p className="text-xs text-slate-400">{fileSize(file.size)}</p></div>
-                <button type="button" disabled={loading} onClick={() => setFiles((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="rounded-lg px-2 py-1 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Remover</button>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{error}</div>}
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <button type="button" disabled={disabled || files.length < 2} onClick={submit} className="w-full rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto">{loading ? "Conferindo documentos..." : "Conferir e gerar Excel"}</button>
-        {(files.length > 0 || result) && <button type="button" disabled={loading} onClick={reset} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">Nova conferência</button>}
-        {status && <p className="text-sm font-medium text-slate-600">{status}</p>}
-      </div>
-
-      <section className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2"><span className="text-blue-700">ⓘ</span><h2 className="font-semibold text-blue-700">Informações</h2></div>
-        <ul className="mt-2 space-y-1 text-sm text-slate-600">
-          <li>• Você pode enviar vários arquivos de uma vez.</li>
-          <li>• Formatos aceitos: PDF, JPG, PNG, WEBP, XLSX e XLS.</li>
-          <li>• Após a conferência, será gerado um arquivo Excel com o resultado.</li>
-        </ul>
-      </section>
-
-      {result && (
-        <section className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div><p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Conferência concluída</p><h2 className="mt-1 font-semibold text-slate-950">Pedido {result.pedido_numero || "não identificado"} — {result.fornecedor_curto || result.fornecedor_nome}</h2></div>
-            <button type="button" onClick={() => downloadWorkbook(result)} className="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Baixar Excel novamente</button>
-          </div>
-          <p className="mt-4 whitespace-pre-line rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700">{result.resumo_texto}</p>
-          {result.pontos_atencao.length > 0 && <div className="mt-4"><h3 className="font-semibold text-rose-700">Pontos de atenção</h3><ol className="mt-2 space-y-1 text-sm text-slate-800">{result.pontos_atencao.map((point, index) => <li key={`${point}-${index}`}>{index + 1}. {point}</li>)}</ol></div>}
-        </section>
-      )}
-    </div>
-  );
+export default function ConferenciaPedidosClient(){
+ const [docs,setDocs]=useState<Array<DocumentState|null>>([null,null]),[loading,setLoading]=useState(false),[error,setError]=useState(""),[result,setResult]=useState<ConferenciaResult|null>(null),[reading,setReading]=useState(0);
+ const sequence=useRef([0,0]);
+ async function selectSheet(book:WorkBook,sheet:string,filename:string):Promise<DocumentState>{
+ const XLSX=await import("xlsx");const source=book.Sheets[sheet];const range=XLSX.utils.decode_range(source["!fullref"]||source["!ref"]||"A1");
+ if(range.e.r>=MAX_COMPARISON_ROWS+100||range.e.c>127)throw Error(`${filename}: selecione uma planilha com até ${MAX_COMPARISON_ROWS} itens e 128 colunas.`);
+ const grid=XLSX.utils.sheet_to_json<string[]>(source,{header:1,defval:"",raw:false,blankrows:true,range:{s:{r:0,c:0},e:range.e}});const header=bestHeader(grid);
+ const columns=grid[header]?detect(grid[header]):emptyColumns();const prices=columns.price===""?[]:grid.slice(header+1,header+21).map(row=>String(row[Number(columns.price)]||""));const decimal=prices.some(value=>/,[0-9]{1,2}$/.test(value))?"comma":prices.some(value=>/\.[0-9]{1,2}$/.test(value))?"dot":"comma";return {filename,book,sheet,grid,header,end:grid.length,decimal,columns};
+ }
+ async function readFile(index:number,file?:File){if(!file)return;setError("");setResult(null);const current=++sequence.current[index];setReading(v=>v+1);setDocs(old=>old.map((doc,i)=>i===index?null:doc));
+ try{if(!/\.(xlsx?|csv)$/i.test(file.name))throw Error("Use um arquivo Excel (XLSX/XLS) ou CSV.");if(file.size>4_200_000)throw Error("O arquivo deve ter até 4,2 MB.");
+ const XLSX=await import("xlsx");const bytes=await file.arrayBuffer();const book=XLSX.read(bytes,{type:"array",raw:true,cellText:true,cellNF:true,sheetRows:MAX_COMPARISON_ROWS+101});if(!book.SheetNames.length)throw Error("A planilha está vazia.");const doc=await selectSheet(book,book.SheetNames[0],file.name);if(sequence.current[index]===current)setDocs(old=>old.map((value,i)=>i===index?doc:value));
+ }catch(cause){if(sequence.current[index]===current)setError(cause instanceof Error?cause.message:"Não foi possível abrir a planilha.");}finally{setReading(v=>v-1);}}
+ async function changeSheet(index:number,sheet:string){const doc=docs[index];if(!doc)return;setResult(null);setError("");try{const next=await selectSheet(doc.book,sheet,doc.filename);setDocs(old=>old.map((value,i)=>i===index?next:value));}catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível abrir a aba.");}}
+ function update(index:number,changes:Partial<DocumentState>){setDocs(old=>old.map((doc,i)=>doc&&i===index?{...doc,...changes}:doc));setResult(null);setError("");}
+ async function submit(){setError("");setResult(null);try{if(!docs[0]||!docs[1])throw Error("Selecione a planilha do pedido e a do fornecedor.");const order=toDocument(docs[0]),supplier=toDocument(docs[1]);setLoading(true);const response=await fetch("/api/conferencia-pedidos",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({order,supplier}),signal:AbortSignal.timeout(30_000)});const data=await response.json();if(!response.ok)throw Error(data.error||"Não foi possível comparar as planilhas.");setResult(data);}catch(cause){setError(cause instanceof Error?cause.message:"Não foi possível concluir a conferência.");}finally{setLoading(false);}}
+ const money=(value:number|null)=>value===null?"—":value.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+ return <div className="space-y-5">
+ <div className="grid gap-4 lg:grid-cols-2">{["Pedido Casa Timoni","Documento do fornecedor"].map((title,index)=>{const doc=docs[index];return <section key={title} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5"><h2 className="mb-4 font-semibold">{title}</h2><label className="block space-y-2"><span>Arquivo Excel ou CSV</span><input aria-label={`Arquivo — ${title}`} type="file" accept=".xlsx,.xls,.csv" disabled={loading||reading>0} onChange={event=>void readFile(index,event.target.files?.[0])} className="block w-full rounded-lg border p-2"/></label>
+ {doc&&<div className="mt-4 space-y-4"><p className="break-words text-sm text-slate-600">{doc.filename}</p><label className="block">Aba<select aria-label={`Aba — ${title}`} value={doc.sheet} disabled={loading} onChange={event=>void changeSheet(index,event.target.value)} className="mt-1 block w-full rounded-lg border p-2">{doc.book.SheetNames.map(name=><option key={name}>{name}</option>)}</select></label>
+ <details open={!["code","quantity","price"].every(key=>doc.columns[key as Field]!=="")}><summary className="cursor-pointer py-2 font-medium text-blue-800">Colunas da planilha</summary><label className="mt-3 block">Linha dos títulos<input aria-label={`Linha dos títulos — ${title}`} type="number" min={1} max={Math.max(1,doc.grid.length)} value={doc.header+1} disabled={loading} onChange={event=>{const header=Math.max(0,Number(event.target.value)-1);update(index,{header,columns:detect(doc.grid[header]||[])});}} className="mt-1 block w-full rounded-lg border p-2"/></label>
+ <label className="mt-3 block">Última linha dos itens<input aria-label={`Última linha dos itens — ${title}`} type="number" min={doc.header+2} max={doc.grid.length} value={doc.end} disabled={loading} onChange={event=>update(index,{end:Number(event.target.value)})} className="mt-1 block w-full rounded-lg border p-2"/></label><label className="mt-3 block">Separador decimal<select aria-label={`Separador decimal — ${title}`} value={doc.decimal} disabled={loading} onChange={event=>update(index,{decimal:event.target.value as "comma"|"dot"})} className="mt-1 block w-full rounded-lg border p-2"><option value="comma">Vírgula (1.234,56)</option><option value="dot">Ponto (1,234.56)</option></select></label><div className="mt-3 grid gap-3 sm:grid-cols-2">{fields.filter(([key])=>index===0||!["internalCode","location"].includes(key)).map(([key,label])=><label key={key}>{label}<select aria-label={`${label} — ${title}`} value={doc.columns[key]} disabled={loading} onChange={event=>update(index,{columns:{...doc.columns,[key]:event.target.value}})} className="mt-1 block w-full rounded-lg border p-2"><option value="">Não informado</option>{(doc.grid[doc.header]||[]).map((cell,column)=><option key={column} value={column}>{column+1}. {cell||"Sem título"}</option>)}</select></label>)}</div></details>
+ <p className="text-sm text-slate-600">{Math.max(0,doc.end-doc.header-1)} linhas abaixo dos títulos. Código, quantidade e preço unitário são obrigatórios.</p></div>}
+ </section>;})}</div>
+ <p className="text-sm text-slate-600">Selecione a tabela de itens. Linhas de subtotal, frete e total não devem estar entre os produtos.</p>
+ {error&&<p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">{error}</p>}
+ <button type="button" disabled={loading||reading>0||!docs[0]||!docs[1]} onClick={()=>void submit()} className="min-h-11 rounded-xl bg-[#102A83] px-5 py-3 font-semibold text-white disabled:opacity-50">{reading?"Abrindo planilha…":loading?"Comparando…":"Conferir pedidos"}</button>
+ {result&&<section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">Resultado da conferência</h2><button type="button" onClick={()=>downloadWorkbook(result)} className="rounded-lg bg-[#102A83] px-4 py-3 text-white">Baixar Excel</button></div><p className="whitespace-pre-line">{result.resumo_texto}</p><p>Subtotal dos itens: pedido {money(result.totais.subtotal_mcr)} · fornecedor {money(result.totais.subtotal_fornecedor)}</p>
+ <div className="overflow-x-auto"><table className="w-full text-left"><thead><tr>{["Código pedido","Código fornecedor","Descrição","Qtd. pedido","Qtd. fornecedor","Preço pedido","Preço fornecedor","IPI pedido","IPI fornecedor","Diferenças"].map(label=><th key={label} className="border-b p-3">{label}</th>)}</tr></thead><tbody>{result.itens.map((item,i)=><tr key={i} className={item.divergencias.length?"bg-amber-50":""}><td className="p-3">{item.codigo_fornecedor_pedido_mcr||"—"}</td><td className="p-3">{item.codigo_fornecedor_documento||"—"}</td><td className="p-3">{item.descricao}</td><td className="p-3">{item.quantidade_mcr??"—"}</td><td className="p-3">{item.quantidade_fornecedor??"—"}</td><td className="p-3">{money(item.preco_mcr)}</td><td className="p-3">{money(item.preco_fornecedor)}</td><td className="p-3">{item.ipi_mcr===null?"—":`${item.ipi_mcr}%`}</td><td className="p-3">{item.ipi_fornecedor===null?"—":`${item.ipi_fornecedor}%`}</td><td className="p-3">{item.divergencias.map(d=>statuses[d]||d).join(", ")||"Sem diferenças"}{item.observacao&&<small className="mt-1 block">{item.observacao}</small>}</td></tr>)}</tbody></table></div>
+ <ul className="list-disc space-y-2 pl-5 text-sm text-slate-600">{result.pontos_atencao.map(point=><li key={point}>{point}</li>)}</ul></section>}
+ </div>;
 }
