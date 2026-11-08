@@ -32,3 +32,11 @@ A disponibilidade dos módulos depende das integrações configuradas em cada am
 3. No celular, conferir cinco atalhos e abrir Comercial/Equipe pelo perfil.
 
 Nenhuma mudança desta etapa foi mesclada em main ou promovida à produção.
+
+## Configurações reaproveitadas em 07/11/2026
+- Conexão Trello existente foi validada e salva pelo próprio Portal como compartilhada no quadro COMPRAS; API da prévia confirmou configured:true.
+- CRON_SECRET cadastrado somente em produção para as duas rotinas já definidas no projeto; execução agendada ainda não comprovada.
+- Produção republicada com o mesmo commit 46aa86a apenas para aplicar configurações, sem mesclar esta PR.
+- Produção confirmou API do Motorista com ok:true, diretório Google com 19 vendedores e fallback:false, e Gemini configurado no servidor (sem teste de geração).
+- MOTORISTA_WEBAPP_URL também habilitada em prévia. Liberação de MOTORISTA_API_TOKEN em prévia rejeitada pela revisão automática; GEMINI_API_KEY segue somente produção.
+- Removida a frase “Isto precisa de você hoje.”; permanece somente saudação e nome.
