@@ -60,7 +60,7 @@ export default async function LoginPage({
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
         <h1 className="text-xl font-semibold">Portal Timoni</h1>
         <p className="mt-2 text-sm text-slate-500">
-          {canResume ? "Seu acesso continua conectado." : "Entre com a conta Google autorizada para ver e gerenciar sua agenda."}
+          {canResume ? "Seu acesso continua conectado." : "Entre com a conta Google autorizada para acessar o Portal Timoni."}
         </p>
 
         {errorMessage && (

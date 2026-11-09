@@ -181,11 +181,13 @@ async function fetchUsers(accessToken: string): Promise<PortalUser[]> {
   })).filter((user) => user.email && user.name);
 }
 
-const readUsersCached = unstable_cache(
-  async (accessToken: string) => fetchUsers(accessToken),
+// O token fica fora da chave do cache: unstable_cache inclui os argumentos na chave,
+// e o token muda a cada renovação (cache nunca reaproveitado e token gravado no cache).
+const readUsersCached = (accessToken: string) => unstable_cache(
+  async () => fetchUsers(accessToken),
   ["portal-users-v1"],
   { revalidate: 30, tags: [PORTAL_CONFIG_CACHE_TAG] },
-);
+)();
 
 const readUsers = cache(async (accessToken: string) => readUsersCached(accessToken));
 
@@ -208,11 +210,11 @@ async function fetchCollaborators(accessToken: string, strictAccess = false): Pr
   })).filter((member) => member.id && (strictAccess || member.name));
 }
 
-const readCollaboratorsCached = unstable_cache(
-  async (accessToken: string) => fetchCollaborators(accessToken),
+const readCollaboratorsCached = (accessToken: string) => unstable_cache(
+  async () => fetchCollaborators(accessToken),
   ["portal-collaborators-v1"],
   { revalidate: 30, tags: [PORTAL_CONFIG_CACHE_TAG] },
-);
+)();
 
 const readCollaborators = cache(async (accessToken: string) => readCollaboratorsCached(accessToken));
 
