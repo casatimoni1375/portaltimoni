@@ -105,14 +105,15 @@ async function readRows(accessToken: string) {
   return (response.data.values || []) as string[][];
 }
 
-const getCachedMeetings = unstable_cache(
-  async (accessToken: string) => {
+// Token fora da chave do cache (ver lib/portal-config.ts).
+const getCachedMeetings = (accessToken: string) => unstable_cache(
+  async () => {
     const items = parseRows(await readRows(accessToken)).sort((a, b) => a.date.localeCompare(b.date));
     return items;
   },
   ["reunioes-list-v2"],
   { revalidate: 60, tags: [MEETINGS_CACHE_TAG] },
-);
+)();
 
 export async function listMeetings(_accessToken: string) {
   return getCachedMeetings(_accessToken);
