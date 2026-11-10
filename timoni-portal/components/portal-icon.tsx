@@ -1,4 +1,5 @@
 export type PortalIconName =
+  | "search"
   | "home"
   | "calendar"
   | "meetings"
@@ -20,6 +21,7 @@ export type PortalIconName =
   | "lightbulb";
 
 const paths: Record<PortalIconName, React.ReactNode> = {
+  search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>,
   home: <><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V21h13V10.5M9.5 21v-6h5v6"/></>,
   calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/><path d="M9 15h6m-3-3v6"/></>,
   meetings: <><circle cx="12" cy="8" r="3"/><circle cx="5" cy="10" r="2.2"/><circle cx="19" cy="10" r="2.2"/><path d="M7 20v-2a5 5 0 0 1 10 0v2M1.5 20v-1.2A4.2 4.2 0 0 1 6 14.6M22.5 20v-1.2a4.2 4.2 0 0 0-4.5-4.2"/></>,

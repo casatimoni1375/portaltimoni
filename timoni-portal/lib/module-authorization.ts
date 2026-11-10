@@ -1,5 +1,5 @@
 import type { PortalModule, PortalUser } from "./access-control";
-import { ADMIN_IDENTITIES, can, getAuthorizationProfile, type AuthorizationAction, type AuthorizationContext, type PortalUnit } from "./authorization";
+import { can, getAuthorizationProfile, type AuthorizationAction, type AuthorizationContext, type PortalUnit } from "./authorization";
 import { canCollaboratorAction } from "./collaborator-access";
 
 /** Existing operation rules, centralized while APIs migrate from module-only checks. */
@@ -102,5 +102,5 @@ export function rotativoAction(operation: string): AuthorizationAction | null {
 }
 
 export function isCentralAdministrator(user: PortalUser) {
-  return user.email === ADMIN_IDENTITIES.cica && can(user, "sistema", "administrar");
+  return getAuthorizationProfile(user) === "administracao-cica" && can(user, "sistema", "administrar");
 }

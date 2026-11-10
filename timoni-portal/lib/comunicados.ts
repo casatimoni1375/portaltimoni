@@ -1,3 +1,4 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { neon } from "@neondatabase/serverless";
 import { google } from "googleapis";
 
@@ -128,6 +129,7 @@ function parseRows(rows: string[][]): Comunicado[] {
 }
 
 async function fetchLegacyRows(accessToken: string) {
+  accessToken = await getAccessTokenFromRefreshToken();
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   const response = await google.sheets({ version: "v4", auth }).spreadsheets.values.get({

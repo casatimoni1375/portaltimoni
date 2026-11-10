@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import * as XLSX from "xlsx";
 import { auth } from "@/lib/auth";
 import { listTeamMessages } from "@/lib/espaco-equipe";
@@ -5,7 +6,7 @@ import { listTeamMessages } from "@/lib/espaco-equipe";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MANAGEMENT_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
+const MANAGEMENT_EMAILS = MANAGEMENT_IDENTITIES;
 
 function formatDate(value: string) {
   const date = new Date(value);

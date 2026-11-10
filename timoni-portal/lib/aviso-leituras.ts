@@ -1,3 +1,4 @@
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
 import { neon } from "@neondatabase/serverless";
 import { google } from "googleapis";
 import { AVISO_LEITURAS_SPREADSHEET_ID } from "@/lib/portal-data-constants";
@@ -52,19 +53,20 @@ async function ensureSchema() {
   await schemaReady;
 }
 
-function sheetsClient(accessToken: string) {
+async function sheetsClient(accessToken: string) {
+  accessToken = await getAccessTokenFromRefreshToken();
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth });
 }
 
 async function legacyEmployeeRows(accessToken: string) {
-  const response = await sheetsClient(accessToken).spreadsheets.values.get({ spreadsheetId: AVISO_LEITURAS_SPREADSHEET_ID, range: `${FUNCIONARIOS_SHEET}!A2:E200`, valueRenderOption: "FORMATTED_VALUE" });
+  const response = await (await sheetsClient(accessToken)).spreadsheets.values.get({ spreadsheetId: AVISO_LEITURAS_SPREADSHEET_ID, range: `${FUNCIONARIOS_SHEET}!A2:E200`, valueRenderOption: "FORMATTED_VALUE" });
   return (response.data.values ?? []) as string[][];
 }
 
 async function legacyReadRows(accessToken: string) {
-  const response = await sheetsClient(accessToken).spreadsheets.values.get({ spreadsheetId: AVISO_LEITURAS_SPREADSHEET_ID, range: `${LEITURAS_SHEET}!A2:F2000`, valueRenderOption: "FORMATTED_VALUE" });
+  const response = await (await sheetsClient(accessToken)).spreadsheets.values.get({ spreadsheetId: AVISO_LEITURAS_SPREADSHEET_ID, range: `${LEITURAS_SHEET}!A2:F2000`, valueRenderOption: "FORMATTED_VALUE" });
   return (response.data.values ?? []) as string[][];
 }
 

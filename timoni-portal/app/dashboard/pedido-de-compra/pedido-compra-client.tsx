@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import {useSearchParams} from "next/navigation";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
 
 const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
@@ -19,6 +20,7 @@ function dateOnly(value: string) {
 }
 
 export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: RequestUnit[] }) {
+  const query=useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
@@ -73,6 +75,8 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
     return () => { loader.dispose(); request.current = null; window.clearInterval(timer); window.removeEventListener("storage", onStorage); window.removeEventListener("focus", onVisible); window.removeEventListener("online", onOnline); document.removeEventListener("visibilitychange", onVisible); };
   }, [unitKey]);
 
+  useEffect(()=>{const id=query.get("pedido");if(id){const order=sentOrders.find(item=>item.id===id);if(order)setSelected(order);}},[query,sentOrders]);
+  const visibleOrders=sentOrders.filter(order=>(!query.get("unidade")||query.get("unidade")==="todas"||order.unidade===query.get("unidade"))&&(query.get("filtro")!=="atrasados"||(order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())))).sort((a,b)=>(a.previsaoEntrega||"9999").localeCompare(b.previsaoEntrega||"9999"));
   return (
     <div className="ct-modern-workspace pb-10 space-y-5">
       {error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">{error}</p>}
@@ -100,7 +104,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         </div>
         <div className="mt-5 grid gap-5 lg:grid-cols-2">
           {visibleUnits.map((currentUnit) => {
-            const orders = sentOrders.filter((order) => order.unidade === currentUnit);
+            const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
             return (
               <div key={currentUnit} className="overflow-hidden rounded-2xl border border-slate-200">
                 <div className="flex items-center justify-between bg-slate-50 px-4 py-3">

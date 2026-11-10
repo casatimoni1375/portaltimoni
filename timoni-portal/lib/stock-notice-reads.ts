@@ -1,13 +1,13 @@
-import type { PortalUser } from "./access-control";
+import { isCicaAccess, type PortalUser } from "./access-control";
 import { canReadUnit } from "./module-authorization";
 type Need = { id: string; unidade: string; status: string; respondidoEm?: string; observacao?: string };
 export function canReceiveStockNotice(email: string) {
-  return ["mcrodini@gmail.com", "estoquetimoni@gmail.com"].includes(email.trim().toLowerCase());
+  return isCicaAccess(email) || email.trim().toLowerCase() === "estoquetimoni@gmail.com";
 }
 export function pendingStockIds(email: string, needs: Need[]) {
   email = email.trim().toLowerCase();
   if (!canReceiveStockNotice(email)) return [];
-  return needs.filter(n => n.status === "pendente" && !n.respondidoEm && !n.observacao && (email === "mcrodini@gmail.com" || n.unidade === "rio_claro")).map(n => n.id);
+  return needs.filter(n => n.status === "pendente" && !n.respondidoEm && !n.observacao && (isCicaAccess(email) || n.unidade === "rio_claro")).map(n => n.id);
 }
 
 export function pendingStockIdsForUser(user: PortalUser, needs: Need[]) {

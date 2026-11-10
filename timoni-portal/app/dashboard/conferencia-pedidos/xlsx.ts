@@ -11,6 +11,13 @@ export type Divergencia =
   | "outra";
 
 export type ConferenciaResult = {
+  supplierComparison?: {
+    names: [string, string];
+    rows: Array<{ cheaper: "first" | "second" | "equal" | null; saving: number | null; reason: string }>;
+    comparableItems: number;
+    subtotalFirst: number | null;
+    subtotalSecond: number | null;
+  };
   pedido_numero: string;
   fornecedor_curto: string;
   fornecedor_nome: string;
@@ -50,6 +57,8 @@ export type ConferenciaResult = {
     frete_fornecedor: string;
   };
   itens: Array<{
+    unidade_mcr?: string;
+    unidade_fornecedor?: string;
     pl: string;
     codigo_mcr: string;
     codigo_fornecedor_pedido_mcr: string;

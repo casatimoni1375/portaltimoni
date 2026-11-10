@@ -567,6 +567,17 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setModal(true);
   }
 
+  // Atalho vindo da tela Hoje ("Agendar viagem"): abre o formulário direto.
+  useEffect(() => {
+    if (!canCreate || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("nova") !== "1") return;
+    url.searchParams.delete("nova");
+    window.history.replaceState(null, "", url.toString());
+    abrirNova();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canCreate]);
+
   function abrirEditar(v: Viagem) {
     setEditandoId(v.id);
     setForm(formFromViagem(v));

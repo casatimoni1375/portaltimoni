@@ -11,9 +11,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; code?: string; trocar?: string }>;
+  searchParams: Promise<{ error?: string; code?: string; trocar?: string; renovar?: string }>;
 }) {
-  const [{ error, code, trocar }, session] = await Promise.all([searchParams, auth()]);
+  const [{ error, code, trocar, renovar }, session] = await Promise.all([searchParams, auth()]);
   const individual = individualLoginEnabled();
   if (individual && (session?.collaboratorSubject || !session?.user?.email)) {
     const connected = Boolean(session?.collaboratorAccess && !session.error);
@@ -86,7 +86,7 @@ export default async function LoginPage({
         <form
           action={async () => {
             "use server";
-            await signIn("google", { redirectTo: "/dashboard" }, trocar === "1" ? { prompt: "select_account" } : undefined);
+            await signIn("google", { redirectTo: "/dashboard" }, renovar === "1" ? { prompt: "consent" } : trocar === "1" ? { prompt: "select_account" } : undefined);
           }}
         >
           <button

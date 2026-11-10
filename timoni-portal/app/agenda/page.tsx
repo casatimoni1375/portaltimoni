@@ -1,40 +1,13 @@
-import type { Metadata } from "next";
-import { auth } from "@/lib/auth";
-import { listEventsInRange } from "@/lib/google-calendar";
-import { getWeekRange } from "@/lib/week";
-import { CalendarView } from "@/app/dashboard/calendar-view";
-import type { CalendarEventDTO } from "@/lib/types";
-
-export const metadata: Metadata = {
-  title: "Agenda Ciça",
-};
-
-export default async function AgendaPage() {
-  const session = await auth();
-
-  let initialEvents: CalendarEventDTO[] = [];
-  let loadError: string | null = null;
-
-  if (session?.accessToken && session.error !== "RefreshAccessTokenError") {
-    try {
-      const { start, end } = getWeekRange();
-      initialEvents = await listEventsInRange(session.accessToken, {
-        timeMin: start.toISOString(),
-        timeMax: end.toISOString(),
-        maxResults: 100,
-      });
-    } catch {
-      loadError = "Não foi possível carregar os eventos agora.";
-    }
-  } else {
-    loadError = "Sessão expirada. Saia e entre novamente.";
-  }
-
-  return (
-    <div className="ct-modern-calendar mx-auto w-full max-w-5xl">
-      <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5 [&_button]:py-2 [&_section]:mt-4 sm:[&_section]:mt-6 [&_.space-y-3]:space-y-2 sm:[&_.space-y-3]:space-y-3">
-        <CalendarView initialEvents={initialEvents} initialError={loadError} />
-      </section>
-    </div>
-  );
+import {Suspense} from "react";
+import Link from "next/link";
+import {redirect} from "next/navigation";
+import {getPortalSession} from "@/lib/portal-session";
+import {hasModuleAccess,isCicaAccess} from "@/lib/access-control";
+import CalendarContent from "./calendar-content";
+import Meetings from "@/app/dashboard/reunioes/reunioes-view";
+export default async function AgendaPage({searchParams}:{searchParams:Promise<{view?:string}>}){
+ const session=await getPortalSession(),user=session?.portalUser;if(!user)redirect("/login");const query=await searchParams;
+ const tabs=[{key:"minha",label:"Minha",visible:isCicaAccess(user.email)&&hasModuleAccess(user.email,"agenda",user)},{key:"loja",label:"Loja",visible:hasModuleAccess(user.email,"agenda-ct",user)},{key:"reunioes",label:"Reuniões",visible:hasModuleAccess(user.email,"reunioes",user)}].filter(tab=>tab.visible);
+ if(!tabs.length)redirect("/dashboard");const selected=tabs.some(tab=>tab.key===query.view)?query.view:tabs[0].key;
+ return <div><nav className="ct-clean-module-tabs" aria-label="Filtros da Agenda">{tabs.map(tab=><Link key={tab.key} href={`/agenda?view=${tab.key}`} aria-current={selected===tab.key?"page":undefined}>{tab.label}</Link>)}</nav><Suspense fallback={<p role="status">Carregando agenda…</p>}>{selected==="reunioes"?<Meetings/>:<CalendarContent company={selected==="loja"}/>}</Suspense></div>;
 }

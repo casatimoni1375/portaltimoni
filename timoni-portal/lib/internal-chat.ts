@@ -4,6 +4,7 @@ import { hasModuleAccess, normalizeEmail } from "@/lib/access-control";
 
 export const INTERNAL_CHAT_PARTICIPANTS = [
   { name: "Ciça", email: "mcrodini@gmail.com" },
+  { name: "Ciça", email: "cecilia@casatimoni.com.br" },
   { name: "Lucas", email: "estoquetimoni@gmail.com" },
   { name: "Carolina", email: "carolina@casatimoni.com.br" },
   { name: "Jeovana", email: "comercialrc@casatimoni.com.br" },

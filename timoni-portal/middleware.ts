@@ -1,3 +1,4 @@
+import { temporarySessionPage } from "@/lib/temporary-session-page";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getPortalUser, hasModuleAccess, type PortalModule } from "@/lib/access-control";
@@ -38,7 +39,7 @@ export default auth((request) => {
   const pathname = request.nextUrl.pathname;
   const configuredUser = request.auth?.portalUser;
   if (request.auth?.error === "SessionTemporarilyUnavailable") {
-    return new NextResponse("Conexão temporariamente indisponível. Atualize esta página em alguns instantes.", { status: 503, headers: { "Retry-After": "15", "Cache-Control": "no-store" } });
+    return new NextResponse(temporarySessionPage(), { status: 503, headers: { "Content-Type": "text/html; charset=utf-8", "Retry-After": "3", "Cache-Control": "no-store" } });
   }
   if (request.auth?.collaboratorSubject) {
     const access = resolveCollaboratorAccess(request.auth.collaboratorSubject.collaboratorId, request.auth.collaboratorAccess ?? null);
@@ -78,6 +79,8 @@ export default auth((request) => {
 
   // Pedidos de Compra validates current saved permissions in its server page.
   // The JWT may still contain the permissions from before the last edit.
+  if (pathname === "/agenda" && ["agenda", "agenda-ct", "reunioes"].some(module=>hasModuleAccess(request.auth?.user?.email,module as PortalModule,configuredUser))) return NextResponse.next();
+  if (pathname === "/dashboard/compras" && ["compras", "pedido-de-compra", "estoque-rotativo", "conferencia"].some(module=>hasModuleAccess(request.auth?.user?.email,module as PortalModule,configuredUser))) return NextResponse.next();
   const protectedRoute = protectedRoutes.find(({ prefix }) => pathname.startsWith(prefix));
 
   if (protectedRoute && !hasModuleAccess(request.auth?.user?.email, protectedRoute.module, configuredUser)) {

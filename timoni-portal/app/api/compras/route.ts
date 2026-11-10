@@ -1,3 +1,4 @@
+import { normalizedText, possibleDuplicates } from "@/lib/block-one-utils";
 import { canReadUnit } from "@/lib/module-authorization";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { savePurchaseOrdersSnapshot } from "@/lib/purchase-orders";
@@ -50,22 +51,6 @@ function sentOrder(card: TrelloCard, unit: "rio_claro" | "araras") {
   };
 }
 
-function cardTimestamp(card: TrelloCard) {
-  const sentAt = Date.parse(card.start || "");
-  if (Number.isFinite(sentAt)) return sentAt;
-  const activityAt = Date.parse(card.dateLastActivity || "");
-  if (Number.isFinite(activityAt)) return activityAt;
-  return cardCreatedAt(card);
-}
-
-function uniqueSentCards(cards: TrelloCard[]) {
-  const unique = new Map<string, TrelloCard>();
-  for (const card of [...cards].sort((a, b) => cardTimestamp(b) - cardTimestamp(a))) {
-    const key = normalizeTrelloText(card.name);
-    if (!unique.has(key)) unique.set(key, card);
-  }
-  return [...unique.values()];
-}
 
 interface TrelloBoard {
   id: string;
@@ -165,20 +150,14 @@ export async function GET(request: Request) {
         return canReadUnit(central.current.user, "compras", unit);
       })
       : [];
-    if (summaryOnly) {
-      return NextResponse.json(
-        { configured: true, summary: { pedidosParaFazer: pendingCards.length } },
-        { headers: { "Cache-Control": "no-store" } },
-      );
-    }
-    const sentRioClaro = uniqueSentCards(sentRioClaroList
+    const sentRioClaro = (sentRioClaroList
       ? cards.filter((card) => card.idList === sentRioClaroList.id)
       : []);
-    const sentAraras = uniqueSentCards(sentArarasList
+    const sentAraras = (sentArarasList
       ? cards.filter((card) => card.idList === sentArarasList.id)
       : []);
 
-    await savePurchaseOrdersSnapshot([
+    if (!summaryOnly) await savePurchaseOrdersSnapshot([
       ...sentRioClaro.map((card) => sentOrder(card, "rio_claro")),
       ...sentAraras.map((card) => sentOrder(card, "araras")),
     ], startedAt);
@@ -222,6 +201,12 @@ export async function GET(request: Request) {
           enviadosRioClaro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaro.length : 0,
           enviadosAraras: canReadUnit(central.current.user, "compras", "araras") ? sentAraras.length : 0,
         },
+        duplicateWarnings: possibleDuplicates(cards.filter(card => {
+          if (pendingCards.some(item => item.id === card.id)) return true;
+          if (card.idList === sentRioClaroList?.id) return canReadUnit(central.current.user, "compras", "rio_claro");
+          if (card.idList === sentArarasList?.id) return canReadUnit(central.current.user, "compras", "araras");
+          return false;
+        }), card => `${card.idList}:${normalizedText(card.name)}`).map(group => ({ names: group.map(item => item.name), urls: group.map(item => item.url || "") })),
         suppliers,
         destinations: {
           rio_claro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaroList?.id || null : null,

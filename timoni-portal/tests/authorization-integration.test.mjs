@@ -39,6 +39,7 @@ async function harness({ actor = marcelo, realConfig = false, realAuth = false, 
     recordPortalAccess: async () => writes.push(["access"]),
   };
   const mocks = {
+    "@/lib/google-calendar": { getAccessTokenFromRefreshToken: async () => "central-test-token" },
     "next/server": { NextRequest: Request, NextResponse: class extends Response {
       static json(value, options) { return Response.json(value, options); }
       static redirect(url) { return Response.redirect(url); }
@@ -550,10 +551,10 @@ test("sessão e menu compartilham uma leitura na renderização; próxima requis
   const unavailable = await config.getPortalUserSessionState("token", cica.email);
   assert.equal(unavailable.user, null); assert.equal(unavailable.unavailable, true);
   assert.equal(await config.getEffectivePortalUser("token", cica.email), null);
-  assert.equal(reads, 3);
+  assert.equal(reads, 4); // uma nova tentativa na falha transitória
   nextRequest(); fail = false; active = true;
   assert.equal((await config.getEffectivePortalUser("token", cica.email)).email, cica.email);
-  assert.equal(reads, 4);
+  assert.equal(reads, 5);
 });
 
 test("cadastro oficial por ID permite contato repetido e recusa ID duplicado sem semear ou gravar", async () => {
@@ -584,4 +585,67 @@ test("cadastro para acesso não presume unidade/ativação e não ignora duplica
   assert.equal(raw.unit, ''); assert.equal(raw.active, false);
   rows = [['pessoa', 'Pessoa fictícia', 'Araras', 'Sim'], ['pessoa', '', 'Araras', 'Sim']];
   assert.equal(await config.getOfficialCollaboratorForAccess('token-ficticio', 'pessoa'), null);
+});
+
+test("Leads: página contém 25 itens, busca alcança páginas posteriores e unidade segue o cadastro", async () => {
+  const leads = Array.from({length:61},(_,i)=>({row:i+2,cliente:`Empresa ${i}`,segmento:i%2?"Cerâmica":"Ceramico",contato:"",canal:"",observacoes:"",status:"hoje"}));
+  let seenLocation;
+  const h=await harness({actor:person("comercialrc@casatimoni.com.br",{unit:"Rio Claro",modules:["leads"]}),extraMocks:{
+    "@/lib/leads":Object.fromEntries(["addLead","addProspect","createLeadsReport","importLeads","listLeadActivities","listLeads","listProspects","moveLeadToProspects","reactivateProspect","updateLeadFollowUp"].map(name=>[name,async(_token,location)=>{if(name==="listLeads"){seenLocation=location;return leads;}return [];} ])),
+    "@/lib/module-updates":{recordModuleUpdateSafely:async()=>{}},
+  }});
+  const api=await h.evaluate("app/api/leads/route.ts");
+  const page=await(await api.GET(new Request("https://portal.test/api/leads?page=2&location=ara"))).json();
+  assert.equal(seenLocation,"rc");assert.equal(page.leads.length,25);assert.equal(page.leads[0].row,27);assert.equal(page.summary.pendentes,61);assert.equal(page.pagination.leadPages,3);assert.equal(page.activities.length,0);assert.equal(page.duplicateSegments[0].length,2);
+  const search=await(await api.GET(new Request("https://portal.test/api/leads?q=Empresa%2060"))).json();assert.equal(search.leads[0].row,62);assert.equal(search.pagination.leadTotal,1);
+});
+
+test("Cadastro fixo usa credencial central, sem herdar a conta Google do colaborador", async () => {
+  const tokens=[];
+  const h=await harness({realConfig:true,env:{GOOGLE_REFRESH_TOKEN:"test-central"},registryFetch:async(_url,init)=>{
+    tokens.push(init.headers.Authorization);
+    return Response.json({values:[[cica.email,"Ciça","Geral","painel","painel","Sim","Não","Sim"]]});
+  }});
+  const config=await h.evaluate("lib/portal-config.ts");
+  const state=await config.getPortalUserSessionState("personal-test-token",cica.email);
+  assert.equal(state.user.email,cica.email);assert.deepEqual(tokens,["Bearer central-test-token"]);
+});
+
+test("Navegação enxuta preserva ordem e esconde módulos sem concessão",async()=>{
+ const h=await harness();const nav=await h.evaluate("lib/clean-navigation.ts");
+ assert.deepEqual(Array.from(nav.cleanNavigation(cica),item=>item.label),["Hoje","Estoque","Compras","Motorista","Agenda","Comercial","Equipe"]);
+ const seller=person("seller@example.test",{modules:["pedido-de-compra","painel"]});
+ assert.deepEqual(Array.from(nav.cleanNavigation(seller),item=>item.label),["Hoje","Compras","Equipe"]);
+ assert.equal(nav.cleanNavigation({...seller,active:false}).length,0);
+ assert.equal(nav.activeNavigation("/dashboard/estoque-rotativo"),"compras");assert.equal(nav.activeNavigation("/dashboard/estoque"),"estoque");assert.equal(nav.activeNavigation("/agenda-ct"),"agenda");
+});
+test("Rotas agrupadas não concedem módulo nem ação nova",async()=>{
+ const h=await harness({realAuth:true});const m=await h.evaluate("middleware.ts");
+ const personWith=(modules)=>person("seller@example.test",{modules});
+ const req=(path,user)=>({nextUrl:new URL(`https://portal.test${path}`),url:`https://portal.test${path}`,auth:{user:{email:user.email},portalUser:user}});
+ assert.equal(m.default(req("/dashboard/compras?aba=acompanhar",personWith(["pedido-de-compra"]))).status,200);
+ assert.equal(m.default(req("/agenda?view=loja",personWith(["agenda-ct"]))).status,200);
+ assert.equal(m.default(req("/dashboard/compras",personWith(["painel"]))).status,302);
+ const policy=await h.evaluate("lib/authorization.ts");assert.equal(policy.can(personWith(["pedido-de-compra"]),"compras","criar"),false);
+});
+test("Equipe mensal filtra a unidade do cadastro, mesmo com unidade forjada na URL",async()=>{
+ const actor=person("rc@example.test",{unit:"Rio Claro",modules:["painel"]});
+ const roster=[{...member,name:"Adriel",unit:"Rio Claro"},{...member,id:"ara",name:"Yan",unit:"Araras"}];
+ const calendar=[{id:"rc",summary:"Aniversário Adriel",start:"2026-11-14",end:"2026-11-15"},{id:"ara",summary:"Aniversário Yan",start:"2026-11-26",end:"2026-11-27"},{id:"unknown",summary:"Aniversário sem cadastro",start:"2026-11-10",end:"2026-11-11"}];
+ const h=await harness({actor,extraMocks:{"@/lib/google-calendar":{getAccessTokenFromRefreshToken:async()=>"central",listEventsInRange:async()=>calendar},"@/lib/portal-config":{getEffectivePortalUser:async()=>actor,getEffectivePanelData:async()=>({user:actor,collaborators:roster})}}});
+ const route=await h.evaluate("app/api/hoje/equipe/route.ts");
+ const data=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=todas"))).json();assert.deepEqual(data.events.map(item=>item.id),["rc"]);assert.deepEqual(data.people.map(item=>item.name),["Adriel"]);
+ const foreign=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=araras"))).json();assert.equal(foreign.events.length,0);assert.equal(foreign.people.length,0);
+});
+
+test("Conferência: compara com acesso autorizado e bloqueia outros perfis sem chamadas externas",async()=>{
+ const h=await harness({actor:cica});const route=await h.evaluate("app/api/conferencia-pedidos/route.ts");
+ const row={code:"001",description:"Produto",quantity:2,price:10,ipi:null};const document={filename:"teste.csv",sheet:"Itens",rows:[row]};
+ const request=()=>new Request("https://portal.test/api/conferencia-pedidos",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({order:document,supplier:document})});
+ const response=await route.POST(request());assert.equal(response.status,200);const body=await response.json();assert.equal(body.itens[0].codigo_fornecedor_documento,"001");assert.equal(body.itens[0].divergencias.length,0);assert.equal(h.writes.length,0);
+ h.setActor(marcelo);assert.equal((await route.POST(request())).status,403);
+});
+
+test('Conferência: importar PDF exige o mesmo acesso antes de ler o arquivo',async()=>{
+ const h=await harness({actor:marcelo});const route=await h.evaluate('app/api/conferencia-pedidos/importar-pdf/route.ts');assert.equal((await route.POST(new Request('https://portal.test/api/conferencia-pedidos/importar-pdf',{method:'POST'}))).status,403);
 });

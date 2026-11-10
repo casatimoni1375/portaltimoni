@@ -12,7 +12,7 @@ import { useModuleUpdates } from "@/components/module-updates-store";
 
 type MobileNavItem = { href: string; targetHref?: string; label: string; updateModule?: UpdateModule; icon: PortalIconName; color: string; external?: boolean };
 
-export default function MobilePortalHeader({ items, showUpdates, showGuide, showChat, initials }: { items: MobileNavItem[]; showUpdates: boolean; showGuide: boolean; showChat: boolean; initials: string }) {
+export default function MobilePortalHeader({ items, showUpdates, showChat, initials }: { items: MobileNavItem[]; showUpdates: boolean; showGuide: boolean; showChat: boolean; initials: string }) {
   const [open, setOpen] = useState(false);
   const { updates, reload, markRead } = useModuleUpdates(showUpdates);
 
@@ -70,7 +70,6 @@ export default function MobilePortalHeader({ items, showUpdates, showGuide, show
               {pending ? <span className="ml-2 min-w-5 rounded-full bg-red-500 px-1.5 text-center text-[10px] font-bold leading-5 text-white">{pending.count}</span> : null}
             </Link>;
           })}
-          {showGuide ? <Link href="/configuracoes#guia" onClick={() => setOpen(false)} className="mt-1 flex min-h-7 items-center border-t border-slate-200 px-2 pt-1 text-[11px] font-normal text-slate-800"><span className="flex-1">Guia de uso</span></Link> : null}
           <Link href="/login" prefetch={false} onClick={() => setOpen(false)} title="Sair da tela mantendo a sessão" className="mt-1 flex min-h-7 w-full items-center border-t border-slate-200 px-2 pt-1 text-left text-[11px] font-normal text-slate-800"><span>Sair</span></Link>
         </nav>
       </aside>

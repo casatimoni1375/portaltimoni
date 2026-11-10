@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getPortalUser, hasModuleAccess, type PortalUser } from "@/lib/access-control";
@@ -16,7 +17,7 @@ type NotificationItem = {
   url: string;
 };
 
-const GESTAO_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
+const GESTAO_EMAILS = MANAGEMENT_IDENTITIES;
 const ARARAS_EMAILS = new Set([
   "estoqueararascasatimoni@gmail.com",
   "comercialara@casatimoni.com.br",

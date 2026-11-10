@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import { neon } from "@neondatabase/serverless";
 
 export const UPDATE_MODULES = [
@@ -24,7 +25,7 @@ export type PendingModuleUpdate = {
   summaries: string[];
 };
 
-const MANAGEMENT_EMAILS = new Set(["mcrodini@gmail.com", "mrodini@gmail.com"]);
+const MANAGEMENT_EMAILS = MANAGEMENT_IDENTITIES;
 let database: ReturnType<typeof neon> | null = null;
 let schemaReady: Promise<void> | null = null;
 

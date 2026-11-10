@@ -602,7 +602,7 @@ export default function EstoqueRotativoClient() {
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">2. Fornecedor</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">1. Fornecedor</p>
                 <h2 className="mt-2 text-xl font-semibold text-slate-950">Atualizações pendentes</h2>
               </div>
               <button

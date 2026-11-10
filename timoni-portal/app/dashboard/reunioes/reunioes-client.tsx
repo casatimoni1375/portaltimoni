@@ -1,4 +1,5 @@
 "use client";
+import { isFutureMeeting } from "@/lib/block-one-utils";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
@@ -61,16 +62,10 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
     ...(meeting.additionalDates || []),
   ].filter((item) => item.date);
 
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
   const upcoming = dates
-    .filter((item) => item.date >= today)
+    .filter((item) => isFutureMeeting(item.date, item.time))
     .sort((a, b) => a.date.localeCompare(b.date));
-  const schedule = upcoming.length ? upcoming : [...dates].sort((a, b) => b.date.localeCompare(a.date));
+  const schedule = upcoming;
   const selected = schedule[0];
   if (!selected) return null;
 

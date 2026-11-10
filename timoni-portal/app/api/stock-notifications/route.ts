@@ -8,7 +8,10 @@ import { listStockAlerts } from "@/lib/estoque-alerts";
 import { canReceiveStockNotice, pendingStockIds, pendingStockIdsForUser } from "@/lib/stock-notice-reads";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export async function GET() {
+export const maxDuration = 15;
+import { withinDeadline } from "@/lib/request-deadline";
+import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
+async function loadNotifications() {
   const session = await auth();
   const email = session?.user?.email?.trim().toLowerCase() || "";
   const headers = {"Cache-Control":"private, no-store"};
@@ -26,9 +29,14 @@ export async function GET() {
   }
   if (!session || !hasModuleAccess(email, "estoque", session.portalUser) || !canReceiveStockNotice(email)) return NextResponse.json({ok:true, ids:[]}, {headers});
   try {
-    const needs = await listStockAlerts(session.accessToken);
+    const needs = await listStockAlerts(await getAccessTokenFromRefreshToken());
     return NextResponse.json({ok:true, ids:pendingStockIds(email, needs.filter(item => session.portalUser && canReadUnit(session.portalUser, "estoque", item.unidade)))}, {headers});
   } catch {
     return NextResponse.json({ok:false}, {status:503,headers});
   }
+}
+
+export async function GET() {
+  try { return await withinDeadline(loadNotifications(), 8_000); }
+  catch { return NextResponse.json({ ok: false, ids: [], error: "O contador de Estoque não pôde ser atualizado. Abra Estoque para consultar." }, { status: 503, headers: { "Cache-Control": "private, no-store", "Retry-After": "15" } }); }
 }

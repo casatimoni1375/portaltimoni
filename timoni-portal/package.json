@@ -22,6 +22,8 @@
     "jszip": "^3.10.1",
     "next": "^15.4.0",
     "next-auth": "5.0.0-beta.25",
+    "pdf-parse": "2.4.5",
+    "pdfjs-dist": "5.4.296",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "xlsx": "^0.18.5"

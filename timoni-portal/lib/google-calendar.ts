@@ -1,4 +1,5 @@
-import { google, calendar_v3 } from "googleapis";
+import { createGoogleTokenRefresher } from "@/lib/google-token-refresh";
+import { google, type calendar_v3 } from "googleapis";
 import { CALENDAR_LABELS, type CalendarEventDTO, type CalendarEventInput, type CalendarKey } from "@/lib/types";
 
 export const TIME_ZONE = "America/Sao_Paulo";
@@ -24,14 +25,20 @@ function getCalendarClient(accessToken: string) {
   return google.calendar({ version: "v3", auth });
 }
 
+const renewCentralToken = createGoogleTokenRefresher();
+let centralToken: { refreshToken?: string; accessToken?: string; expiresAt?: number; error?: "RefreshAccessTokenError" | "SessionTemporarilyUnavailable"; refreshRetryAt?: number } = {};
+
 export async function getAccessTokenFromRefreshToken(): Promise<string> {
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN?.trim();
   if (!refreshToken) throw new Error("GOOGLE_REFRESH_TOKEN não configurado no servidor.");
-  const auth = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
-  auth.setCredentials({ refresh_token: refreshToken });
-  const { token } = await auth.getAccessToken();
-  if (!token) throw new Error("Não foi possível renovar o access_token a partir do refresh_token salvo.");
-  return token;
+  if (centralToken.refreshToken !== refreshToken) centralToken = { refreshToken };
+  if (!centralToken.expiresAt || Date.now() / 1000 >= centralToken.expiresAt - 120) {
+    centralToken = await renewCentralToken(centralToken, process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
+  }
+  if (!centralToken.accessToken || !centralToken.expiresAt || Date.now() / 1000 >= centralToken.expiresAt) {
+    throw new Error("A conexão Google do Portal precisa ser renovada. Avise a gestão.");
+  }
+  return centralToken.accessToken;
 }
 
 function isDateOnly(value: string) {

@@ -1,3 +1,4 @@
+import { AUTH_SECRET } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { requireAuthorization } from "@/lib/authorization-server";
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
   const { errorResponse } = await requireAuthorization("sistema", "administrar");
   if (errorResponse) return errorResponse;
 
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req: request, secret: AUTH_SECRET, secureCookie: request.nextUrl.protocol === "https:" });
   if (!token?.refreshToken) {
     return NextResponse.json(
       {
@@ -25,5 +26,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ refreshToken: token.refreshToken });
+  return NextResponse.json({ refreshToken: token.refreshToken }, { headers: { "Cache-Control": "private, no-store" } });
 }

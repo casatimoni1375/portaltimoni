@@ -38,7 +38,8 @@ export type Prospect = {
 };
 
 async function sheetsClient(sessionAccessToken?: string) {
-  const accessToken = sessionAccessToken || await getAccessTokenFromRefreshToken();
+  void sessionAccessToken;
+  const accessToken = await getAccessTokenFromRefreshToken();
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
   return google.sheets({ version: "v4", auth });

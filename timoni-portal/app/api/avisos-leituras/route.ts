@@ -1,3 +1,4 @@
+import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getPortalUser, type PortalUser } from "@/lib/access-control";
@@ -9,8 +10,7 @@ import {
   registerAvisoLeitura,
 } from "@/lib/aviso-leituras";
 
-const ADMIN_EMAIL = "mcrodini@gmail.com";
-const MANAGEMENT_EMAILS = new Set([ADMIN_EMAIL, "mrodini@gmail.com"]);
+const MANAGEMENT_EMAILS = MANAGEMENT_IDENTITIES;
 const ARARAS_EMAILS = new Set([
   "estoqueararascasatimoni@gmail.com",
   "comercialara@casatimoni.com.br",
@@ -56,6 +56,8 @@ export async function GET() {
     const unit = allowedUnit(current.email, current.portalUser);
     const currentUnit = unit === "Araras" ? "araras" : unit === "Rio Claro" ? "rio claro" : "geral";
     const visibleNotices = notices.filter((item) => MANAGEMENT_EMAILS.has(current.email) || canViewComunicado(item, current.email, currentUnit));
+    // Comunicados sem ninguém obrigado a confirmar não recebem carimbo no Hoje.
+    const noAudienceAvisoIds: string[] = [];
     const completedAvisoIds = visibleNotices.filter((notice) => {
       const targetedAccesses = Array.isArray(notice.recipientEmails)
         ? new Set(notice.recipientEmails.map(normalizeEmail))
@@ -66,7 +68,7 @@ export async function GET() {
         if (notice.unit === "geral") return true;
         return notice.unit === "araras" ? member.unit === "Araras" : member.unit === "Rio Claro";
       });
-      if (audience.length === 0) return false;
+      if (audience.length === 0) { noAudienceAvisoIds.push(notice.id); return false; }
       const noticeReads = reads.filter((read) => read.avisoId === notice.id);
       const readMembers = new Set(noticeReads.map((read) => readMemberKey(read.unit, read.employee)));
       if (audience.every((member) => readMembers.has(readMemberKey(member.unit, member.name)))) return true;
@@ -97,7 +99,7 @@ export async function GET() {
         ]))
       : undefined;
 
-    return NextResponse.json({ ok: true, completedAvisoIds, ...(readersByAviso ? { readersByAviso } : {}) });
+    return NextResponse.json({ ok: true, completedAvisoIds, noAudienceAvisoIds, ...(readersByAviso ? { readersByAviso } : {}) });
   } catch (error) {
     console.error("[avisos-leituras][GET]", error);
     return NextResponse.json({ error: "Não foi possível carregar as leituras." }, { status: 500 });

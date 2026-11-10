@@ -38,6 +38,12 @@ export type PortalUser = {
   noticeRequired?: boolean;
 };
 
+export const MANAGEMENT_EMAILS: ReadonlySet<string> = new Set([
+  ADMIN_IDENTITIES.cica, ADMIN_IDENTITIES.cicaBusiness, ADMIN_IDENTITIES.marcelo,
+]);
+export function isManagementEmail(email?: string | null) { return MANAGEMENT_EMAILS.has(normalizeEmail(email)); }
+export function isCicaAccess(email?: string | null) { const value = normalizeEmail(email); return isManagementEmail(value) && value !== ADMIN_IDENTITIES.marcelo; }
+
 const allModules: PortalModule[] = [
   "painel",
   "agenda",
@@ -53,8 +59,6 @@ const allModules: PortalModule[] = [
 
 const modulesWithoutCicaAgenda = allModules.filter((module) => module !== "agenda");
 const operationalModules: PortalModule[] = ["painel", "chat", "estoque", "motorista"];
-const CICA_EMAIL = ADMIN_IDENTITIES.cica;
-const MARCELO_EMAIL = ADMIN_IDENTITIES.marcelo;
 const ESTOQUE_TIMONI_EMAIL = "estoquetimoni@gmail.com";
 const DIRECT_PAINEL_TIMONI_EMAILS = new Set([
   "balcaotimoni@gmail.com",
@@ -97,7 +101,7 @@ export type LeadsLocation = "rc" | "ara";
 
 export function canViewBothLeadsLocations(email?: string | null) {
   const normalized = normalizeEmail(email);
-  return normalized === CICA_EMAIL || normalized === MARCELO_EMAIL;
+  return isManagementEmail(normalized);
 }
 
 export function getAssignedLeadsLocation(email?: string | null, configured?: PortalUser | null): LeadsLocation {
@@ -139,6 +143,7 @@ function operationalUser(name: string, email: string): PortalUser {
 }
 
 export const portalUsers: Record<string, PortalUser> = {
+  "cecilia@casatimoni.com.br": { name: "Ciça Rodini", email: "cecilia@casatimoni.com.br", modules: [...allModules, "agenda-ct"], requiresPassword: true },
   "mcrodini@gmail.com": { name: "Ciça Rodini", email: "mcrodini@gmail.com", modules: [...allModules, "agenda-ct"], requiresPassword: true },
   "mrodini@gmail.com": { name: "Marcelo Rodini", email: "mrodini@gmail.com", modules: modulesWithoutCicaAgenda, requiresPassword: true },
   "margareth@casatimoni.com.br": { name: "Margareth", email: "margareth@casatimoni.com.br", modules: allModules, requiresPassword: true },
@@ -160,7 +165,6 @@ export function getPortalUser(email?: string | null, configured?: PortalUser | n
 export function hasModuleAccess(email: string | null | undefined, module: PortalModule, configured?: PortalUser | null) {
   return can(getPortalUser(email, configured), module, "visualizar");
 }
-export function isCicaAccess(email?: string | null) { return normalizeEmail(email) === CICA_EMAIL; }
 export function entersDirectlyInPainelTimoni(email?: string | null, configured?: PortalUser | null) {
   if (configured && normalizeEmail(configured.email) === normalizeEmail(email)) return configured.directPainel ?? false;
   return DIRECT_PAINEL_TIMONI_EMAILS.has(normalizeEmail(email));

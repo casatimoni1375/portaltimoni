@@ -1,3 +1,4 @@
+import { possibleDuplicates, normalizedText } from "@/lib/block-one-utils";
 import { cache } from "react";
 import { getPanelWeekWindow } from "@/lib/panel-week";
 import { getAccessTokenFromRefreshToken, listEventsInRange } from "@/lib/google-calendar";
@@ -60,7 +61,9 @@ const load = cache(async (accessToken?: string) => {
 
 export function WeeklyPeopleCards({ events, now = new Date(), unavailable = false, loading = false }: { events: CalendarEventDTO[]; now?: Date; unavailable?: boolean; loading?: boolean }) {
   const { birthdays, vacations } = selectWeeklyPeople(events, now);
+  const duplicates = possibleDuplicates(events.filter(event => normalizedText(event.summary).includes("anivers")), event => `${normalizedText(clean(event.summary))}:${format(event.start)}`);
   return <section className="ct-weekly-people" aria-label="Aniversários e férias da equipe">
+    {duplicates.length > 0 && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Possíveis aniversários duplicados na Agenda CT: {duplicates.map(group => group[0].summary).join("; ")}. Confira os registros na Agenda. Nenhum evento foi apagado.</p>}
     {([{ title: "Aniversários da semana", subtitle: "Datas para celebrar com a equipe", events: birthdays, vacations: false },
       { title: "Férias da semana", subtitle: "Ausências e próximos retornos", events: vacations, vacations: true }]).map(group => <article className="ct-weekly-card" id={group.vacations ? "ct-ferias" : "ct-aniversarios"} key={group.title}>
       <div className="ct-weekly-heading"><h2>{group.title}</h2><p>{group.subtitle}</p></div>

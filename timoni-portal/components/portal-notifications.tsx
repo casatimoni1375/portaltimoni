@@ -13,7 +13,7 @@ export default function PortalNotifications({items}:{items:NoticeItem[];showUpda
   const refresh = useCallback(async () => {
     if (!stock || document.hidden || !link.current?.getClientRects().length || pathname === stock.href) return;
     try {
-      const response = await fetch("/api/stock-notifications", {cache:"no-store"});
+      const response = await fetch("/api/stock-notifications", {cache:"no-store", signal: AbortSignal.timeout(10_000)});
       const data = await response.json();
       if (!response.ok || !data.ok || !Array.isArray(data.ids)) throw new Error();
       setCount(data.ids.length);setFailed(false);
@@ -34,5 +34,5 @@ export default function PortalNotifications({items}:{items:NoticeItem[];showUpda
   const label=count ? `Estoque: ${count} necessidade${count===1?"":"s"} nova${count===1?"":"s"}. Abrir Estoque.` : "Abrir Estoque";
   const icon=<><PortalIcon name="bell" className="h-5 w-5"/>{count>0&&<span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-500 px-1 text-center text-[.62rem] font-bold leading-4 text-white">{count>99?"99+":count}</span>}</>;
   const className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg hover:bg-white/10";
-  return stock ? <Link ref={link} href={stock.href+"?novos=1#estoque-etapa-0"} prefetch={false} className={className} aria-label={label} title={failed?label+" — não foi possível atualizar o contador":label}>{icon}<span className="sr-only">Estoque</span></Link> : <span className={className} aria-label="Nenhuma notificação disponível">{icon}</span>;
+  return stock ? <Link ref={link} href={stock.href+"?novos=1#estoque-etapa-0"} prefetch={false} className={className} aria-label={label} title={failed?label+" — não foi possível atualizar o contador":label}>{icon}{failed && <span className="absolute -right-1 -top-1 rounded-full bg-amber-300 px-1 text-xs font-bold text-slate-900" aria-label="Contador indisponível">!</span>}<span className="sr-only">Estoque</span></Link> : <span className={className} aria-label="Nenhuma notificação disponível">{icon}</span>;
 }

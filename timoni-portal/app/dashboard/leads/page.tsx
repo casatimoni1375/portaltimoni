@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
 type Lead = { row:number; cliente:string; segmento:string; contato:string; canal:string; ultimoContato:string; proximoContato:string; observacoes:string; status:"atrasado"|"hoje"|"proximo"|"sem-data" };
 type Prospect = { id:string; cliente:string; segmento:string; cidade:string; contato:string; canal:string; oportunidade:string; observacoes:string; origem:"historico"|"portal" };
 type Activity = { data:string; tipo:"CONTATO"|"CADASTRO"|"REATIVAÇÃO"|"IMPORTAÇÃO"; cliente:string; proximoContato:string; observacoes:string };
-type ResponseData = { location:"rc"|"ara"; canViewBothLocations:boolean; leads: Lead[]; prospects: Prospect[]; activities:Activity[]; summary: { atrasados:number; hoje:number; semData:number; pendentes:number; prospectar:number } };
+type ResponseData = { segments?:string[]; duplicateSegments?:string[][]; existingClients?:string[]; pagination?:{page:number;prospectPage:number;pageSize:number;leadPages:number;prospectPages:number;leadTotal:number;prospectTotal:number}; location:"rc"|"ara"; canViewBothLocations:boolean; leads: Lead[]; prospects: Prospect[]; activities:Activity[]; summary: { atrasados:number; hoje:number; semData:number; pendentes:number; prospectar:number } };
 type ImportRow = { cliente:string; segmento:string; contato:string; canal:string; ultimoContato:string; proximoContato:string; observacoes:string; sourceRow:number; duplicate?:boolean; error?:string };
 type ReportMetric = "realizados"|"pendentes"|"atrasados"|"novos"|"reativados"|"semData";
 type ReportClient = { cliente:string; data:string; detalhe:string };
@@ -57,7 +58,13 @@ const headerAliases:Record<Exclude<keyof ImportRow,"sourceRow"|"duplicate"|"erro
 };
 
 export default function LeadsPage() {
+  const urlQuery=useSearchParams();
   const [data,setData]=useState<ResponseData|null>(null);
+  const [reportData,setReportData]=useState<ResponseData|null>(null);
+  const [page,setPage]=useState(1);
+  const [prospectPage,setProspectPage]=useState(1);
+  const requestSequence=useRef({value:0}).current;
+  const [loading,setLoading]=useState(false);
   const [location,setLocation]=useState<"rc"|"ara">("rc");
   const [filter,setFilter]=useState("pendentes");
   const [editing,setEditing]=useState<Lead|null>(null);
@@ -67,6 +74,7 @@ export default function LeadsPage() {
   const [showSearch,setShowSearch]=useState(false);
   const [text,setText]=useState("");
   const [segment,setSegment]=useState("");
+  useEffect(()=>{const search=urlQuery.get("busca");if(search){setText(search);setFilter("todos");}if(urlQuery.get("unidade")==="araras")setLocation("ara");else if(urlQuery.get("unidade")==="rio_claro")setLocation("rc");},[urlQuery]);
   const [prospectSearch,setProspectSearch]=useState("");
   const fileInputRef=useRef<HTMLInputElement>(null);
   const [importRows,setImportRows]=useState<ImportRow[]|null>(null);
@@ -80,12 +88,35 @@ export default function LeadsPage() {
   const [reportError,setReportError]=useState("");
   const [selectedReportMetric,setSelectedReportMetric]=useState<ReportMetric|null>(null);
 
-  async function load(){ const r=await fetch(`/api/leads?location=${location}`,{cache:"no-store"}); const result=await r.json(); if(r.ok){setData(result);if(result.location!==location)setLocation(result.location);setImportError("");}else{setData(null);setImportError(result.error??"Não foi possível carregar os dados atuais do Leads.");} }
-  useEffect(()=>{ void load(); },[location]);
+  const load = useCallback(async () => {
+    const sequence = ++requestSequence.value;
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({location,page:String(page),prospectPage:String(prospectPage),status:filter,segment,q:text,company:prospectSearch});
+      const response = await fetch(`/api/leads?${params}`,{cache:"no-store",signal:AbortSignal.timeout(20_000)});
+      const result = await response.json();
+      if(sequence !== requestSequence.value) return;
+      if(!response.ok) throw new Error(result.error || "Não foi possível carregar os leads.");
+      setData(result); setImportError("");
+      if(result.location !== location) setLocation(result.location);
+    } catch(error) { if(sequence === requestSequence.value) setImportError(error instanceof Error ? error.message : "Não foi possível carregar os leads."); }
+    finally { if(sequence === requestSequence.value) setLoading(false); }
+  },[location,page,prospectPage,filter,segment,text,prospectSearch,requestSequence]);
+  useEffect(()=>{const timer=setTimeout(()=>void load(),250);return()=>{clearTimeout(timer);requestSequence.value++;};},[load,requestSequence]);
+  useEffect(()=>{setPage(1);setProspectPage(1);setReportData(null);},[location,filter,segment,text,prospectSearch]);
+  useEffect(()=>{
+    if(!showReports) return;
+    let cancelled=false;
+    setReportData(null);
+    void fetch(`/api/leads?location=${location}&purpose=report`,{cache:"no-store",signal:AbortSignal.timeout(30_000)})
+      .then(async response=>{const result=await response.json();if(!response.ok)throw new Error(result.error || "Não foi possível carregar o relatório.");if(!cancelled)setReportData(result);})
+      .catch(error=>{if(!cancelled)setReportError(error.message);});
+    return()=>{cancelled=true;};
+  },[showReports,location,data]);
 
-  const segments=useMemo(()=>Array.from(new Set((data?.leads??[]).map(x=>x.segmento).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"pt-BR")),[data]);
-  const leads=useMemo(()=>{ let all=data?.leads??[]; if(filter==="pendentes") all=all.filter(x=>x.status==="atrasado"||x.status==="hoje"); else if(filter!=="todos") all=all.filter(x=>x.status===filter); if(segment) all=all.filter(x=>x.segmento===segment); const q=text.trim().toLocaleLowerCase("pt-BR"); if(q) all=all.filter(x=>`${x.cliente} ${x.segmento} ${x.contato} ${x.canal} ${x.observacoes}`.toLocaleLowerCase("pt-BR").includes(q)); return all; },[data,filter,segment,text]);
-  const prospects=useMemo(()=>{ const q=text.trim().toLocaleLowerCase("pt-BR"); const company=prospectSearch.trim().toLocaleLowerCase("pt-BR"); return (data?.prospects??[]).filter(x=>(!q||`${x.cliente} ${x.segmento} ${x.cidade} ${x.oportunidade} ${x.observacoes}`.toLocaleLowerCase("pt-BR").includes(q))&&(!company||x.cliente.toLocaleLowerCase("pt-BR").includes(company))); },[data,text,prospectSearch]);
+  const segments=useMemo(()=>(data?.segments || Array.from(new Set((data?.leads??[]).map(x=>x.segmento).filter(Boolean)))).sort((a,b)=>a.localeCompare(b,"pt-BR")),[data]);
+  const leads=data?.leads??[];
+  const prospects=data?.prospects??[];
   useEffect(()=>{
     if(reportPreset==="personalizado")return;
     const today=new Date();
@@ -94,8 +125,8 @@ export default function LeadsPage() {
     const start=new Date(today);start.setDate(start.getDate()-29);setReportStart(localIso(start));setReportEnd(localIso(today));
   },[reportPreset]);
   const report=useMemo(()=>{
-    const current=data?.leads??[];
-    const activities=(data?.activities??[]).filter(item=>dateInPeriod(item.data,reportStart,reportEnd));
+    const current=reportData?.leads??[];
+    const activities=(reportData?.activities??[]).filter(item=>dateInPeriod(item.data,reportStart,reportEnd));
     const completedNames=new Set(activities.filter(item=>item.tipo==="CONTATO").map(item=>item.cliente.toLocaleLowerCase("pt-BR")));
     current.filter(item=>dateInPeriod(item.ultimoContato,reportStart,reportEnd)).forEach(item=>completedNames.add(item.cliente.toLocaleLowerCase("pt-BR")));
     const today=localIso(new Date());
@@ -112,7 +143,7 @@ export default function LeadsPage() {
       const finish=endOfWeek(base);
       const start=localIso(base),end=localIso(finish);
       const done=new Set<string>();
-      (data?.activities??[]).filter(item=>item.tipo==="CONTATO"&&dateInPeriod(item.data,start,end)).forEach(item=>done.add(item.cliente.toLocaleLowerCase("pt-BR")));
+      (reportData?.activities??[]).filter(item=>item.tipo==="CONTATO"&&dateInPeriod(item.data,start,end)).forEach(item=>done.add(item.cliente.toLocaleLowerCase("pt-BR")));
       current.filter(item=>dateInPeriod(item.ultimoContato,start,end)).forEach(item=>done.add(item.cliente.toLocaleLowerCase("pt-BR")));
       const scheduled=current.filter(item=>dateInPeriod(item.proximoContato,start,end));
       const late=scheduled.filter(item=>toDateInput(item.proximoContato)<today).length;
@@ -132,7 +163,7 @@ export default function LeadsPage() {
       semData:current.filter(item=>!toDateInput(item.proximoContato)).map(item=>({cliente:item.cliente,data:"",detalhe:item.observacoes})),
     };
     return {completed,pending,overdue,progress,newLeads:newActivities.length,reactivated:reactivatedActivities.length,withoutDate:details.semData.length,weekly,details};
-  },[data,reportStart,reportEnd]);
+  },[reportData,reportStart,reportEnd]);
 
   async function saveFollowup(e:React.FormEvent<HTMLFormElement>){ e.preventDefault(); if(!editing)return; setSaving(true); const fd=new FormData(e.currentTarget); const r=await fetch("/api/leads",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({row:editing.row,cliente:fd.get("cliente"),segmento:fd.get("segmento"),contato:fd.get("contato"),canal:fd.get("canal"),ultimoContato:fd.get("ultimoContato"),proximoContato:fd.get("proximoContato"),observacoes:fd.get("observacoes"),location})}); setSaving(false); if(r.ok){setEditing(null); await load();} else alert((await r.json()).error??"Erro ao salvar"); }
   async function createLead(e:React.FormEvent<HTMLFormElement>){ e.preventDefault(); setSaving(true); const fd=new FormData(e.currentTarget); const payload={...Object.fromEntries(fd.entries()),location}; const r=await fetch("/api/leads",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); setSaving(false); if(r.ok){setShowForm(false); await load();} else alert((await r.json()).error??"Erro ao cadastrar"); }
@@ -149,7 +180,7 @@ export default function LeadsPage() {
       const headers=(matrix[0]??[]).map(normalizeHeader);
       const indexes=Object.fromEntries(Object.entries(headerAliases).map(([field,aliases])=>[field,headers.findIndex(h=>aliases.includes(h))])) as Record<string,number>;
       if(indexes.cliente<0) throw new Error("Não encontrei a coluna Empresa ou Cliente.");
-      const existing=new Set([...(data?.leads??[]),...(data?.prospects??[])].map(x=>x.cliente.trim().toLocaleLowerCase("pt-BR")));
+      const existing=new Set(data?.existingClients??[]);
       const seen=new Set<string>();
       const value=(row:unknown[],field:string)=>indexes[field]>=0?String(row[indexes[field]]??"").trim():"";
       const parsed=matrix.slice(1).map((raw,index)=>({raw,index})).filter(({raw})=>Array.isArray(raw)&&raw.some(cell=>String(cell??"").trim())).map(({raw,index})=>{
@@ -201,7 +232,8 @@ export default function LeadsPage() {
       <button onClick={()=>document.getElementById("leads-prospectar")?.scrollIntoView({behavior:"smooth",block:"start"})} className="rounded-2xl border p-4 text-left"><b className="text-3xl">{data?.summary.prospectar??"—"}</b><p className="text-xs">a prospectar</p></button>
     </section>
 
-    {showReports&&<section className="mt-5 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+    {showReports && !reportData && <p role="status">{reportError || "Carregando relatório completo…"}</p>}
+    {showReports&&reportData&&<section className="mt-5 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[.16em] text-blue-700">Relatórios</p><h2 className="text-xl font-semibold text-slate-950">Avanço comercial</h2><p className="mt-1 text-sm text-slate-500">Acompanhe o realizado e o que ainda precisa de ação.</p></div><button onClick={()=>void generateGoogleReport()} disabled={generatingReport||!data} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{generatingReport?"Gerando...":"Gerar no Google Planilhas"}</button></div>
       <div className="mt-4 flex flex-wrap gap-2"><select value={reportPreset} onChange={event=>setReportPreset(event.target.value as typeof reportPreset)} className="rounded-xl border bg-white px-3 py-2 text-sm font-semibold"><option value="atual">Semana atual</option><option value="anterior">Semana anterior</option><option value="30dias">Últimos 30 dias</option><option value="personalizado">Período personalizado</option></select>{reportPreset==="personalizado"&&<><label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold">De <input type="date" value={reportStart} onChange={event=>setReportStart(event.target.value)} className="bg-transparent"/></label><label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold">Até <input type="date" value={reportEnd} onChange={event=>setReportEnd(event.target.value)} className="bg-transparent"/></label></>}</div>
       {reportError&&<div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{reportError}</div>}
@@ -230,11 +262,14 @@ export default function LeadsPage() {
     <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
       <section id="leads-followup" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">1. Acompanhamento</p><h2 className="text-xl font-semibold text-slate-950">Follow up</h2><p className="mt-1 text-sm text-slate-500">{leads.length} empresa(s) nesta lista</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">1. Acompanhamento</p><h2 className="text-xl font-semibold text-slate-950">Follow up</h2><p className="mt-1 text-sm text-slate-500">{data?.pagination?.leadTotal??leads.length} empresa(s) nesta lista</p></div>
           <button onClick={()=>setFilter("todos")} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">Ver todos</button>
         </div>
         <div className="mt-4"><label className="mb-1 block text-xs font-semibold text-slate-600">Segmento</label><select value={segment} onChange={e=>setSegment(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"><option value="">Todos os segmentos</option>{segments.map(x=><option key={x}>{x}</option>)}</select></div>
         <div className="mt-4 max-h-[70vh] space-y-3 overflow-y-auto pr-1">
+          {loading && <p role="status">Carregando página…</p>}
+          {!!data?.duplicateSegments?.length && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Possíveis segmentos duplicados: {data.duplicateSegments.map(group=>group.join(" / ")).join("; ")}. Nenhum foi alterado.</p>}
+          <div className="flex items-center justify-between gap-3"><button type="button" disabled={loading || !data?.pagination || data.pagination.page<=1} onClick={()=>setPage(Math.max(1,(data?.pagination?.page||1)-1))} className="min-h-11 rounded-lg border px-4 disabled:opacity-40">Anterior</button><span>Página {data?.pagination?.page||1} de {data?.pagination?.leadPages||1} · {data?.pagination?.leadTotal||0} registros</span><button type="button" disabled={loading || !data?.pagination || data.pagination.page>=data.pagination.leadPages} onClick={()=>setPage((data?.pagination?.page||1)+1)} className="min-h-11 rounded-lg border px-4 disabled:opacity-40">Próxima</button></div>
           {leads.length?leads.map(x=><article key={x.row} className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm ${x.status==="atrasado"?"border-red-200 bg-red-50/60":""}`}>
             <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-[15px] font-bold leading-snug text-slate-950">{x.cliente}</h3><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge(x.status)}`}>{x.proximoContato?displayDate(x.proximoContato):"SEM DATA"}</span></div>
             <div className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2"><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Segmento</p><p className="mt-0.5 font-medium text-slate-800">{x.segmento||"—"}</p></div><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contato</p><p className="mt-0.5 text-slate-800">{x.contato||"—"}</p><div className="mt-0.5 text-xs"><ContactLinks value={x.canal}/></div></div><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Último contato</p><p className="mt-0.5 text-sm text-slate-700">{displayDate(x.ultimoContato)}</p></div></div>
@@ -245,9 +280,10 @@ export default function LeadsPage() {
       </section>
 
       <section id="leads-prospectar" className="min-w-0 scroll-mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">2. Prospecção</p><h2 className="text-xl font-semibold text-slate-950">Prospecção</h2><p className="mt-1 text-sm text-slate-500">{prospects.length} empresa(s) nesta lista</p></div></div>
+        <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">2. Prospecção</p><h2 className="text-xl font-semibold text-slate-950">Prospecção</h2><p className="mt-1 text-sm text-slate-500">{data?.pagination?.prospectTotal??prospects.length} empresa(s) nesta lista</p></div></div>
         <div className="mt-4"><label htmlFor="prospect-company-search" className="mb-1 block text-xs font-semibold text-slate-600">Pesquisar</label><input id="prospect-company-search" type="search" value={prospectSearch} onChange={e=>setProspectSearch(e.target.value)} placeholder="Pesquisar empresa cadastrada..." className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"/></div>
         <div className="mt-4 max-h-[70vh] space-y-3 overflow-y-auto pr-1">
+          <div className="flex items-center justify-between gap-3"><button type="button" disabled={loading || !data?.pagination || data.pagination.prospectPage<=1} onClick={()=>setProspectPage(Math.max(1,(data?.pagination?.prospectPage||1)-1))} className="min-h-11 rounded-lg border px-4 disabled:opacity-40">Anterior</button><span>Página {data?.pagination?.prospectPage||1} de {data?.pagination?.prospectPages||1} · {data?.pagination?.prospectTotal||0} registros</span><button type="button" disabled={loading || !data?.pagination || data.pagination.prospectPage>=data.pagination.prospectPages} onClick={()=>setProspectPage((data?.pagination?.prospectPage||1)+1)} className="min-h-11 rounded-lg border px-4 disabled:opacity-40">Próxima</button></div>
           {prospects.length?prospects.map(x=><article key={x.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="text-[15px] font-bold leading-snug text-slate-950">{x.cliente}</h3>{x.segmento&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{x.segmento}</span>}</div>
             <div className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2"><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Cidade/região</p><p className="mt-0.5 text-slate-800">{x.cidade||"—"}</p></div><div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contato</p><p className="mt-0.5 text-slate-800">{x.contato||"—"}</p><div className="mt-0.5 text-xs"><ContactLinks value={x.canal}/></div></div><div className="sm:col-span-2"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Oportunidade</p><p className="mt-0.5 text-sm text-slate-700">{x.oportunidade||"—"}</p></div></div>

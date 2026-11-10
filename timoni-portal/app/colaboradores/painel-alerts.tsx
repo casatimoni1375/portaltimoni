@@ -1,11 +1,9 @@
+import { MANAGEMENT_EMAILS, isCicaAccess } from "@/lib/access-control";
 import Link from "next/link";
 import { listTeamMessages } from "@/lib/espaco-equipe";
 import { listStockAlerts, type StockAlert } from "@/lib/estoque-alerts";
 
-const TEAM_MESSAGE_ALERT_EMAILS = new Set([
-  "mcrodini@gmail.com",
-  "mrodini@gmail.com",
-]);
+const TEAM_MESSAGE_ALERT_EMAILS = MANAGEMENT_EMAILS;
 
 const STOCK_ALERT_EMAILS = new Set([
   "mcrodini@gmail.com",
@@ -43,7 +41,7 @@ function stockUnitForEmail(email: string): StockAlert["unidade"] | "geral" {
 export default async function PainelAlerts({ email, accessToken }: { email: string; accessToken?: string }) {
   const normalizedEmail = normalizeEmail(email);
   const showTeamMessages = TEAM_MESSAGE_ALERT_EMAILS.has(normalizedEmail);
-  const showStockAlerts = STOCK_ALERT_EMAILS.has(normalizedEmail);
+  const showStockAlerts = isCicaAccess(normalizedEmail) || STOCK_ALERT_EMAILS.has(normalizedEmail);
 
   if (!showTeamMessages && !showStockAlerts) return null;
 

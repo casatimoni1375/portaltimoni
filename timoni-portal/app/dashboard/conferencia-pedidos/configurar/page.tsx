@@ -1,10 +1,2 @@
-import type { Metadata } from "next";
-import ConfigurarGeminiClient from "./ConfigurarGeminiClient";
-
-export const metadata: Metadata = {
-  title: "Configurar Gemini",
-};
-
-export default function ConfigurarGeminiPage() {
-  return <ConfigurarGeminiClient />;
-}
+import { redirect } from "next/navigation";
+export default function Page(){ redirect("/dashboard/compras?aba=conferir"); }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {useSearchParams} from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
@@ -30,6 +31,7 @@ interface Supplier {
 
 interface TrelloPayload {
   configured: boolean;
+  duplicateWarnings?: Array<{ names: string[]; urls: string[] }>;
   boardName?: string;
   summary?: Summary;
   suppliers?: Supplier[];
@@ -50,6 +52,7 @@ function todayLocal() {
 }
 
 export default function ComprasClient() {
+  const query=useSearchParams();const viewUnit=query.get("unidade");const requestedSupplier=query.get("fornecedor");
   const [trello, setTrello] = useState<TrelloPayload>({ configured: false });
   const [loadingTrello, setLoadingTrello] = useState(true);
   const [selectedId, setSelectedId] = useState("");
@@ -74,7 +77,7 @@ export default function ComprasClient() {
   const [success, setSuccess] = useState("");
   const [updatedCardUrl, setUpdatedCardUrl] = useState("");
 
-  const suppliers = useMemo(() => trello.suppliers || [], [trello.suppliers]);
+  const suppliers = useMemo(() => (trello.suppliers || []).filter(item=>(!viewUnit||viewUnit==="todas"||item.unit===viewUnit)&& (query.get("filtro")!=="urgentes"||item.urgent)), [trello.suppliers,viewUnit,query]);
   const selectedSupplier = useMemo(
     () => suppliers.find((supplier) => supplier.id === selectedId) || null,
     [selectedId, suppliers],
@@ -133,11 +136,15 @@ export default function ComprasClient() {
     setSelectedId(supplier.id);
     setSupplierName(supplier.name);
     setOrderNumber("");
-    setUnit("");
+    setUnit(supplier.unit==="rio_claro"||supplier.unit==="araras"?supplier.unit:"");
     setError("");
     setSuccess("");
     setUpdatedCardUrl("");
   }
+
+  useEffect(()=>{if(!requestedSupplier)return;const supplier=suppliers.find(item=>item.id===requestedSupplier);if(supplier){setSelectedId(supplier.id);setSupplierName(supplier.name);if(supplier.unit==="rio_claro"||supplier.unit==="araras")setUnit(supplier.unit);}},[requestedSupplier,suppliers]);
+
+  useEffect(()=>{if(selectedId&&!suppliers.some(item=>item.id===selectedId)){setSelectedId("");setSupplierName("");setUnit("");}},[selectedId,suppliers]);
 
   async function extractItems() {
     setError("");
@@ -243,7 +250,8 @@ export default function ComprasClient() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="ct-clean-purchases space-y-5">
+      {!!trello.duplicateWarnings?.length && <div role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><strong>Possíveis cartões duplicados. Nenhum foi removido.</strong><ul>{trello.duplicateWarnings.map((group, index) => <li key={index}>{group.names.join(" / ")}{group.urls.map((url, i) => url ? <a key={i} href={url} target="_blank" rel="noreferrer" className="ml-2 underline">Abrir cartão {i + 1}</a> : null)}</li>)}</ul></div>}
       <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -261,8 +269,8 @@ export default function ComprasClient() {
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Pedidos para fazer", summary?.pedidosParaFazer],
-          ["Urgentes", summary?.urgentes],
+          ["Pedidos para fazer", summary?.pedidosParaFazer ?? (trello.configured && trello.suppliers ? suppliers.length : undefined)],
+          ["Urgentes", summary?.urgentes ?? (trello.configured && trello.suppliers ? suppliers.filter(item => item.urgent).length : undefined)],
           ["Enviados — Rio Claro", summary?.enviadosRioClaro],
           ["Enviados — Araras", summary?.enviadosAraras],
         ].map(([label, value]) => (
@@ -571,11 +579,7 @@ export default function ComprasClient() {
           </label>
         </div>
 
-        {!canFinalize && (
-          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-            {!unit ? "Falta escolher a unidade." : "Falta informar a previsão de entrega."}
-          </p>
-        )}
+
 
         <button
           type="button"
