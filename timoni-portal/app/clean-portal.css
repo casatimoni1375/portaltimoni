@@ -120,6 +120,8 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 @media(max-width:767px){.ct-notice-columns.cols-3,.ct-notice-columns.cols-2{grid-template-columns:minmax(0,1fr);}.ct-today-top{gap:16px;margin-bottom:16px;}}
 
 /* Hoje: esquerda = Comunicados, Compras urgentes, Pedidos atrasados; direita = Aniversários/Férias, Agenda */
+.ct-today-layout.ct-today-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2fr);}
+.ct-today-v2-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));}
 .ct-today-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:18px;align-items:start;}
 .ct-today-main,.ct-today-side{display:grid;gap:18px;min-width:0;align-content:start;}
 .ct-today-main:empty,.ct-today-side:empty{display:none;}
@@ -155,3 +157,5 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-update-button.is-floating:focus-visible{outline:3px solid #14038D;outline-offset:3px;}
 body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 @media(max-width:767px){.ct-clean-top-actions .ct-update-button{justify-content:center;border-radius:8px;}.ct-clean-top-actions .ct-update-button>span{display:none;}.ct-clean-top-actions .ct-update-button.is-stale{width:32px;}}
+.ct-today-layout.ct-today-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2fr);}
+@media(max-width:1000px){.ct-today-layout.ct-today-v2{grid-template-columns:minmax(0,1fr);}}

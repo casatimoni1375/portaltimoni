@@ -504,6 +504,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           : desktop,
   });
 
+  const [vendedoresIndisponiveis, setVendedoresIndisponiveis] = useState(false);
   const vendedoresDisponiveis = useMemo(() => {
     const nomes = new Map<string, string>();
     for (const vendedor of opcoesVendedores) {
@@ -521,9 +522,11 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       .then((body) => {
         if (!ativo) return;
         setOpcoesVendedores(Array.isArray(body.vendedores) ? body.vendedores : []);
+        setVendedoresIndisponiveis(body.fonte === "indisponivel");
       })
       .catch(() => {
-        // A agenda continua disponível; a rota já entrega listas de contingência quando a planilha falha.
+        // A agenda continua disponível; sem a lista, o campo Vendedor avisa que ela está indisponível.
+        if (ativo) setVendedoresIndisponiveis(true);
       });
     return () => {
       ativo = false;
@@ -954,7 +957,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{vendedoresIndisponiveis && vendedoresDisponiveis.length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">Lista de vendedores indisponível no momento. Avise a gestão.</span>}</label>
             </div>
 
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
