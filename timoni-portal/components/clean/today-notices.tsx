@@ -18,7 +18,7 @@ function withinEnd(value:string,now=Date.now()){if(!value)return true;const date
  * para ler e confirmar; clicou de novo, fecha. Passado o prazo final, sai sozinho.
  */
 export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{store:Unit;isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]}){
- const [items,setItems]=useState<Notice[]>([]),[completed,setCompleted]=useState<string[]>([]),[readers,setReaders]=useState<Record<string,Reader[]>>({});
+ const [items,setItems]=useState<Notice[]>([]),[completed,setCompleted]=useState<string[]>([]),[unsigned,setUnsigned]=useState<string[]>([]),[readers,setReaders]=useState<Record<string,Reader[]>>({});
  const [open,setOpen]=useState(""),[employee,setEmployee]=useState(""),[busy,setBusy]=useState(""),[feedback,setFeedback]=useState<{id:string;text:string;ok:boolean}|null>(null),[error,setError]=useState(""),[showArchived,setShowArchived]=useState(false),[loaded,setLoaded]=useState(false),[image,setImage]=useState("");
 
  const load=useCallback(async()=>{try{
@@ -26,7 +26,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   const notices=await noticesResponse.json();if(!noticesResponse.ok)throw Error(notices?.error||"Não foi possível carregar os comunicados.");
   setItems(Array.isArray(notices.items)?notices.items:[]);
   const reads=await readsResponse.json().catch(()=>({}));
-  if(readsResponse.ok){setCompleted(Array.isArray(reads.completedAvisoIds)?reads.completedAvisoIds:[]);setReaders(reads.readersByAviso||{});}
+  if(readsResponse.ok){setCompleted(Array.isArray(reads.completedAvisoIds)?reads.completedAvisoIds:[]);setUnsigned(Array.isArray(reads.noAudienceAvisoIds)?reads.noAudienceAvisoIds:[]);setReaders(reads.readersByAviso||{});}
   setError("");
  }catch(err){setError(err instanceof Error?err.message:"Não foi possível carregar os comunicados.");}finally{setLoaded(true);}},[]);
  useEffect(()=>{void load();const refresh=()=>void load();window.addEventListener("comunicados:changed",refresh);window.addEventListener("avisos:read-changed",refresh);return()=>{window.removeEventListener("comunicados:changed",refresh);window.removeEventListener("avisos:read-changed",refresh);};},[load]);
@@ -52,7 +52,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   return <li key={item.id} className={`ct-notice${isOpen?" is-open":""}`}>
    <button type="button" className="ct-notice-row" aria-expanded={isOpen} onClick={()=>toggle(item.id)}>
     <span className="ct-notice-date">{fmtDate(item.createdAt)}</span><span className="ct-notice-title">{item.title}</span>
-    {!inArchive&&<span className={`ct-notice-stamp ${signed?"is-signed":"is-pending"}`}>{signed?"Assinado":"Pendente"}</span>}
+    {!inArchive&&!unsigned.includes(item.id)&&<span className={`ct-notice-stamp ${signed?"is-signed":"is-pending"}`}>{signed?"Assinado":"Pendente"}</span>}
    </button>
    {isOpen&&<div className="ct-notice-body">
     <p>{item.message}</p>
