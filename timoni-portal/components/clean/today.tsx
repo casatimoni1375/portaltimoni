@@ -83,7 +83,7 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
 
  return <div className="ct-clean-today">
   <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p><h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}, {name}.</h1></header>
-  {!!cards.length&&<section className="ct-clean-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.key} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link>)}</section>}
+  {!!cards.length&&<section className="ct-clean-metrics" aria-label="Prioridades do dia">{cards.map(card=>card.key==="trips"&&capabilities.tripsCreate?<div key={card.key} className={`ct-clean-metric ct-clean-${card.tone} ct-metric-with-action`}><Link href={card.href} className="ct-metric-link"><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link><Link href="/dashboard/motorista?nova=1" className="ct-metric-action">+ Agendar</Link></div>:<Link key={card.key} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link>)}</section>}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
   {/* Duas colunas independentes: cada bloco sobe logo abaixo do anterior, sem espaço vazio. */}
@@ -99,14 +99,14 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
    </section>}
    </div>
    <aside className="ct-today-side">
-   {events.length>0&&<section className="ct-clean-card">
-    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
-   </section>}
    {capabilities.agenda&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
     {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
     {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
     {agendaEvents.map(event=><Link className="ct-clean-calendar-row" key={event.id} href={agendaHref}><b>{event.allDay?"Dia":formatTime(event.start)}</b><span>{event.summary||"(sem título)"}{event.completed?" · concluído":""}</span></Link>)}
     {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
+   </section>}
+   {events.length>0&&<section className="ct-clean-card">
+    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
    </section>}
    </aside>
   </div>

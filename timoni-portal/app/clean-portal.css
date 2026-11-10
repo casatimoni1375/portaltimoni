@@ -127,3 +127,10 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-today-layout:has(>.ct-today-main:empty){grid-template-columns:minmax(0,1fr);}
 @media(max-width:1000px){.ct-today-layout{grid-template-columns:minmax(0,1fr);}}
 @media(max-width:767px){.ct-today-layout,.ct-today-main,.ct-today-side{gap:16px;}}
+
+/* Card de viagens com atalho pequeno "Agendar" */
+.ct-metric-with-action{position:relative;}
+.ct-metric-with-action .ct-metric-link{display:flex;flex-direction:column;color:inherit;text-decoration:none;}
+.ct-metric-with-action .ct-metric-link::after{content:"";position:absolute;inset:0;}
+.ct-metric-action{position:absolute;top:10px;right:10px;z-index:1;border:1px solid #c9d3ea;border-radius:999px;background:#fff;padding:3px 10px;font-size:var(--ct-font-caption);font-weight:600;color:var(--ct-clean-blue);text-decoration:none;}
+.ct-metric-action:hover{background:#eef1fa;}
