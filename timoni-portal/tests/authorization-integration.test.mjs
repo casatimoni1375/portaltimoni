@@ -613,7 +613,7 @@ test("Cadastro fixo usa credencial central, sem herdar a conta Google do colabor
 
 test("Navegação enxuta preserva ordem e esconde módulos sem concessão",async()=>{
  const h=await harness();const nav=await h.evaluate("lib/clean-navigation.ts");
- assert.deepEqual(Array.from(nav.cleanNavigation(cica),item=>item.label),["Hoje","Estoque","Compras","Motorista","Agenda","Comercial","Equipe"]);
+ assert.deepEqual(Array.from(nav.cleanNavigation(cica),item=>item.label),["Hoje","Estoque","Compras","Motorista","Agenda","Vendas Internas","Equipe"]);
  const seller=person("seller@example.test",{modules:["pedido-de-compra","painel"]});
  assert.deepEqual(Array.from(nav.cleanNavigation(seller),item=>item.label),["Hoje","Compras","Equipe"]);
  assert.equal(nav.cleanNavigation({...seller,active:false}).length,0);
