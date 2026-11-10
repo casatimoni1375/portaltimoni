@@ -120,6 +120,8 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 @media(max-width:767px){.ct-notice-columns.cols-3,.ct-notice-columns.cols-2{grid-template-columns:minmax(0,1fr);}.ct-today-top{gap:16px;margin-bottom:16px;}}
 
 /* Hoje: esquerda = Comunicados, Compras urgentes, Pedidos atrasados; direita = Aniversários/Férias, Agenda */
+.ct-today-layout.ct-today-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2fr);}
+.ct-today-v2-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));}
 .ct-today-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:18px;align-items:start;}
 .ct-today-main,.ct-today-side{display:grid;gap:18px;min-width:0;align-content:start;}
 .ct-today-main:empty,.ct-today-side:empty{display:none;}
@@ -146,3 +148,6 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-today-shortcuts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;}
 .ct-today-shortcuts a{border:1px solid #d7dce8;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:600;color:#102A83;background:#fff;text-decoration:none;}
 .ct-today-shortcuts a:hover{border-color:#102A83;}
+
+.ct-today-layout.ct-today-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2fr);}
+@media(max-width:1000px){.ct-today-layout.ct-today-v2{grid-template-columns:minmax(0,1fr);}}
