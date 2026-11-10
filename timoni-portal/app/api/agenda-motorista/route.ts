@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
-import { canModuleOperation, canReadUnit, normalizeMotoristaUnit } from "@/lib/module-authorization";
+import { canMotoristaStore, canReadUnit } from "@/lib/module-authorization";
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
 import { redactMotoristaResponse } from "@/lib/motorista-response";
 
@@ -111,12 +111,10 @@ export async function POST(request: NextRequest) {
     } catch { return NextResponse.json({ ok: false, erro: "Não foi possível conferir a viagem." }, { status: 502 }); }
     if (!existing) return NextResponse.json({ ok: false, erro: "Viagem não encontrada." }, { status: 404 });
     persistedAuthor = String(existing.preenchidoPor || "");
-    const unidade = normalizeMotoristaUnit(existing.loja);
-    if (!unidade || !canModuleOperation(user, "motorista", action, { unidade })) return denied();
+    if (!canMotoristaStore(user, action, existing.loja)) return denied();
   }
   if (operation === "criar" || body.has("loja")) {
-    const unidade = normalizeMotoristaUnit(body.get("loja"));
-    if (!unidade || unidade === "Geral" || !canModuleOperation(user, "motorista", action, { unidade })) return denied();
+    if (!canMotoristaStore(user, action, body.get("loja"))) return denied();
   }
   body.delete("dataOrigem");
   if (user.collaboratorAccess) {
