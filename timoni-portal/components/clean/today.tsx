@@ -61,7 +61,8 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  const allowed=(value?:string)=>unit==="todas"||value===unit||(unit==="rio_claro"&&["MCR","ROD","Rodini","rio claro","Rio Claro"].includes(value||""))||(unit==="araras"&&["CT","Casa Timoni","Araras"].includes(value||""));
  const orders=(data.orders?.pedidosEnviados||[]).filter(order=>allowed(order.unidade)&&order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey()).sort((a,b)=>a.previsaoEntrega.localeCompare(b.previsaoEntrega));
  const urgent=(data.purchases?.suppliers||[]).filter(item=>item.urgent&&allowed(item.unit));
- const trips=(data.trips?.viagens||[]).filter(trip=>allowed(trip.loja)&&!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||""));
+ // Um motorista só: todas as viagens do dia aparecem, de qualquer empresa.
+ const trips=(data.trips?.viagens||[]).filter(trip=>!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||""));
  const events=(data.people?.events||[]).filter(item=>allowed(item.unit)||item.unit==="geral");
  const agendaEvents=[...(data.agenda?.events||[])].sort((a,b)=>Number(b.allDay)-Number(a.allDay)||a.start.localeCompare(b.start));
  const agendaIds=new Set(agendaEvents.map(event=>event.id));
