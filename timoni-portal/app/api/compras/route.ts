@@ -1,4 +1,3 @@
-import { normalizedText, possibleDuplicates } from "@/lib/block-one-utils";
 import { canReadUnit } from "@/lib/module-authorization";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { savePurchaseOrdersSnapshot } from "@/lib/purchase-orders";
@@ -201,12 +200,6 @@ export async function GET(request: Request) {
           enviadosRioClaro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaro.length : 0,
           enviadosAraras: canReadUnit(central.current.user, "compras", "araras") ? sentAraras.length : 0,
         },
-        duplicateWarnings: possibleDuplicates(cards.filter(card => {
-          if (pendingCards.some(item => item.id === card.id)) return true;
-          if (card.idList === sentRioClaroList?.id) return canReadUnit(central.current.user, "compras", "rio_claro");
-          if (card.idList === sentArarasList?.id) return canReadUnit(central.current.user, "compras", "araras");
-          return false;
-        }), card => `${card.idList}:${normalizedText(card.name)}`).map(group => ({ names: group.map(item => item.name), urls: group.map(item => item.url || "") })),
         suppliers,
         destinations: {
           rio_claro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaroList?.id || null : null,
