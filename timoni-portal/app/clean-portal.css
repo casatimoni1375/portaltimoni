@@ -71,3 +71,11 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
  .ct-clean-unit:not(.ct-clean-unit-multi){display:none;}
  .ct-clean-spacer.ct-clean-spacer-units{height:121px;}
 }
+
+/* Tela Hoje em blocos por permissão */
+.ct-clean-today-blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;}
+.ct-clean-today-blocks>.ct-clean-card{min-width:0;}
+main .ct-clean-people-group h2{color:var(--ct-clean-blue);font-size:var(--ct-font-section-title)!important;margin:0 0 6px;}
+.ct-clean-people-group+.ct-clean-people-group{border-top:1px solid #edf0f6;margin-top:10px;padding-top:12px;}
+.ct-clean-today-cta{display:flex;justify-content:center;margin-top:12px;width:100%;}
+@media(max-width:767px){.ct-clean-today-blocks{grid-template-columns:1fr;gap:16px;}}
