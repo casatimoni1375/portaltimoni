@@ -79,10 +79,34 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
   {key:"trips",value:trips.length,label:"Viagens do motorista hoje",href:`/dashboard/motorista?data=${todayKey()}&unidade=${unit}`,tone:"normal"},
  ].filter(card=>capabilities[card.key as "orders"|"purchases"|"trips"]&&(card.key==="trips"||card.value>0||loading[card.key]&&!data[card.key as keyof Source]));
  const waiting=(key:keyof Source)=>loading[key]&&!data[key];
+ // Acessos operacionais (sem Compras e sem Pedidos, ex.: Caixa, Estoque) usam o layout da Bruna:
+ // topo = cards Viagens (+ Agendar) e Agenda ao lado dos Comunicados; embaixo = lista de Viagens + Aniversários/Férias.
+ const operational=!capabilities.orders&&!capabilities.purchases;
+ const agendaCount=agendaEvents.length+meetings.length;
+ const tripsCard=capabilities.trips&&<div className="ct-clean-metric ct-clean-normal ct-metric-with-action"><Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-metric-link"><strong>{waiting("trips")?"…":trips.length}</strong><span>Viagens do motorista hoje</span></Link>{capabilities.tripsCreate&&<Link href="/dashboard/motorista?nova=1" className="ct-metric-action">+ Agendar</Link>}</div>;
+ const agendaCard=capabilities.agenda&&<Link href={agendaHref} className="ct-clean-metric ct-clean-normal"><strong>{waiting("agenda")?"…":agendaCount}</strong><span>{capabilities.agenda==="principal"?"Compromissos hoje":"Agenda CT hoje"}</span></Link>;
+ const tripsList=capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>Ver agenda</Link></div>
+  {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
+  {!waiting("trips")&&!trips.length&&<p className="ct-clean-muted">Nenhuma viagem pendente hoje.</p>}
+  {trips.map((trip,index)=>{const bloqueio=trip.tipoHorario==="Bloqueio";const hora=trip.horario?(trip.horarioFim?`${trip.horario.slice(0,5)}–${trip.horarioFim.slice(0,5)}`:trip.horario.slice(0,5)):`${(Number.isFinite(trip.ordem)?Number(trip.ordem):index)+1}ª`;const texto=bloqueio?"Motorista bloqueado":[trip.clienteFornecedor,trip.numeroPedido?`NF ${trip.numeroPedido}`:"",trip.loja].filter(Boolean).join(" · ")||"Viagem sem cliente informado";return <Link className="ct-clean-calendar-row" key={trip.id||index} href={`/dashboard/motorista?data=${todayKey()}`}><b>{hora}</b><span>{texto}</span></Link>;})}
+ </section>;
+ const peopleBlock=events.length>0&&<section className="ct-clean-card">
+  {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
+ </section>;
  const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||events.length>0;
 
  return <div className="ct-clean-today">
   <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p><h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}, {name}.</h1></header>
+  {operational?<>
+   <div className={`ct-today-op-top${notices?"":" no-notices"}`}>
+    <div className="ct-today-op-cards">{tripsCard}{agendaCard}</div>
+    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
+   </div>
+   <div className="ct-today-layout">
+    <div className="ct-today-main">{tripsList}</div>
+    <aside className="ct-today-side">{peopleBlock}</aside>
+   </div>
+  </>:<>
   {!!cards.length&&<section className="ct-clean-metrics" aria-label="Prioridades do dia">{cards.map(card=>card.key==="trips"&&capabilities.tripsCreate?<div key={card.key} className={`ct-clean-metric ct-clean-${card.tone} ct-metric-with-action`}><Link href={card.href} className="ct-metric-link"><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link><Link href="/dashboard/motorista?nova=1" className="ct-metric-action">+ Agendar</Link></div>:<Link key={card.key} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link>)}</section>}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
@@ -110,6 +134,7 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
    </section>}
    </aside>
   </div>
+  </>}
   {!anyBlock&&!cards.length&&!Object.values(loading).some(Boolean)&&!Object.keys(errors).length&&<p className="ct-clean-empty">Nenhuma ação pendente para seu acesso agora.</p>}
  </div>;
 }
