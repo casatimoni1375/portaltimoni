@@ -11,7 +11,7 @@ type DateItem={id:string;name:string;date:string;end?:string;kind:"birthday"|"va
 type CalendarEvent={id:string;summary:string;start:string;end:string;allDay:boolean;completed?:boolean};
 type Source={
  orders?:{pedidosEnviados:Order[];stale?:boolean};
- purchases?:{suppliers?:Supplier[];configured?:boolean};
+ purchases?:{suppliers?:Supplier[];configured?:boolean;summary?:{pedidosParaFazer?:number;enviadosRioClaro?:number;enviadosAraras?:number}};
  trips?:{viagens:Trip[]};
  people?:{events:DateItem[];meetings:Array<{id:string;title:string;date:string;time:string}>};
  agenda?:{events:CalendarEvent[]};
@@ -75,11 +75,17 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  useEffect(()=>{window.dispatchEvent(new CustomEvent("ct-pending-counts",{detail:{compras:orders.length+urgent.length,motorista:trips.length,agenda:agendaEvents.length+meetings.length}}));},[orders.length,urgent.length,trips.length,agendaEvents.length,meetings.length]);
 
  const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",hour:"2-digit",hour12:false}).format(new Date()));
+ // Tela Hoje v2 (acessos com Compras/Pedidos): contadores = cards do Trello por coluna.
+ const pending=(data.purchases?.suppliers||[]).filter(item=>allowed(item.unit));
+ const summary=data.purchases?.summary;
+ const pendingCount=unit==="todas"?(summary?.pedidosParaFazer??pending.length):pending.length;
+ const sentRC=unit==="araras"?0:(summary?.enviadosRioClaro??0);
+ const sentAR=unit==="rio_claro"?0:(summary?.enviadosAraras??0);
  const cards=[
-  {key:"orders",value:orders.length,label:allOrders?"Pedidos em andamento":"Pedidos atrasados",href:ordersHref,tone:allOrders?"normal":"late"},
-  {key:"purchases",value:urgent.length,label:"Compras urgentes",href:`/dashboard/compras?aba=montar&filtro=urgentes&unidade=${unit}`,tone:"urgent"},
-  {key:"trips",value:trips.length,label:"Viagens do motorista hoje",href:`/dashboard/motorista?data=${todayKey()}&unidade=${unit}`,tone:"normal"},
- ].filter(card=>capabilities[card.key as "orders"|"purchases"|"trips"]&&(card.key==="trips"||card.value>0||loading[card.key]&&!data[card.key as keyof Source]));
+  {key:"purchases",value:pendingCount,label:"Pedidos pendentes",href:`/dashboard/compras?aba=montar&unidade=${unit}`,tone:"urgent"},
+  ...(unit!=="araras"?[{key:"purchases",value:sentRC,label:"Enviados Rio Claro",href:"/dashboard/compras?aba=acompanhar&unidade=rio_claro",tone:"normal"}]:[]),
+  ...(unit!=="rio_claro"?[{key:"purchases",value:sentAR,label:"Enviados Araras",href:"/dashboard/compras?aba=acompanhar&unidade=araras",tone:"normal"}]:[]),
+ ].filter(()=>capabilities.purchases);
  const waiting=(key:keyof Source)=>loading[key]&&!data[key];
  // Acessos operacionais (sem Compras e sem Pedidos, ex.: Caixa, Estoque) usam o layout da Bruna:
  // topo = cards Viagens (+ Agendar) e Agenda ao lado dos Comunicados; embaixo = lista de Viagens + Aniversários/Férias.
@@ -97,7 +103,7 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  </section>;
  const shortcutItems=[capabilities.shortcuts?.estoque&&{href:"/dashboard/estoque",label:"Estoque"},capabilities.shortcuts?.equipe&&{href:"/colaboradores",label:"Equipe"},capabilities.shortcuts?.vendas&&{href:"/dashboard/leads",label:"Vendas Internas"}].filter(Boolean) as Array<{href:string;label:string}>;
  const shortcuts=shortcutItems.length>0&&<nav className="ct-today-shortcuts" aria-label="Atalhos">{shortcutItems.map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>;
- const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||events.length>0;
+ const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||pending.length>0||events.length>0;
 
  return <div className="ct-clean-today">
   <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p>{/* Acessos compartilhados de vendedores: saudação sem nome. */}<h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}{name?`, ${name}.`:"!"}</h1></header>
@@ -112,22 +118,13 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
     <aside className="ct-today-side">{peopleBlock}</aside>
    </div>
   </>:<>
-  {!!cards.length&&<section className="ct-clean-metrics" aria-label="Prioridades do dia">{cards.map(card=>card.key==="trips"&&capabilities.tripsCreate?<div key={card.key} className={`ct-clean-metric ct-clean-${card.tone} ct-metric-with-action`}><Link href={card.href} className="ct-metric-link"><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link><Link href="/dashboard/motorista?nova=1" className="ct-metric-action">+ Agendar</Link></div>:<Link key={card.key} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link>)}</section>}
+  {!!cards.length&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.label} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting("purchases")?"…":card.value}</strong><span>{card.label}</span></Link>)}{capabilities.shortcuts?.estoque&&<Link href="/dashboard/estoque" className="ct-clean-metric ct-clean-normal"><strong>→</strong><span>Estoque</span></Link>}</section>}
   {shortcuts}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
   {/* Duas colunas independentes: cada bloco sobe logo abaixo do anterior, sem espaço vazio. */}
-  <div className="ct-today-layout">
-   <div className="ct-today-main">
-   {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
-   {urgent.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Compras urgentes</h2><Link href={`/dashboard/compras?aba=montar&filtro=urgentes&unidade=${unit}`}>Ver todas ({urgent.length})</Link></div>
-    {urgent.slice(0,3).map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Montar pedido</Link></div>)}
-   </section>}
-   {orders.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Pedidos</h2><Link href={ordersHref}>Ver todos ({orders.length})</Link></div>
-    {data.orders?.stale&&<p className="ct-clean-muted">Última cópia disponível; atualização em andamento.</p>}
-    {orders.slice(0,3).map(order=><div className="ct-clean-action-row" key={order.id}><div><strong>{order.nome}</strong><small>{order.unidade==="araras"?"Araras":"Rio Claro"}{order.previsaoEntrega?` · previsão ${formatDate(order.previsaoEntrega)}`:""}</small></div>{order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey()?<span className="ct-clean-badge ct-clean-late">{Math.max(1,Math.floor((new Date(`${todayKey()}T12:00:00-03:00`).getTime()-new Date(order.previsaoEntrega).getTime())/86400000))} dias</span>:<span className="ct-clean-badge">Em andamento</span>}<Link className="ct-clean-action" href={`/dashboard/pedido-de-compra?pedido=${order.id}&unidade=${unit}`}>Ver pedido</Link></div>)}
-   </section>}
-   </div>
+  {/* Tela Hoje v2: esquerda = Agenda + Aniversários/Férias; direita = Comunicados + Pedidos pendentes. */}
+  <div className="ct-today-layout ct-today-v2">
    <aside className="ct-today-side">
    {capabilities.agenda&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
     {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
@@ -136,9 +133,15 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
     {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
    {events.length>0&&<section className="ct-clean-card">
-    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
+    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários do mês":"Férias do mês"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
    </section>}
    </aside>
+   <div className="ct-today-main">
+   {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
+   {pending.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Pedidos pendentes</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
+    {pending.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Montar pedido</Link></div>)}
+   </section>}
+   </div>
   </div>
   </>}
   {!anyBlock&&!cards.length&&!Object.values(loading).some(Boolean)&&!Object.keys(errors).length&&<p className="ct-clean-empty">Nenhuma ação pendente para seu acesso agora.</p>}
