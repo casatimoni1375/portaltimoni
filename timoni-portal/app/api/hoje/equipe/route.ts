@@ -15,8 +15,13 @@ export async function GET(request:Request){
  const events=calendar.flatMap(event=>{const title=normalizedText(event.summary);const kind=title.includes("ferias")?"vacation":title.includes("anivers")||title.includes("birthday")?"birthday":null;if(!kind)return[];
  const indicated=title.includes("araras")?"Araras":title.includes("rio claro")?"Rio Claro":null;
  const members=panel.collaborators.filter(person=>person.active&&title.includes(normalizedText(person.name)));
+ // Férias: evento de dia inteiro termina no dia seguinte ao último dia (fim exclusivo).
+ // Último dia = fim - 1; férias que já acabaram não aparecem.
+ let lastDay=event.end?event.end.slice(0,10):"";
+ if(event.end&&!event.end.includes("T")){const d=new Date(`${lastDay}T12:00:00Z`);d.setUTCDate(d.getUTCDate()-1);lastDay=d.toISOString().slice(0,10);}
+ if(kind==="vacation"&&lastDay&&lastDay<parts)return[];
  if(indicated?!visibleUnit(indicated):members.length?!members.some(person=>visibleUnit(person.unit)):user.unit!=="Geral"||Boolean(selected&&selected!=="todas"))return[];
- return[{id:event.id,name:event.summary.replace(/^anivers[aá]rio\s*(?:de\s*)?/i,""),date:event.start,end:event.end,kind,unit:indicated==="Araras"?"araras":indicated==="Rio Claro"?"rio_claro":members[0]?.unit==="Araras"?"araras":members[0]?.unit==="Rio Claro"?"rio_claro":"geral"}];
+ return[{id:event.id,name:event.summary.replace(/^anivers[aá]rio\s*(?:de\s*)?/i,""),date:event.start,end:lastDay||event.end,kind,unit:indicated==="Araras"?"araras":indicated==="Rio Claro"?"rio_claro":members[0]?.unit==="Araras"?"araras":members[0]?.unit==="Rio Claro"?"rio_claro":"geral"}];
  });
  const meetings=calendar.filter(event=>event.start.slice(0,10)===parts&&["reuniao mensal rio claro","reuniao mensal araras"].includes(normalizedText(event.summary))&&visibleUnit(normalizedText(event.summary).includes("araras")?"Araras":"Rio Claro")).map(event=>({id:event.id,title:event.summary,date:event.start,time:event.start.includes("T")?new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",hour:"2-digit",minute:"2-digit"}).format(new Date(event.start)):"Hoje"}));
  return NextResponse.json({events,meetings,people:people.map(person=>({name:person.name,unit:person.unit}))},{headers:{"Cache-Control":"private, no-store"}});
