@@ -120,8 +120,12 @@ test("1B: módulos preservam edição de Marcelo e bloqueiam criação/exclusão
 });
 test("1B: unidade desconhecida falha para contas locais e nenhuma ação amplia módulos", () => {
   const actor = user("vendas@example.test", { unit: "Rio Claro", modules: ["motorista", "estoque"] });
-  for (const unit of ["araras", "desconhecida", undefined]) assert.equal(modulePolicy.canReadUnit(actor, "motorista", unit), false);
-  assert.equal(modulePolicy.canReadUnit(actor, "motorista", "rio_claro"), true);
+  // Motorista: quem tem o módulo vê todas as viagens; sem o módulo, nenhuma.
+  for (const unit of ["araras", "desconhecida", undefined, "rio_claro"]) assert.equal(modulePolicy.canReadUnit(actor, "motorista", unit), true);
+  const semModulo = user("vendas@example.test", { unit: "Rio Claro", modules: ["estoque"] });
+  assert.equal(modulePolicy.canReadUnit(semModulo, "motorista", "rio_claro"), false);
+  // Unidade desconhecida continua negada nos demais módulos.
+  for (const unit of ["araras", "desconhecida", undefined]) assert.equal(modulePolicy.canReadUnit(actor, "estoque", unit), false);
   assert.equal(modulePolicy.canModuleOperation(actor, "leads", "criar"), false);
 });
 test("1B: Estoque preserva transições operacionais, edição restrita e proibição de exclusão", () => {
@@ -146,10 +150,14 @@ test("1B: Rotativo preserva papéis operacionais, sem gestão/backup para Marcel
 test("Motorista: nomes reais das lojas respeitam a unidade sem alterar o formulário", () => {
   const rc = user("vendas@example.test", { unit: "Rio Claro" });
   const ara = user("araras@example.test", { unit: "Araras" });
+  // Todos veem todas as viagens; o limite por empresa vale para agendar/editar/excluir.
   for (const store of ["MCR", "Rodini"]) {
     assert.equal(modulePolicy.canReadUnit(rc, "motorista", store), true);
-    assert.equal(modulePolicy.canReadUnit(ara, "motorista", store), false);
+    assert.equal(modulePolicy.canReadUnit(ara, "motorista", store), true);
   }
+  // Casa Timoni é agendada por Araras e também por Rio Claro (decisão da gestão, 10/11/2026).
   assert.equal(modulePolicy.canReadUnit(ara, "motorista", "Casa Timoni"), true);
-  assert.equal(modulePolicy.canReadUnit(rc, "motorista", "Casa Timoni"), false);
+  assert.equal(modulePolicy.canReadUnit(rc, "motorista", "Casa Timoni"), true);
+  assert.deepEqual(modulePolicy.motoristaUnitsForStore("Casa Timoni"), ["Araras", "Rio Claro"]);
+  assert.deepEqual(modulePolicy.motoristaUnitsForStore("MCR"), ["Rio Claro"]);
 });
