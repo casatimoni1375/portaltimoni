@@ -96,7 +96,7 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||events.length>0;
 
  return <div className="ct-clean-today">
-  <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p><h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}, {name}.</h1></header>
+  <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p>{/* Acessos compartilhados de vendedores: saudação sem nome. */}<h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}{name?`, ${name}.`:"!"}</h1></header>
   {operational?<>
    <div className={`ct-today-op-top${notices?"":" no-notices"}`}>
     <div className="ct-today-op-cards">{tripsCard}{agendaCard}</div>
