@@ -9,7 +9,7 @@ import {
   type PortalModule,
   type PortalUser,
 } from "@/lib/access-control";
-import { AVISO_TEAM_MEMBERS, TEAM_MEMBERS, type TeamMember } from "@/lib/team-members";
+import type { TeamMember } from "@/lib/team-members";
 import { AVISO_LEITURAS_SPREADSHEET_ID } from "@/lib/portal-data-constants";
 import { unstable_cache, revalidateTag } from "next/cache";
 
@@ -17,7 +17,6 @@ const USERS_SHEET = "PortalUsuarios";
 const COLLABORATORS_SHEET = "PortalColaboradores";
 const HISTORY_SHEET = "PortalHistorico";
 const NOTICE_BY_ACCESS_MIGRATION = "Confirmação de leitura por acesso v1";
-const COLLABORATOR_ROSTER_MIGRATION = "Lista oficial de colaboradores 30-09-2026 v1";
 const REQUIRED_SHEETS = [USERS_SHEET, COLLABORATORS_SHEET, HISTORY_SHEET];
 const PORTAL_CONFIG_CACHE_TAG = "portal-config";
 export const CICA_EMAIL = ADMIN_IDENTITIES.cica;
@@ -129,18 +128,10 @@ export function defaultPortalUsers(): PortalUser[] {
   }));
 }
 
+// Sem lista de pessoas escrita no código: se o cadastro não puder ser lido, a lista fica vazia
+// em vez de mostrar nomes antigos.
 export function defaultCollaborators(): ConfiguredCollaborator[] {
-  const noticeKeys = new Set(AVISO_TEAM_MEMBERS.map((member) => `${member.unit}::${member.name}`));
-  return TEAM_MEMBERS.map((member) => ({
-    ...member,
-    id: `${member.unit}-${member.name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    accessEmail: "",
-    active: true,
-    noticeRequired: noticeKeys.has(`${member.unit}::${member.name}`),
-    chatEnabled: true,
-    role: "",
-    updatedAt: "",
-  }));
+  return [];
 }
 
 let ensureSheetsPromise: Promise<void> | null = null;
@@ -442,10 +433,6 @@ export async function ensurePortalConfiguration(accessToken: string) {
   if (!users.length) {
     throw new Error("Cadastro oficial vazio. Recuperação administrativa deve ser feita na planilha oficial.");
   }
-  if (!collaborators.length) {
-    collaborators = defaultCollaborators();
-    await writeCollaborators(accessToken, collaborators);
-  }
 
   // Importação única dos rótulos antigos. Depois disso, PortalUsuarios!M
   // é a fonte para Configurações e para os destinatários dos Avisos.
@@ -472,38 +459,6 @@ export async function ensurePortalConfiguration(accessToken: string) {
     accessToken,
     sheetsUrl(`/values/${encodeURIComponent(`${HISTORY_SHEET}!B2:B2000`)}`, { valueRenderOption: "FORMATTED_VALUE" }),
   );
-  if (!(migrationRows.values || []).some((row) => row[0] === COLLABORATOR_ROSTER_MIGRATION)) {
-    const existingByKey = new Map(
-      collaborators.map((member) => [`${member.unit}::${member.name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(), member]),
-    );
-    const now = new Date().toISOString();
-    collaborators = TEAM_MEMBERS.map((member) => {
-      const key = `${member.unit}::${member.name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-      const existing = existingByKey.get(key);
-      const managementEmail = member.unit === "Geral"
-        ? member.name === "Ciça" ? CICA_EMAIL : member.name === "Marcelo" ? "mrodini@gmail.com" : ""
-        : "";
-      return {
-        ...(existing || {}),
-        ...member,
-        id: existing?.id || `${member.unit}-${member.name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        accessEmail: existing?.accessEmail || managementEmail,
-        active: true,
-        noticeRequired: existing?.noticeRequired ?? false,
-        chatEnabled: true,
-        role: existing?.role || "",
-        updatedAt: now,
-      };
-    });
-    await writeCollaborators(accessToken, collaborators);
-    await appendAudit(
-      accessToken,
-      COLLABORATOR_ROSTER_MIGRATION,
-      "Lista de colaboradores reconciliada com a relação oficial informada pela gestão.",
-      CICA_EMAIL,
-    );
-  }
-
   if (!(migrationRows.values || []).some((row) => row[0] === NOTICE_BY_ACCESS_MIGRATION)) {
     const accessEmailsWithLegacyConfirmation = new Set(
       collaborators
