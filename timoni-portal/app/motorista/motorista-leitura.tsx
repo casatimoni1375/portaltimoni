@@ -154,7 +154,7 @@ function classeLinhaPrincipal(_v: Viagem) {
 
 function linhaPrincipal(v: Viagem) {
   return [
-    lerTipo(v.notasJson),
+    lerTipo(v.notasJson) === "Retirada" ? "Coleta" : "Entrega",
     v.tipoHorario === "Bloqueio" ? "Bloqueio" : "",
     lojaLabel(v.loja),
     v.vendedor ? `Vend.: ${v.vendedor}` : "",

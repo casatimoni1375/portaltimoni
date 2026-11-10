@@ -91,6 +91,21 @@ const REQUIRED: Array<keyof FormState> = [
   "numeroEndereco",
 ];
 
+const REQUIRED_LABELS: Partial<Record<keyof FormState, string>> = {
+  tipo: "Tipo",
+  loja: "Loja",
+  vendedor: "Vendedor",
+  data: "Data",
+  numeroPedido: "Nota Fiscal/Pedido",
+  clienteFornecedor: "Cliente/Fornecedor",
+  volumes: "Volume",
+  endereco: "Endereço",
+  numeroEndereco: "Número",
+  preenchidoPor: "Preenchido por",
+  bloqueioInicio: "Início do bloqueio",
+  bloqueioFim: "Fim do bloqueio",
+};
+
 function localDateString(d?: Date) {
   if (!d) {
     const parts = new Intl.DateTimeFormat("en-CA", {
@@ -346,7 +361,7 @@ function pagamentoTexto(notasJson?: string) {
 function linhaPrincipalRelatorio(v: Viagem, index: number) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
   const partes = [
-    `${index + 1}. ${tipo}`,
+    `${index + 1}. ${tipo === "Retirada" ? "Coleta" : tipo}`,
     v.tipoHorario === "Bloqueio" ? "Bloqueio" : "",
     lojaLabel(v.loja),
     v.vendedor ? `Vend.: ${v.vendedor}` : "",
@@ -623,7 +638,15 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     }
     setInvalidos(faltando);
     if (faltando.size) {
-      setErro("Preencha os campos obrigatórios destacados em vermelho.");
+      const nomes = [...faltando].map((key) => REQUIRED_LABELS[key] || String(key)).join(", ");
+      setErro(`Falta preencher: ${nomes}. Os campos estão destacados em vermelho.`);
+      // Leva a tela até o primeiro campo vazio: no celular ele pode estar fora da vista.
+      const formulario = event.currentTarget as HTMLFormElement | null;
+      window.requestAnimationFrame(() => {
+        const primeiro = formulario?.querySelector<HTMLElement>(":invalid:not(form)");
+        primeiro?.scrollIntoView({ behavior: "smooth", block: "center" });
+        primeiro?.focus({ preventScroll: true });
+      });
       return;
     }
 
@@ -903,6 +926,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       {modal && (!readOnly || (editandoId ? canEdit : canCreate)) && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overflow-x-hidden bg-slate-950/50 p-3 sm:p-6">
           <form
+            noValidate
             onSubmit={salvar}
             style={layoutViewport === "mobile" ? { width: "calc(100vw - 24px)", maxWidth: "calc(100vw - 24px)" } : undefined}
             className="motorista-form my-4 w-full max-w-4xl rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
@@ -913,7 +937,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(4, minmax(0, 1fr))")} className="mt-5 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Retirada</option></select></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Loja<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}><option value="">Selecione</option><option value="Casa Timoni">Casa Timoni</option><option value="MCR">MCR</option><option value="Rodini">Rodini</option></select></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required /></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
