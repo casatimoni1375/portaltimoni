@@ -5,7 +5,9 @@ import { CALENDAR_LABELS, type CalendarEventDTO, type CalendarEventInput, type C
 export const TIME_ZONE = "America/Sao_Paulo";
 
 export const CALENDARS: Record<CalendarKey, { id: string; label: string }> = {
-  principal: { id: "primary", label: CALENDAR_LABELS.principal },
+  // Agenda da Ciça lida pelo endereço, e não como "primary": assim ela aparece igual nas duas
+  // contas da Ciça (mcrodini@gmail.com e cecilia@casatimoni.com.br, com a agenda compartilhada).
+  principal: { id: process.env.CICA_CALENDAR_ID || "mcrodini@gmail.com", label: CALENDAR_LABELS.principal },
   timoni: {
     id:
       process.env.TIMONI_CALENDAR_ID ||
