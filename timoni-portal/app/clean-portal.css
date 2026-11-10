@@ -146,3 +146,12 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-today-shortcuts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;}
 .ct-today-shortcuts a{border:1px solid #d7dce8;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:600;color:#102A83;background:#fff;text-decoration:none;}
 .ct-today-shortcuts a:hover{border-color:#102A83;}
+
+/* Botão "Atualizar" do topo: recarrega o portal e fica em destaque quando há versão nova. */
+.ct-update-button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 10px;border-radius:8px;color:var(--ct-clean-blue);font-size:16px;white-space:nowrap;}
+.ct-update-button:hover{background:#f0f3fb;}
+.ct-update-button.is-stale{background:#ffd438;color:#1a1a1a;font-weight:600;}
+.ct-update-button.is-floating{position:fixed;right:16px;bottom:16px;z-index:120;min-height:44px;padding:0 16px;border-radius:999px;box-shadow:0 6px 24px #102a8333;}
+.ct-update-button.is-floating:focus-visible{outline:3px solid #14038D;outline-offset:3px;}
+body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
+@media(max-width:767px){.ct-clean-top-actions .ct-update-button{justify-content:center;border-radius:8px;}.ct-clean-top-actions .ct-update-button>span{display:none;}.ct-clean-top-actions .ct-update-button.is-stale{width:32px;}}

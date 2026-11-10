@@ -7,6 +7,7 @@ import "./clean-portal.css";
 import MobileUiRules from "@/components/mobile-ui-rules";
 import PortalPermissionsSync from "@/components/portal-permissions-sync";
 import AvisosRequiredGate from "@/components/avisos-required-gate";
+import UpdateButton from "@/components/update-button";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <PortalPermissionsSync />
         <MobileUiRules />
+        <UpdateButton floating />
       </body>
     </html>
   );
