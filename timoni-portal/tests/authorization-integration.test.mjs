@@ -220,11 +220,12 @@ test("Motorista: anônimo, removido e módulo não atribuído não consultam a o
     assert.equal(h.calls.length, 0);
   }
 });
-test("Motorista: leitura filtra a unidade e não encaminha ações ou parâmetros arbitrários", async () => {
+test("Motorista: todos com o módulo veem todas as viagens e nada arbitrário é encaminhado", async () => {
   const h = await motorHarness(moduleActor());
   const route = await h.evaluate("app/api/agenda-motorista/route.ts");
   const response = await route.GET(urlRequest("action=dia&data=2026-11-02&callback=malicioso"));
-  assert.deepEqual((await response.json()).viagens.map(v => v.id), ["rc"]);
+  // Um motorista só: todas as viagens aparecem para quem tem o módulo (decisão da gestão, 10/11/2026).
+  assert.deepEqual((await response.json()).viagens.map(v => v.id), ["rc", "ara"]);
   assert.equal(new URL(h.calls[0].url).searchParams.has("callback"), false);
   assert.equal((await route.GET(urlRequest("action=excluir&id=ara"))).status, 400);
   assert.equal((await route.GET(urlRequest("action=mes&mes=2026-11"))).status, 403);

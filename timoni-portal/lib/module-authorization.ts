@@ -36,9 +36,28 @@ export function normalizeMotoristaUnit(value: unknown): PortalUnit | null {
   return null;
 }
 
+/**
+ * Unidades que podem operar viagens de uma empresa no Motorista.
+ * Casa Timoni é agendada por Araras e também por Rio Claro; MCR e Rodini só por Rio Claro.
+ */
+export function motoristaUnitsForStore(value: unknown): PortalUnit[] {
+  const store = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (store === "casa timoni" || store === "ct") return ["Araras", "Rio Claro"];
+  const unidade = normalizeMotoristaUnit(value);
+  return unidade ? [unidade] : [];
+}
+
+/** O acesso pode executar a ação numa viagem desta empresa (em qualquer unidade permitida). */
+export function canMotoristaStore(user: PortalUser, action: AuthorizationAction, value: unknown) {
+  return motoristaUnitsForStore(value).some((unidade) => unidade !== "Geral" && canModuleOperation(user, "motorista", action, { unidade }));
+}
+
 /** Unknown record units are visible only to an explicitly global official user. */
 export function canReadUnit(user: PortalUser, module: PortalModule, value: unknown) {
-  const unidade = module === "motorista" ? normalizeMotoristaUnit(value) : normalizeUnit(value);
+  // Motorista: todos os acessos com o módulo veem todas as viagens (decisão da gestão, 10/11/2026).
+  // Agendar, editar e excluir continuam limitados por empresa (canMotoristaStore).
+  if (module === "motorista") return canModuleOperation(user, module, "visualizar");
+  const unidade = normalizeUnit(value);
   return unidade ? canModuleOperation(user, module, "visualizar", { unidade })
     : user.unit === "Geral" && canModuleOperation(user, module, "visualizar");
 }
