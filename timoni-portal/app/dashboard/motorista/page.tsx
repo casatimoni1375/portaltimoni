@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
-import { canModuleOperation } from "@/lib/module-authorization";
+import { canModuleOperation, normalizeMotoristaUnit } from "@/lib/module-authorization";
 import MotoristaAgenda from "./motorista-agenda";
 
 export const metadata: Metadata = {
@@ -15,6 +15,11 @@ export default async function MotoristaPage() {
   const canEdit = canModuleOperation(gate.current.user, "motorista", "editar");
   const canDelete = canModuleOperation(gate.current.user, "motorista", "excluir");
   const readOnly = !canEdit;
+  // Cada acesso só vê as empresas que pode agendar: Rio Claro = MCR e Rodini; Araras = Casa Timoni.
+  const empresas = ["Casa Timoni", "MCR", "Rodini"].filter((empresa) => {
+    const unidade = normalizeMotoristaUnit(empresa);
+    return Boolean(unidade) && canModuleOperation(gate.current!.user, "motorista", "criar", { unidade: unidade! });
+  });
 
   return (
     <div className="ct-modern-calendar mx-auto w-full max-w-6xl space-y-4">
@@ -24,7 +29,7 @@ export default async function MotoristaPage() {
         <p className="mt-1 text-sm text-slate-600">Entregas, retiradas e bloqueios de horário em uma agenda única.</p>
       </header>
       <div className="motorista-agenda-controle">
-        <MotoristaAgenda readOnly={readOnly} canCreate={canCreate} canEdit={canEdit} canDelete={canDelete} actorName={gate.current.user.collaboratorAccess?.name} />
+        <MotoristaAgenda readOnly={readOnly} canCreate={canCreate} canEdit={canEdit} canDelete={canDelete} actorName={gate.current.user.collaboratorAccess?.name} empresas={empresas.length ? empresas : undefined} />
       </div>
       <style>{`
         .motorista-agenda-controle button.bg-emerald-700,
