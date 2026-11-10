@@ -429,7 +429,8 @@ export async function appendAudit(accessToken: string, action: string, details: 
 
 export async function ensurePortalConfiguration(accessToken: string) {
   await ensureSheets(accessToken);
-  let [users, collaborators] = await Promise.all([readUsers(accessToken), readCollaborators(accessToken)]);
+  const [initialUsers, collaborators] = await Promise.all([readUsers(accessToken), readCollaborators(accessToken)]);
+  let users = initialUsers;
   if (!users.length) {
     throw new Error("Cadastro oficial vazio. Recuperação administrativa deve ser feita na planilha oficial.");
   }
