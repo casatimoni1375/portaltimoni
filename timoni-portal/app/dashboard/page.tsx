@@ -12,6 +12,7 @@ export default async function DashboardPage(){
  const has=(module:Parameters<typeof hasModuleAccess>[1])=>hasModuleAccess(user.email,module,user);
  // Comunicados: mesmas regras do Painel Timoni (unidade, administradora e confirmação obrigatória).
  let notices:TodayNoticesConfig|null=null;
+ let sharedAccess=false;
  if(has("painel")){
   const email=user.email.trim().toLowerCase();
   const panel=await getEffectivePanelData(session?.accessToken,email).catch(()=>({user:null,collaborators:[]}));
@@ -19,6 +20,8 @@ export default async function DashboardPage(){
   const store:TodayNoticesConfig["store"]=isManagementEmail(email)||effective.unit==="Geral"?"geral":effective.unit==="Araras"?"araras":"rio claro";
   const active=panel.collaborators.filter(member=>member.active);
   const own=active.filter(member=>(member.accessEmail||"").trim().toLowerCase()===email);
+  // Conta usada por mais de uma pessoa: saudação sem nome.
+  sharedAccess=own.length>1;
   const pool=(own.length?own:active.filter(member=>store==="geral"||member.unit===(store==="araras"?"Araras":"Rio Claro"))).map(member=>({name:member.name,unit:member.unit}));
   notices={store,isAdmin:isCicaAccess(email),canConfirmRead:!isManagementEmail(email)&&Boolean(effective.noticeRequired),members:pool};
  }
@@ -28,5 +31,5 @@ export default async function DashboardPage(){
  const want=(id:string)=>wantsTodayBlock(blocks,id,has);
  const ordersAll=want("pedidos");
  const capabilities={orders:ordersAll||want("pedidos-atrasados"),ordersMode:(ordersAll?"todos":"atrasados") as "todos"|"atrasados",purchases:want("compras"),trips:want("viagens"),tripsCreate:want("viagens")&&canModuleOperation(user,"motorista","criar"),people:want("aniversarios"),agenda:!want("agenda")?null:isCicaAccess(user.email)?(has("agenda")?"principal" as const:null):(has("agenda-ct")?"timoni" as const:null),shortcuts:{estoque:want("atalho-estoque"),equipe:want("atalho-equipe"),vendas:want("atalho-vendas")}};
- return <Suspense fallback={<p role="status">Abrindo Hoje…</p>}><Today name={isCicaAccess(user.email)?"Ciça":/^vendedores\b/i.test((user.accessLabel||user.name||"").trim())?"":user.name.split(" ")[0]} defaultUnit={user.unit==="Geral"?"todas":user.unit==="Araras"?"araras":"rio_claro"} capabilities={capabilities} notices={notices}/></Suspense>;
+ return <Suspense fallback={<p role="status">Abrindo Hoje…</p>}><Today name={isCicaAccess(user.email)?"Ciça":sharedAccess||/^vendedores\b/i.test((user.accessLabel||user.name||"").trim())?"":user.name.split(" ")[0]} defaultUnit={user.unit==="Geral"?"todas":user.unit==="Araras"?"araras":"rio_claro"} capabilities={capabilities} notices={notices}/></Suspense>;
 }
