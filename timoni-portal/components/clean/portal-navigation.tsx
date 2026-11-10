@@ -23,13 +23,13 @@ export default function PortalNavigation({items,name,initials,units,settings,act
  return <div className="ct-clean-navigation">
   <header className="ct-clean-top"><Link href="/dashboard" aria-label="Casa Timoni — Hoje" className="ct-clean-brand"><Image src="/brand/CasaTimoni_horizontal_azul.svg" width={140} height={28} alt="Casa Timoni" priority/></Link>
    <button type="button" className="ct-clean-search-trigger" aria-label="Buscar no Portal" onClick={()=>setSearch(true)}><span>Buscar pedido, fornecedor, produto, lead ou pessoa</span><PortalIcon name="search" className="h-4 w-4"/><kbd>Ctrl K</kbd></button>
-   <label className="ct-clean-unit"><span className="sr-only">Unidade</span><select aria-label="Unidade" value={unit} disabled={units.length===1} onChange={e=>changeUnit(e.target.value)}>{units.map(value=><option key={value} value={value}>{value==="rio_claro"?"Rio Claro":"Araras"}</option>)}{units.length>1&&<option value="todas">Todas</option>}</select></label>
+   <div className={`ct-clean-unit${units.length>1?" ct-clean-unit-multi":""}`} role="group" aria-label="Unidade">{[...units,...(units.length>1?["todas"]:[])].map(value=><button key={value} type="button" aria-pressed={unit===value} disabled={units.length===1} onClick={()=>changeUnit(value)}>{value==="rio_claro"?"Rio Claro":value==="araras"?"Araras":"Todas"}</button>)}</div>
    <div className="ct-clean-top-actions">{actions}</div>
    <div className="ct-clean-profile"><button type="button" aria-label="Menu do usuário" aria-expanded={profile} aria-controls="ct-clean-profile-menu" onClick={()=>setProfile(value=>!value)}>{initials}</button>{profile&&<div id="ct-clean-profile-menu" className="ct-clean-profile-menu"><strong>{name}</strong><nav aria-label="Menu do usuário">{items.filter(i=>["comercial","equipe"].includes(i.key)).map(nav)}{settings&&<Link href="/configuracoes">Configurações</Link>}<Link href="/login" prefetch={false}>Minha conta</Link></nav></div>}</div>
   </header>
   <aside className="ct-clean-sidebar"><nav aria-label="Menu principal">{items.map(nav)}</nav></aside>
   <nav className="ct-clean-bottom" aria-label="Menu do celular">{items.filter(i=>["hoje","estoque","compras","motorista","agenda"].includes(i.key)).map(nav)}</nav>
-  <div className="ct-clean-spacer" aria-hidden="true"/>
+  <div className={`ct-clean-spacer${units.length>1?" ct-clean-spacer-units":""}`} aria-hidden="true"/>
   {search&&<Search items={items} unit={unit} modules={searchModules} close={()=>setSearch(false)}/>}
  </div>;
 }

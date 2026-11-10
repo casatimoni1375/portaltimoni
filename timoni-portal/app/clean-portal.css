@@ -56,3 +56,18 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
 /* Leitura ampliada do formulário de Compras, mantendo títulos e indicadores. */
 .ct-clean-purchases :is(.text-sm,.text-base,label,input,select,textarea,button){font-size:18px!important;line-height:1.5;}
 .ct-clean-purchases .text-xs{font-size:16px!important;line-height:1.5;}
+
+/* Seletor de unidade em 3 botões (Rio Claro / Araras / Todas), conforme tela aprovada */
+.ct-clean-unit{display:inline-flex;flex:none;border:1px solid #d7deeb;border-radius:8px;overflow:hidden;background:#fff;}
+.ct-clean-unit>button{min-height:40px;padding:6px 14px;border:0;border-left:1px solid #d7deeb;background:#fff;color:#334155;font-size:15px;line-height:1.2;white-space:nowrap;cursor:pointer;}
+.ct-clean-unit>button:first-child{border-left:0;}
+.ct-clean-unit>button[aria-pressed=true]{background:var(--ct-clean-blue);color:#fff;font-weight:600;}
+.ct-clean-unit>button:disabled{cursor:default;}
+@media(max-width:767px){
+ .ct-clean-unit.ct-clean-unit-multi{position:fixed;top:60px;left:0;right:0;z-index:94;display:flex;border-radius:0;border-width:0 0 1px;padding:8px 12px;background:#f5f6fa;gap:0;}
+ .ct-clean-unit.ct-clean-unit-multi>button{flex:1;min-height:44px;font-size:15px;border:1px solid #d7deeb;border-left-width:0;}
+ .ct-clean-unit.ct-clean-unit-multi>button:first-child{border-left-width:1px;border-radius:8px 0 0 8px;}
+ .ct-clean-unit.ct-clean-unit-multi>button:last-child{border-radius:0 8px 8px 0;}
+ .ct-clean-unit:not(.ct-clean-unit-multi){display:none;}
+ .ct-clean-spacer.ct-clean-spacer-units{height:121px;}
+}
