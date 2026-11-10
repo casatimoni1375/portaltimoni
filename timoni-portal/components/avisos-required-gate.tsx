@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createScreenRequest } from "@/lib/screen-request";
 
-const AVISOS_PATH = "/colaboradores";
+// Todos entram pelo Hoje: é lá que os comunicados obrigatórios são lidos e confirmados.
+const AVISOS_PATH = "/dashboard";
+const isAvisosHref = (href: string) => href === AVISOS_PATH || href.startsWith(`${AVISOS_PATH}?`) || href.startsWith(`${AVISOS_PATH}#`);
 
 export default function AvisosRequiredGate() {
   const pathname = usePathname();
@@ -54,7 +56,7 @@ export default function AvisosRequiredGate() {
       if (!anchor) return;
 
       const href = anchor.getAttribute("href") || "";
-      if (href.startsWith(AVISOS_PATH)) return;
+      if (isAvisosHref(href)) return;
 
       event.preventDefault();
       event.stopPropagation();
