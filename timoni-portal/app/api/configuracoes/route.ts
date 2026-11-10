@@ -1,4 +1,5 @@
 import { isCicaAccess } from "@/lib/access-control";
+import { cleanTodayBlocks } from "@/lib/today-blocks";
 import { NextResponse } from "next/server";
 import { requireAuthorization } from "@/lib/authorization-server";
 import { can, canEditConfigurationRecord } from "@/lib/authorization";
@@ -82,6 +83,7 @@ function cleanUser(value: Record<string, unknown>): PortalUser {
     directPainel: Boolean(value.directPainel),
     lastAccess: String(value.lastAccess || ""),
     noticeRequired: Boolean(value.noticeRequired),
+    todayBlocks: cleanTodayBlocks(value.todayBlocks),
   };
 }
 

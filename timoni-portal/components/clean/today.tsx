@@ -25,7 +25,7 @@ type Source={
  * - trips: card "Viagens do motorista hoje" (atalho clicável para a agenda do Motorista)
  * - people: Aniversários e Férias
  */
-export type TodayCapabilities={orders:boolean;purchases:boolean;trips:boolean;tripsCreate:boolean;people:boolean;agenda:"principal"|"timoni"|null};
+export type TodayCapabilities={orders:boolean;ordersMode?:"atrasados"|"todos";purchases:boolean;trips:boolean;tripsCreate:boolean;people:boolean;agenda:"principal"|"timoni"|null;shortcuts?:{estoque:boolean;equipe:boolean;vendas:boolean}};
 
 const todayKey=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const formatDate=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit"}).format(new Date(value.includes("T")?value:`${value}T12:00:00-03:00`));
@@ -59,7 +59,9 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  },[capabilityKey,unit,reload]);
 
  const allowed=(value?:string)=>unit==="todas"||value===unit||(unit==="rio_claro"&&["MCR","ROD","Rodini","rio claro","Rio Claro"].includes(value||""))||(unit==="araras"&&["CT","Casa Timoni","Araras"].includes(value||""));
- const orders=(data.orders?.pedidosEnviados||[]).filter(order=>allowed(order.unidade)&&order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey()).sort((a,b)=>a.previsaoEntrega.localeCompare(b.previsaoEntrega));
+ const allOrders=capabilities.ordersMode==="todos";
+ const ordersHref=`/dashboard/compras?aba=acompanhar${allOrders?"":"&filtro=atrasados"}&unidade=${unit}`;
+ const orders=(data.orders?.pedidosEnviados||[]).filter(order=>allowed(order.unidade)&&(allOrders||order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey())).sort((a,b)=>(a.previsaoEntrega||"9").localeCompare(b.previsaoEntrega||"9"));
  const urgent=(data.purchases?.suppliers||[]).filter(item=>item.urgent&&allowed(item.unit));
  // Um motorista só: todas as viagens do dia aparecem, de qualquer empresa.
  const trips=(data.trips?.viagens||[]).filter(trip=>!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||""));
@@ -74,7 +76,7 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
 
  const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",hour:"2-digit",hour12:false}).format(new Date()));
  const cards=[
-  {key:"orders",value:orders.length,label:"Pedidos atrasados",href:`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`,tone:"late"},
+  {key:"orders",value:orders.length,label:allOrders?"Pedidos em andamento":"Pedidos atrasados",href:ordersHref,tone:allOrders?"normal":"late"},
   {key:"purchases",value:urgent.length,label:"Compras urgentes",href:`/dashboard/compras?aba=montar&filtro=urgentes&unidade=${unit}`,tone:"urgent"},
   {key:"trips",value:trips.length,label:"Viagens do motorista hoje",href:`/dashboard/motorista?data=${todayKey()}&unidade=${unit}`,tone:"normal"},
  ].filter(card=>capabilities[card.key as "orders"|"purchases"|"trips"]&&(card.key==="trips"||card.value>0||loading[card.key]&&!data[card.key as keyof Source]));
@@ -93,6 +95,8 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  const peopleBlock=events.length>0&&<section className="ct-clean-card">
   {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
  </section>;
+ const shortcutItems=[capabilities.shortcuts?.estoque&&{href:"/dashboard/estoque",label:"Estoque"},capabilities.shortcuts?.equipe&&{href:"/colaboradores",label:"Equipe"},capabilities.shortcuts?.vendas&&{href:"/dashboard/leads",label:"Vendas Internas"}].filter(Boolean) as Array<{href:string;label:string}>;
+ const shortcuts=shortcutItems.length>0&&<nav className="ct-today-shortcuts" aria-label="Atalhos">{shortcutItems.map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>;
  const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||events.length>0;
 
  return <div className="ct-clean-today">
@@ -102,12 +106,14 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
     <div className="ct-today-op-cards">{tripsCard}{agendaCard}</div>
     {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
    </div>
+   {shortcuts}
    <div className="ct-today-layout">
     <div className="ct-today-main">{tripsList}</div>
     <aside className="ct-today-side">{peopleBlock}</aside>
    </div>
   </>:<>
   {!!cards.length&&<section className="ct-clean-metrics" aria-label="Prioridades do dia">{cards.map(card=>card.key==="trips"&&capabilities.tripsCreate?<div key={card.key} className={`ct-clean-metric ct-clean-${card.tone} ct-metric-with-action`}><Link href={card.href} className="ct-metric-link"><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link><Link href="/dashboard/motorista?nova=1" className="ct-metric-action">+ Agendar</Link></div>:<Link key={card.key} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link>)}</section>}
+  {shortcuts}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
   {/* Duas colunas independentes: cada bloco sobe logo abaixo do anterior, sem espaço vazio. */}
@@ -117,9 +123,9 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
    {urgent.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Compras urgentes</h2><Link href={`/dashboard/compras?aba=montar&filtro=urgentes&unidade=${unit}`}>Ver todas ({urgent.length})</Link></div>
     {urgent.slice(0,3).map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Montar pedido</Link></div>)}
    </section>}
-   {orders.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`}>Ver todos ({orders.length})</Link></div>
+   {orders.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Pedidos</h2><Link href={ordersHref}>Ver todos ({orders.length})</Link></div>
     {data.orders?.stale&&<p className="ct-clean-muted">Última cópia disponível; atualização em andamento.</p>}
-    {orders.slice(0,3).map(order=><div className="ct-clean-action-row" key={order.id}><div><strong>{order.nome}</strong><small>{order.unidade==="araras"?"Araras":"Rio Claro"} · previsão {formatDate(order.previsaoEntrega)}</small></div><span className="ct-clean-badge ct-clean-late">{Math.max(1,Math.floor((new Date(`${todayKey()}T12:00:00-03:00`).getTime()-new Date(order.previsaoEntrega).getTime())/86400000))} dias</span><Link className="ct-clean-action" href={`/dashboard/pedido-de-compra?pedido=${order.id}&unidade=${unit}`}>Ver pedido</Link></div>)}
+    {orders.slice(0,3).map(order=><div className="ct-clean-action-row" key={order.id}><div><strong>{order.nome}</strong><small>{order.unidade==="araras"?"Araras":"Rio Claro"}{order.previsaoEntrega?` · previsão ${formatDate(order.previsaoEntrega)}`:""}</small></div>{order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey()?<span className="ct-clean-badge ct-clean-late">{Math.max(1,Math.floor((new Date(`${todayKey()}T12:00:00-03:00`).getTime()-new Date(order.previsaoEntrega).getTime())/86400000))} dias</span>:<span className="ct-clean-badge">Em andamento</span>}<Link className="ct-clean-action" href={`/dashboard/pedido-de-compra?pedido=${order.id}&unidade=${unit}`}>Ver pedido</Link></div>)}
    </section>}
    </div>
    <aside className="ct-today-side">

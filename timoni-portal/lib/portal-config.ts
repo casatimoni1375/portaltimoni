@@ -168,7 +168,7 @@ async function ensureSheets(accessToken: string) {
 }
 
 async function fetchUsers(accessToken: string): Promise<PortalUser[]> {
-  const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:N500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
+  const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:O500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
   return (response.values || []).map((row) => ({
     email: normalizeEmail(row[0]),
     name: row[1] || "",
@@ -183,6 +183,7 @@ async function fetchUsers(accessToken: string): Promise<PortalUser[]> {
     mobileModules: row[11] ? row[11] === "nenhum" ? [] : csvModules(row[11]) : undefined,
     accessLabel: row[12] || "",
     noticeRequired: yes(row[13]),
+    todayBlocks: row[14] ? row[14].split(",").map((item) => item.trim()).filter(Boolean) : undefined,
   })).filter((user) => user.email && user.name);
 }
 
@@ -273,7 +274,7 @@ export async function writeUsers(accessToken: string, users: PortalUser[]) {
     active: true,
     readOnly: false,
   };
-  await replaceRange(accessToken, `${USERS_SHEET}!A2:N500`, normalized.map((user) => [
+  await replaceRange(accessToken, `${USERS_SHEET}!A2:O500`, normalized.map((user) => [
     user.email,
     user.name,
     user.unit || defaultUnit(user.email) || "Rio Claro",
@@ -288,6 +289,7 @@ export async function writeUsers(accessToken: string, users: PortalUser[]) {
     user.mobileModules === undefined ? "" : user.mobileModules.join(",") || "nenhum",
     user.accessLabel || user.name,
     user.noticeRequired ? "Sim" : "Não",
+    (user.todayBlocks || []).join(","),
   ]));
   revalidateTag(PORTAL_CONFIG_CACHE_TAG);
 }
@@ -308,6 +310,7 @@ function userRow(user: PortalUser, now = new Date().toISOString()) {
     user.mobileModules === undefined ? "" : user.mobileModules.join(",") || "nenhum",
     user.accessLabel || user.name,
     user.noticeRequired ? "Sim" : "Não",
+    (user.todayBlocks || []).join(","),
   ];
 }
 
@@ -321,12 +324,12 @@ export async function upsertPortalUser(accessToken: string, input: PortalUser) {
   const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:A500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
   const index = (response.values || []).findIndex((row) => normalizeEmail(row[0]) === user.email);
   if (index >= 0) {
-    await sheetsRequest(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A${index + 2}:N${index + 2}`)}`, { valueInputOption: "RAW" }), {
+    await sheetsRequest(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A${index + 2}:O${index + 2}`)}`, { valueInputOption: "RAW" }), {
       method: "PUT",
       body: JSON.stringify({ values: [userRow(user)] }),
     });
   } else {
-    await sheetsRequest(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A:N`)}:append`, { valueInputOption: "RAW", insertDataOption: "INSERT_ROWS" }), {
+    await sheetsRequest(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A:O`)}:append`, { valueInputOption: "RAW", insertDataOption: "INSERT_ROWS" }), {
       method: "POST",
       body: JSON.stringify({ values: [userRow(user)] }),
     });
@@ -447,7 +450,7 @@ export async function ensurePortalConfiguration(accessToken: string) {
   // Importação única dos rótulos antigos. Depois disso, PortalUsuarios!M
   // é a fonte para Configurações e para os destinatários dos Avisos.
   if (users.some((user) => !user.accessLabel)) {
-    const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:N500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
+    const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:O500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
     const data = (response.values || []).flatMap((row, index) => {
       const email = normalizeEmail(row[0]);
       if (!email || row[12]) return [];
