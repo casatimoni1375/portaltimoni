@@ -93,7 +93,7 @@ const REQUIRED: Array<keyof FormState> = [
 
 const REQUIRED_LABELS: Partial<Record<keyof FormState, string>> = {
   tipo: "Tipo",
-  loja: "Loja",
+  loja: "Empresa",
   vendedor: "Vendedor",
   data: "Data",
   numeroPedido: "Nota Fiscal/Pedido",
@@ -446,7 +446,9 @@ function formatarCep(value: string) {
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
 }
 
-export default function MotoristaAgenda({ readOnly = false, canCreate = false, canEdit = false, canDelete = false, actorName }: { readOnly?: boolean; canCreate?: boolean; canEdit?: boolean; canDelete?: boolean; actorName?: string }) {
+const TODAS_EMPRESAS = ["Casa Timoni", "MCR", "Rodini"];
+
+export default function MotoristaAgenda({ readOnly = false, canCreate = false, canEdit = false, canDelete = false, actorName, empresas = TODAS_EMPRESAS }: { readOnly?: boolean; canCreate?: boolean; canEdit?: boolean; canDelete?: boolean; actorName?: string; empresas?: string[] }) {
   const hoje = localDateString();
   const [modo, setModo] = useState<Modo>("dia");
   const [selecionado, setSelecionado] = useState(hoje);
@@ -557,7 +559,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
 
   function abrirNova(data = selecionado) {
     setEditandoId(null);
-    setForm(emptyForm(data));
+    // Com uma só empresa permitida (ex.: Araras = Casa Timoni), ela já vem escolhida.
+    setForm({ ...emptyForm(data), loja: empresas.length === 1 ? empresas[0] : "" });
     setInvalidos(new Set());
     setErro("");
     setAviso("");
@@ -949,7 +952,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
 
             <div style={colunasFormulario("repeat(4, minmax(0, 1fr))")} className="mt-5 grid gap-4">
               <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Loja<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}><option value="">Selecione</option><option value="Casa Timoni">Casa Timoni</option><option value="MCR">MCR</option><option value="Rodini">Rodini</option></select></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required /></label>
               <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
             </div>
