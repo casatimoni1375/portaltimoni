@@ -9,7 +9,7 @@ export function cleanNavigation(user: PortalUser): CleanNavItem[] {
     {href:"/dashboard/compras",label:"Compras",key:"compras",visible:has("compras")||has("pedido-de-compra")||has("estoque-rotativo")||has("conferencia")},
     {href:"/dashboard/motorista",label:"Motorista",key:"motorista",visible:has("motorista")},
     {href:"/agenda",label:"Agenda",key:"agenda",visible:has("agenda")||has("agenda-ct")||has("reunioes")},
-    {href:"/dashboard/leads",label:"Comercial",key:"comercial",visible:has("leads")},
+    {href:"/dashboard/leads",label:"Vendas Internas",key:"comercial",visible:has("leads")},
     {href:"/colaboradores",label:"Equipe",key:"equipe",visible:has("painel")},
   ].filter(item=>item.visible).map(({href,label,key})=>({href,label,key}));
 }
