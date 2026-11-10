@@ -134,3 +134,11 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-metric-with-action .ct-metric-link::after{content:"";position:absolute;inset:0;}
 .ct-metric-action{position:absolute;top:10px;right:10px;z-index:1;border:1px solid #c9d3ea;border-radius:999px;background:#fff;padding:3px 10px;font-size:var(--ct-font-caption);font-weight:600;color:var(--ct-clean-blue);text-decoration:none;}
 .ct-metric-action:hover{background:#eef1fa;}
+
+/* Hoje operacional (ex.: Bruna): cards Viagens e Agenda ao lado dos Comunicados */
+.ct-today-op-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:18px;align-items:start;margin-bottom:18px;}
+.ct-today-op-top.no-notices{grid-template-columns:minmax(0,1fr);}
+.ct-today-op-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.ct-today-op-cards:empty{display:none;}
+@media(max-width:1000px){.ct-today-op-top{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:767px){.ct-today-op-top{gap:16px;margin-bottom:16px;}.ct-today-op-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}}
