@@ -36,6 +36,8 @@ export type PortalUser = {
   unit?: "Geral" | "Araras" | "Rio Claro";
   lastAccess?: string;
   noticeRequired?: boolean;
+  /** Blocos da tela Hoje (coluna O). Vazio = padrão pelas permissões. */
+  todayBlocks?: string[];
 };
 
 export const MANAGEMENT_EMAILS: ReadonlySet<string> = new Set([

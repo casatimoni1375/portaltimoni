@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { TODAY_BLOCKS, wantsTodayBlock } from "@/lib/today-blocks";
 import type { PortalModule, PortalUser } from "@/lib/access-control";
 import type { ConfiguredCollaborator } from "@/lib/portal-config";
 
@@ -14,6 +15,7 @@ type Draft = {
   modules: PortalModule[];
   mobileModules: PortalModule[];
   noticeRequired: boolean;
+  todayBlocks: string[] | null;
 };
 
 const MODULES: Array<{ id: PortalModule; label: string }> = [
@@ -129,6 +131,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       modules: access ? [...access.modules] : [],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
       noticeRequired: Boolean(access?.noticeRequired),
+      todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
     setError("");
     setMessage("");
@@ -138,7 +141,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     const member = emptyMember();
     setOpenId("__new__");
     setEditingId("__new__");
-    setDraft({ member, modules: [], mobileModules: [], noticeRequired: false });
+    setDraft({ member, modules: [], mobileModules: [], noticeRequired: false, todayBlocks: null });
     setError("");
     setMessage("");
   }
@@ -152,6 +155,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       modules: access ? [...access.modules] : [],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
       noticeRequired: Boolean(access?.noticeRequired),
+      todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
   }
 
@@ -229,7 +233,8 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
         const sameModules = (a: PortalModule[], b: PortalModule[]) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
         if (!access || !sameModules(access.modules, draft.modules)
           || !sameModules(access.mobileModules ?? access.modules, draft.mobileModules)
-          || Boolean(access.noticeRequired) !== draft.noticeRequired) {
+          || Boolean(access.noticeRequired) !== draft.noticeRequired
+          || (access.todayBlocks || []).join(",") !== (draft.todayBlocks || []).join(",")) {
           throw new Error("Seu acesso não permite criar acessos ou alterar permissões. Apenas dados cadastrais existentes podem ser editados.");
         }
       }
@@ -243,6 +248,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             boxes,
             mobileModules: draft.mobileModules.filter((module) => draft.modules.includes(module)),
             noticeRequired: draft.noticeRequired,
+            todayBlocks: draft.todayBlocks ?? undefined,
           });
         } else {
           access = await putUser({
@@ -259,6 +265,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             directPainel: false,
             lastAccess: "",
             noticeRequired: draft.noticeRequired,
+            todayBlocks: draft.todayBlocks ?? undefined,
           });
         }
       }
@@ -382,6 +389,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 onModuleChange={toggleModule}
                 onMobileModuleChange={toggleMobileModule}
                 onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
+                onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
                 onSave={() => void saveDraft()}
                 onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
               />
@@ -434,6 +442,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                         onModuleChange={toggleModule}
                         onMobileModuleChange={toggleMobileModule}
                         onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
+                        onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
                         onSave={() => void saveDraft()}
                         onCancel={() => { setEditingId(""); setDraft(null); }}
                         onDelete={() => void deleteMember(member)}
@@ -479,6 +488,7 @@ function Editor({
   onModuleChange,
   onMobileModuleChange,
   onNoticeChange,
+  onTodayChange,
   onSave,
   onCancel,
   onDelete,
@@ -491,6 +501,7 @@ function Editor({
   onModuleChange: (module: PortalModule, checked: boolean) => void;
   onMobileModuleChange: (module: PortalModule, checked: boolean) => void;
   onNoticeChange: (checked: boolean) => void;
+  onTodayChange: (blocks: string[] | null) => void;
   onSave: () => void;
   onCancel: () => void;
   onDelete?: () => void;
@@ -558,6 +569,26 @@ function Editor({
                 <label key={`mobile-${module.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${enabled ? "cursor-pointer" : "cursor-not-allowed opacity-45"}`}>
                   <input type="checkbox" checked={checked} disabled={!draft.member.accessEmail || !enabled} onChange={(event) => onMobileModuleChange(module.id, event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
                   {module.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-4 border-t border-slate-200 pt-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tela Hoje</p>
+            <label className="flex items-center gap-2 text-[11px] text-slate-600"><input type="checkbox" checked={draft.todayBlocks === null} disabled={!draft.member.accessEmail} onChange={(event) => onTodayChange(event.target.checked ? null : TODAY_BLOCKS.filter((block) => wantsTodayBlock(undefined, block.id, (module) => draft.modules.includes(module))).map((block) => block.id))} className="h-4 w-4 accent-[#13038D]" />Padrão pelas permissões</label>
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500">Escolha os blocos da tela inicial. Comunicados aparecem sempre. Um bloco só aparece se o módulo estiver liberado acima.</p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {TODAY_BLOCKS.map((block) => {
+              const enabled = block.modules.some((module) => draft.modules.includes(module)) && draft.todayBlocks !== null;
+              const checked = draft.todayBlocks === null ? wantsTodayBlock(undefined, block.id, (module) => draft.modules.includes(module)) : draft.todayBlocks.includes(block.id);
+              return (
+                <label key={`hoje-${block.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${enabled ? "cursor-pointer" : "cursor-not-allowed opacity-45"}`}>
+                  <input type="checkbox" checked={checked} disabled={!draft.member.accessEmail || !enabled} onChange={(event) => { const current = draft.todayBlocks || []; onTodayChange(event.target.checked ? [...current, block.id] : current.filter((id) => id !== block.id)); }} className="h-4 w-4 accent-[#13038D]" />
+                  {block.label}
                 </label>
               );
             })}

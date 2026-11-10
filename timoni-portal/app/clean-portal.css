@@ -142,3 +142,7 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-today-op-cards:empty{display:none;}
 @media(max-width:1000px){.ct-today-op-top{grid-template-columns:minmax(0,1fr);}}
 @media(max-width:767px){.ct-today-op-top{gap:16px;margin-bottom:16px;}.ct-today-op-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}}
+/* Atalhos da tela Hoje (escolhidos por acesso em Configurações). */
+.ct-today-shortcuts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;}
+.ct-today-shortcuts a{border:1px solid #d7dce8;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:600;color:#102A83;background:#fff;text-decoration:none;}
+.ct-today-shortcuts a:hover{border-color:#102A83;}
