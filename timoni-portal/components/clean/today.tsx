@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useSearchParams} from "next/navigation";
+import TodayNotices,{type NoticeMember} from "./today-notices";
 
 type Order={id:string;nome:string;previsaoEntrega:string;unidade:string};
 type Supplier={id:string;name:string;urgent:boolean;unit:string};
@@ -31,7 +32,8 @@ const formatDate=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"Amer
 const formatTime=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",hour:"2-digit",minute:"2-digit"}).format(new Date(value));
 const addDays=(day:string,days:number)=>{const date=new Date(`${day}T12:00:00-03:00`);date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10);};
 
-export default function Today({name,capabilities,defaultUnit}:{name:string;capabilities:TodayCapabilities;defaultUnit:string}){
+export type TodayNoticesConfig={store:"geral"|"araras"|"rio claro";isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]};
+export default function Today({name,capabilities,defaultUnit,notices=null}:{name:string;capabilities:TodayCapabilities;defaultUnit:string;notices?:TodayNoticesConfig|null}){
  const params=useSearchParams();const requested=params.get("unidade");
  const unit=defaultUnit==="todas"&&["rio_claro","araras","todas"].includes(requested||"")?requested!:defaultUnit;
  const [data,setData]=useState<Source>({}),[errors,setErrors]=useState<Record<string,string>>({});
@@ -76,21 +78,25 @@ export default function Today({name,capabilities,defaultUnit}:{name:string;capab
   {key:"trips",value:trips.length,label:"Viagens do motorista hoje",href:`/dashboard/motorista?data=${todayKey()}&unidade=${unit}`,tone:"normal"},
  ].filter(card=>capabilities[card.key as "orders"|"purchases"|"trips"]&&(card.value>0||loading[card.key]&&!data[card.key as keyof Source]));
  const waiting=(key:keyof Source)=>loading[key]&&!data[key];
- const anyBlock=Boolean(capabilities.agenda)||capabilities.trips||orders.length>0||urgent.length>0||events.length>0;
+ const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||capabilities.trips||orders.length>0||urgent.length>0||events.length>0;
 
  return <div className="ct-clean-today">
   <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p><h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}, {name}.</h1></header>
   {!!cards.length&&<section className="ct-clean-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.key} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting(card.key as keyof Source)?"…":card.value}</strong><span>{card.label}</span></Link>)}</section>}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
-  <div className="ct-clean-today-blocks">
-   {capabilities.agenda&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
-    {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
-    {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
-    {agendaEvents.map(event=><Link className="ct-clean-calendar-row" key={event.id} href={agendaHref}><b>{event.allDay?"Dia":formatTime(event.start)}</b><span>{event.summary||"(sem título)"}{event.completed?" · concluído":""}</span></Link>)}
-    {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
+  <div className={`ct-today-top${notices?"":" no-notices"}`}>
+   {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
+   {capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}&unidade=${unit}`}>Ver agenda</Link></div>
+    {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
+    {!waiting("trips")&&!trips.length&&<p className="ct-clean-muted">Nenhuma viagem pendente hoje.</p>}
+    {trips.map((trip,index)=>{const bloqueio=trip.tipoHorario==="Bloqueio";const hora=trip.horario?(trip.horarioFim?`${trip.horario.slice(0,5)}–${trip.horarioFim.slice(0,5)}`:trip.horario.slice(0,5)):`${(Number.isFinite(trip.ordem)?Number(trip.ordem):index)+1}ª`;const texto=bloqueio?"Motorista bloqueado":[trip.clienteFornecedor,trip.numeroPedido?`NF ${trip.numeroPedido}`:"",trip.loja].filter(Boolean).join(" · ")||"Viagem sem cliente informado";return <Link className="ct-clean-calendar-row" key={trip.id||index} href={`/dashboard/motorista?data=${todayKey()}`}><b>{hora}</b><span>{texto}</span></Link>;})}
+    {capabilities.tripsCreate&&<Link className="ct-clean-action ct-clean-today-cta" href="/dashboard/motorista?nova=1">Agendar viagem</Link>}
    </section>}
 
+  </div>
+
+  <div className="ct-clean-today-blocks">
    {urgent.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Compras urgentes</h2><Link href={`/dashboard/compras?aba=montar&filtro=urgentes&unidade=${unit}`}>Ver todas ({urgent.length})</Link></div>
     {urgent.slice(0,3).map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Montar pedido</Link></div>)}
    </section>}
@@ -100,11 +106,11 @@ export default function Today({name,capabilities,defaultUnit}:{name:string;capab
     {orders.slice(0,3).map(order=><div className="ct-clean-action-row" key={order.id}><div><strong>{order.nome}</strong><small>{order.unidade==="araras"?"Araras":"Rio Claro"} · previsão {formatDate(order.previsaoEntrega)}</small></div><span className="ct-clean-badge ct-clean-late">{Math.max(1,Math.floor((new Date(`${todayKey()}T12:00:00-03:00`).getTime()-new Date(order.previsaoEntrega).getTime())/86400000))} dias</span><Link className="ct-clean-action" href={`/dashboard/pedido-de-compra?pedido=${order.id}&unidade=${unit}`}>Ver pedido</Link></div>)}
    </section>}
 
-   {capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}&unidade=${unit}`}>Ver agenda</Link></div>
-    {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
-    {!waiting("trips")&&!trips.length&&<p className="ct-clean-muted">Nenhuma viagem pendente hoje.</p>}
-    {trips.map((trip,index)=>{const bloqueio=trip.tipoHorario==="Bloqueio";const hora=trip.horario?(trip.horarioFim?`${trip.horario.slice(0,5)}–${trip.horarioFim.slice(0,5)}`:trip.horario.slice(0,5)):`${(Number.isFinite(trip.ordem)?Number(trip.ordem):index)+1}ª`;const texto=bloqueio?"Motorista bloqueado":[trip.clienteFornecedor,trip.numeroPedido?`NF ${trip.numeroPedido}`:"",trip.loja].filter(Boolean).join(" · ")||"Viagem sem cliente informado";return <Link className="ct-clean-calendar-row" key={trip.id||index} href={`/dashboard/motorista?data=${todayKey()}`}><b>{hora}</b><span>{texto}</span></Link>;})}
-    {capabilities.tripsCreate&&<Link className="ct-clean-action ct-clean-today-cta" href="/dashboard/motorista?nova=1">Agendar viagem</Link>}
+   {capabilities.agenda&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
+    {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
+    {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
+    {agendaEvents.map(event=><Link className="ct-clean-calendar-row" key={event.id} href={agendaHref}><b>{event.allDay?"Dia":formatTime(event.start)}</b><span>{event.summary||"(sem título)"}{event.completed?" · concluído":""}</span></Link>)}
+    {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
 
    {events.length>0&&<section className="ct-clean-card">

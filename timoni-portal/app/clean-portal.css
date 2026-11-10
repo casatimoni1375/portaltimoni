@@ -79,3 +79,42 @@ main .ct-clean-people-group h2{color:var(--ct-clean-blue);font-size:var(--ct-fon
 .ct-clean-people-group+.ct-clean-people-group{border-top:1px solid #edf0f6;margin-top:10px;padding-top:12px;}
 .ct-clean-today-cta{display:flex;justify-content:center;margin-top:12px;width:100%;}
 @media(max-width:767px){.ct-clean-today-blocks{grid-template-columns:1fr;gap:16px;}}
+
+/* Hoje: primeira linha = Comunicados (largo) + Viagens */
+.ct-today-top{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:18px;align-items:start;margin-bottom:18px;}
+.ct-today-top.no-notices{grid-template-columns:minmax(0,1fr);}
+.ct-today-top>.ct-clean-card{min-width:0;}
+.ct-notice-columns{display:grid;gap:14px;}
+.ct-notice-columns.cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.ct-notice-columns.cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.ct-notice-column{min-width:0;border:1px solid #e3e8f2;border-radius:10px;padding:10px 12px;background:#fafbfe;}
+main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!important;font-weight:600!important;text-transform:uppercase;letter-spacing:.06em;color:var(--ct-clean-blue);}
+.ct-notice-column ul,.ct-notice-archive ul{list-style:none;margin:0;padding:0;}
+.ct-notice+.ct-notice{border-top:1px solid #edf0f6;}
+.ct-notice-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 0;border:0;background:transparent;text-align:left;cursor:pointer;color:var(--ct-clean-ink);font-size:15px;}
+.ct-notice-date{flex:none;font-size:var(--ct-font-caption);color:var(--ct-clean-muted);min-width:38px;}
+.ct-notice-title{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600;}
+.ct-notice-stamp{flex:none;border:1.5px solid currentColor;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;transform:rotate(-3deg);}
+.ct-notice-stamp.is-pending{color:#b45309;}
+.ct-notice-stamp.is-signed{color:#15803d;}
+.ct-notice-body{padding:4px 0 12px;display:grid;gap:10px;font-size:15px;}
+.ct-notice-body>p{margin:0;white-space:pre-wrap;line-height:1.5;}
+.ct-notice-image{border:0;padding:0;background:none;cursor:zoom-in;}
+.ct-notice-image img{max-height:320px;width:100%;object-fit:contain;border:1px solid #e3e8f2;border-radius:8px;background:#fff;}
+.ct-notice-confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:end;}
+.ct-notice-confirm label{display:grid;gap:4px;font-size:var(--ct-font-caption);color:var(--ct-clean-muted);}
+.ct-notice-confirm select{min-height:40px;border:1px solid #d7deeb;border-radius:8px;padding:6px 8px;font-size:15px;}
+.ct-notice-ok{margin:0;color:#15803d;font-size:var(--ct-font-caption);}
+.ct-notice-error{margin:0 0 8px;color:#b91c1c;font-size:var(--ct-font-caption);}
+.ct-notice-admin{font-size:var(--ct-font-caption);color:var(--ct-clean-muted);}
+.ct-notice-admin summary{cursor:pointer;}
+.ct-notice-admin ul{margin:6px 0;padding-left:16px;}
+.ct-notice-admin-actions{display:flex;gap:12px;margin-top:6px;}
+.ct-notice-admin-actions a,.ct-notice-admin-actions button,.ct-notice-close,.ct-notice-archive>button{border:0;background:none;padding:0;color:var(--ct-clean-blue);text-decoration:underline;font-size:var(--ct-font-caption);cursor:pointer;}
+.ct-notice-close{justify-self:start;color:var(--ct-clean-muted);}
+.ct-notice-archive{margin-top:10px;border-top:1px dashed #e3e8f2;padding-top:8px;}
+.ct-notice-lightbox{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);padding:16px;}
+.ct-notice-lightbox img{max-height:92vh;max-width:96vw;object-fit:contain;}
+.ct-notice-lightbox>button{position:absolute;top:16px;right:16px;border:0;border-radius:999px;background:#fff;padding:6px 12px;font-weight:700;}
+@media(max-width:1000px){.ct-today-top{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:767px){.ct-notice-columns.cols-3,.ct-notice-columns.cols-2{grid-template-columns:minmax(0,1fr);}.ct-today-top{gap:16px;margin-bottom:16px;}}
