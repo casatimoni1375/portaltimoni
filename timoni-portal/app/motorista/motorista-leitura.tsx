@@ -139,13 +139,13 @@ function ordenarViagens(viagens: Viagem[]) {
 function estiloBoxViagem(v: Viagem) {
   const tipo = lerTipo(v.notasJson);
   if (tipo === "Retirada") {
-    return { backgroundColor: "#E9F7EC", borderColor: "#9FCFA8" };
+    return { backgroundColor: "#D3EFD9", borderColor: "#2E8B47", borderLeftWidth: 6 };
   }
   const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
   const entregaAraras = loja === "araras" || loja === "casa timoni";
   return entregaAraras
-    ? { backgroundColor: "#FFF6CC", borderColor: "#E5C64B" }
-    : { backgroundColor: "#EEF4FF", borderColor: "#B7CAF7" };
+    ? { backgroundColor: "#FFE680", borderColor: "#B88A00", borderLeftWidth: 6 }
+    : { backgroundColor: "#D3E1FF", borderColor: "#2F5BD3", borderLeftWidth: 6 };
 }
 
 function classeLinhaPrincipal(_v: Viagem) {
