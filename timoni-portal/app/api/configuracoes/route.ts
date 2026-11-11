@@ -63,6 +63,12 @@ function cleanBoxes(value: unknown): PortalBox[] {
   return Array.isArray(value) ? value.filter((item): item is PortalBox => VALID_BOXES.has(item as PortalBox)) : [];
 }
 
+// Contas da administradora: enquanto ela usa as duas, toda alteração de permissão vale para as duas.
+const ADMIN_PAIRED_EMAILS: Record<string, string> = {
+  "mcrodini@gmail.com": "cecilia@casatimoni.com.br",
+  "cecilia@casatimoni.com.br": "mcrodini@gmail.com",
+};
+
 function cleanUser(value: Record<string, unknown>): PortalUser {
   const email = normalizeEmail(String(value.email || ""));
   // Nome é opcional: sem nome, o próprio e-mail identifica a conta.
@@ -136,6 +142,17 @@ export async function PUT(request: Request) {
       }
       if (can(current.user, "configuracoes", "administrar", { operation: "permissoes" })) {
         await upsertPortalUser(current.accessToken, item);
+        // Administradora com as duas contas: permissões das contas Ciça ficam sempre iguais.
+        const pairedEmail = ADMIN_PAIRED_EMAILS[item.email];
+        if (pairedEmail) {
+          const pairedExisting = configuration.users.find((user) => user.email === pairedEmail);
+          await upsertPortalUser(current.accessToken, {
+            ...item,
+            email: pairedEmail,
+            name: pairedExisting?.name || item.name,
+            accessLabel: pairedExisting?.accessLabel || item.accessLabel,
+          });
+        }
       } else {
         await updatePortalUserMetadata(current.accessToken, item);
       }
