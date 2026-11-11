@@ -18,7 +18,8 @@ export type PortalIconName =
   | "menu"
   | "close"
   | "bell"
-  | "lightbulb";
+  | "lightbulb"
+  | "refresh";
 
 const paths: Record<PortalIconName, React.ReactNode> = {
   search: <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>,
@@ -40,6 +41,7 @@ const paths: Record<PortalIconName, React.ReactNode> = {
   menu: <path d="M4 6h16M4 12h16M4 18h16"/>,
   close: <path d="M5 5l14 14M19 5 5 19"/>,
   bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></>,
+  refresh: <><path d="M20 11a8 8 0 0 0-14.3-4.4L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 13a8 8 0 0 0 14.3 4.4l1.7-1.9"/><path d="M20 20v-4.5h-4.5"/></>,
   lightbulb: <><path d="M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 .8-1 1.5-1 2H9c0-.5 0-1.2-1-2z"/></>,
 };
 
