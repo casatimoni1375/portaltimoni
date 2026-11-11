@@ -159,3 +159,5 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 @media(max-width:767px){.ct-clean-top-actions .ct-update-button{justify-content:center;border-radius:8px;}.ct-clean-top-actions .ct-update-button>span{display:none;}.ct-clean-top-actions .ct-update-button.is-stale{width:32px;}}
 .ct-today-layout.ct-today-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2fr);}
 @media(max-width:1000px){.ct-today-layout.ct-today-v2{grid-template-columns:minmax(0,1fr);}}
+
+.ct-clean-today-email{display:block;font-size:13px;color:var(--ct-clean-muted);margin-top:4px;}
