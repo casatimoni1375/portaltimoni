@@ -236,17 +236,17 @@ export default function MotoristaLeitura() {
           <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>
-              <p className="mt-1 text-sm text-slate-600">Visualização somente leitura.</p>
+              <p className="mt-1 text-xs text-slate-600">Visualização somente leitura.</p>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setInicio((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700">← 7 dias</button>
-              <button type="button" onClick={() => setInicio(dateFromString(localDateString()))} className="rounded-lg bg-blue-800 px-3 py-2 text-sm font-semibold text-white">Hoje</button>
-              <button type="button" onClick={() => setInicio((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700">+ 7 dias</button>
+              <button type="button" onClick={() => setInicio((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700">← 7 dias</button>
+              <button type="button" onClick={() => setInicio(dateFromString(localDateString()))} className="rounded-lg bg-blue-800 px-3 py-2 text-xs font-semibold text-white">Hoje</button>
+              <button type="button" onClick={() => setInicio((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700">+ 7 dias</button>
             </div>
           </div>
         </header>
 
-        {erro && <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
+        {erro && <p className="mb-4 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{erro}</p>}
 
         <div className="space-y-4">
           {dias.map((d) => {
@@ -257,17 +257,17 @@ export default function MotoristaLeitura() {
               <section key={data} className={`rounded-2xl border bg-white p-4 shadow-sm ${hoje ? "border-blue-300" : "border-slate-200"}`}>
                 <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
-                    <h2 className="mt-0.5 text-lg font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}</h2>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
+                    <h2 className="mt-0.5 text-base font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}</h2>
                   </div>
                   {hoje && <span className="rounded-full bg-blue-800 px-2.5 py-1 text-[10px] font-semibold text-white">Hoje</span>}
                 </div>
 
                 <div className="mt-3 space-y-3">
                   {loading ? (
-                    <p className="text-sm text-slate-400">Carregando...</p>
+                    <p className="text-xs text-slate-400">Carregando...</p>
                   ) : itens.length === 0 ? (
-                    <p className="text-sm text-slate-400">Sem viagens.</p>
+                    <p className="text-xs text-slate-400">Sem viagens.</p>
                   ) : (
                     itens.map((v, index) => {
                       const bloqueio = v.tipoHorario === "Bloqueio";
@@ -276,13 +276,13 @@ export default function MotoristaLeitura() {
                       return (
                         <article key={v.id} style={estiloBoxViagem(v)} className={`rounded-xl border p-3 ${bloqueio ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
                           <div className="flex items-start gap-3">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-700 shadow-sm">{index + 1}</span>
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-slate-700 shadow-sm">{index + 1}</span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <p className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipal(v)}</p>
-                                {!bloqueio && concluida(v.notasJson) && <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">Concluído</span>}
+                                <p className={`text-xs ${classeLinhaPrincipal(v)}`}>{linhaPrincipal(v)}</p>
+                                {!bloqueio && concluida(v.notasJson) && <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">Concluído</span>}
                               </div>
-                              <p className="mt-2 text-sm font-bold uppercase text-slate-900">
+                              <p className="mt-2 text-xs font-bold uppercase text-slate-900">
                                 {documentoTexto(v.numeroPedido)}
                                 {documentoTexto(v.numeroPedido) && v.clienteFornecedor ? " | " : ""}
                                 {v.clienteFornecedor ? <>{v.contatoNome ? "CLIENTE " : ""}{v.clienteFornecedor.toUpperCase()}</> : null}
@@ -290,10 +290,10 @@ export default function MotoristaLeitura() {
                                 {v.contatoNome ? <>A/C: {v.contatoNome.toUpperCase()}</> : null}
                                 {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
                               </p>
-                              {v.contatoNome && v.volumes && <p className="mt-1 text-sm font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
-                              {endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-700"><span>End.: {endereco}</span>{enderecoInfo.link && <a href={enderecoInfo.link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                              {v.info && <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
-                              <p className="mt-2 text-sm text-slate-600"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{lerPagamento(v.notasJson) ? ` ${lerPagamento(v.notasJson)}` : ""}</p>
+                              {v.contatoNome && v.volumes && <p className="mt-1 text-xs font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
+                              {endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-slate-700"><span>End.: {endereco}</span>{enderecoInfo.link && <a href={enderecoInfo.link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
+                              {v.info && <p className="mt-1 text-xs text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
+                              <p className="mt-2 text-xs text-slate-600"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{lerPagamento(v.notasJson) ? ` ${lerPagamento(v.notasJson)}` : ""}</p>
                             </div>
                           </div>
                         </article>
