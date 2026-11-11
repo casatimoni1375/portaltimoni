@@ -33,6 +33,9 @@ const MODULES: Array<{ id: PortalModule; label: string }> = [
   { id: "leads", label: "Leads" },
 ];
 
+// Conta nova abre com todos os módulos marcados; você desmarca o que não quiser.
+const ALL_MODULE_IDS: PortalModule[] = MODULES.map((module) => module.id);
+
 const DASHBOARD_MODULES = new Set<PortalModule>([
   "painel", "agenda", "compras", "pedido-de-compra", "conferencia", "estoque", "estoque-rotativo", "motorista", "reunioes", "leads",
 ]);
@@ -141,7 +144,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     const member = emptyMember();
     setOpenId("__new__");
     setEditingId("__new__");
-    setDraft({ member, modules: [], mobileModules: [], noticeRequired: false, todayBlocks: null });
+    setDraft({ member, modules: [...ALL_MODULE_IDS], mobileModules: [...ALL_MODULE_IDS], noticeRequired: false, todayBlocks: null });
     setError("");
     setMessage("");
   }
@@ -152,8 +155,8 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     const access = usersByEmail.get(normalized);
     setDraft({
       member: { ...draft.member, accessEmail: normalized },
-      modules: access ? [...access.modules] : [],
-      mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
+      modules: access ? [...access.modules] : [...ALL_MODULE_IDS],
+      mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [...ALL_MODULE_IDS],
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
