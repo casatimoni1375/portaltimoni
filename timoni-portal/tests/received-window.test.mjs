@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {stripTypeScriptTypes} from 'node:module';
+import vm from 'node:vm';
+const source=stripTypeScriptTypes(await readFile(new URL('../lib/received-window.ts',import.meta.url),'utf8'));
+const module=new vm.SourceTextModule(source);await module.link(()=>{throw Error('A janela não deve depender de serviço externo');});await module.evaluate();
+const {isWithinReceivedWindow:within}=module.namespace;
+const now=new Date('2026-11-11T15:00:00-03:00');
+test('concluído hoje aparece',()=>assert.equal(within('2026-11-11T10:00:00-03:00',now),true));
+test('concluído há 7 dias corridos ainda aparece',()=>assert.equal(within('2026-11-04T10:00:00-03:00',now),true));
+test('concluído há 8 dias some',()=>assert.equal(within('2026-11-03T23:59:00-03:00',now),false));
+test('data futura ou inválida não aparece',()=>{assert.equal(within('2026-11-12T10:00:00-03:00',now),false);assert.equal(within('lixo',now),false);});
+test('virada de dia usa fuso de São Paulo',()=>assert.equal(within('2026-11-04T23:30:00-03:00',new Date('2026-11-11T00:10:00-03:00')),true));

@@ -139,7 +139,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
    {pending.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Pedidos pendentes</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
-    {pending.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Montar pedido</Link></div>)}
+    {pending.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
    </div>
   </div>
