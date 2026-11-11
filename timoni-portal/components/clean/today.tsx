@@ -133,7 +133,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
     {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
    {events.length>0&&<section className="ct-clean-card">
-    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários do mês":"Férias do mês"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
+    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
    </section>}
    </aside>
    <div className="ct-today-main">
