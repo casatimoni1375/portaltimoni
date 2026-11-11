@@ -65,8 +65,10 @@ function cleanBoxes(value: unknown): PortalBox[] {
 
 function cleanUser(value: Record<string, unknown>): PortalUser {
   const email = normalizeEmail(String(value.email || ""));
-  const name = String(value.name || "").trim();
-  if (!email.includes("@") || name.length < 2) throw new Error("Informe nome e e-mail válidos.");
+  // Nome é opcional: sem nome, o próprio e-mail identifica a conta.
+  const typedName = String(value.name || "").trim();
+  const name = typedName.length >= 2 ? typedName : email;
+  if (!email.includes("@")) throw new Error("Informe um e-mail válido.");
   const modules = cleanModules(value.modules);
   const boxes = cleanBoxes(value.boxes).filter((box) => box === "espaco-equipe" ? modules.includes("painel") : modules.includes(box));
   return {
