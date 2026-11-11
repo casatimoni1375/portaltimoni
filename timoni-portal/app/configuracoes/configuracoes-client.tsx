@@ -333,6 +333,29 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     return MODULES.filter((module) => access.modules.includes(module.id)).map((module) => module.label);
   }
 
+  function chooseAccess(email: string) {
+    if (!email) {
+      setDraft(null);
+      setOpenId("");
+      setEditingId("");
+      return;
+    }
+    const normalized = normalizeEmail(email);
+    const access = usersByEmail.get(normalized);
+    const member = data.collaborators.find((item) => normalizeEmail(item.accessEmail) === normalized && item.active !== false) ?? emptyMember();
+    setOpenId("__edit__");
+    setEditingId("__edit__");
+    setDraft({
+      member: { ...member, accessEmail: normalized },
+      modules: access ? [...access.modules] : [],
+      mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
+      noticeRequired: Boolean(access?.noticeRequired),
+      todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
+    });
+    setError("");
+    setMessage("");
+  }
+
   return (
     <div className="pb-10">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -355,23 +378,12 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
         </div>
       </section>
 
-      <section className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-3 sm:grid-cols-3">
+      <section className="rounded-2xl border border-slate-200 bg-white p-3">
         <label className="text-xs font-semibold text-slate-600">
-          Colaborador
-          <input value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="Buscar nome" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900" />
-        </label>
-        <label className="text-xs font-semibold text-slate-600">
-          Acesso
-          <select value={filterAccess} onChange={(event) => setFilterAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
-            <option value="">Todos</option>
+          E-mail de acesso
+          <select value={draft?.member.accessEmail ? normalizeEmail(draft.member.accessEmail) : ""} onChange={(event) => chooseAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
+            <option value="">Selecione um e-mail</option>
             {accessOptions.map((user) => <option key={user.email} value={normalizeEmail(user.email)}>{accessLabel(user)} · {user.email}</option>)}
-          </select>
-        </label>
-        <label className="text-xs font-semibold text-slate-600">
-          Módulo
-          <select value={filterModule} onChange={(event) => setFilterModule(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
-            <option value="">Todos</option>
-            {MODULES.map((module) => <option key={module.id} value={module.id}>{module.label}</option>)}
           </select>
         </label>
       </section>
@@ -379,106 +391,24 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       {message && <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">{message}</p>}
       {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
 
-      {loading ? <p className="mt-5 text-sm text-slate-500">Carregando...</p> : (
-        <section className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-          {openId === "__new__" && draft && (
-            <article className="rounded-2xl border border-blue-200 bg-white shadow-sm md:col-span-2 xl:col-span-4">
-              <div className="px-4 py-3">
-                <p className="font-semibold text-slate-950">Novo colaborador</p>
-              </div>
-              <Editor
-                draft={draft}
-                accessOptions={accessOptions}
-                busy={busy}
-                onMemberChange={(member) => setDraft({ ...draft, member })}
-                onAccessChange={updateAccessEmail}
-                onModuleChange={toggleModule}
-                onMobileModuleChange={toggleMobileModule}
-                onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
-                onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
-                onSave={() => void saveDraft()}
-                onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
-              />
-            </article>
-          )}
-
-          {visibleMembers.map((member) => {
-            const key = memberKey(member);
-            const access = usersByEmail.get(normalizeEmail(member.accessEmail));
-            const isOpen = openId === key;
-            const isEditing = editingId === key && draft;
-            const labels = summaryModules(member);
-            return (
-              <article key={key} className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${isOpen ? "md:col-span-2 xl:col-span-4" : ""}`}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isOpen) {
-                      setOpenId("");
-                      setEditingId("");
-                      setDraft(null);
-                    } else {
-                      setOpenId(key);
-                      setEditingId("");
-                      setDraft(null);
-                    }
-                  }}
-                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-950">{member.name}</p>
-                    <p className="mt-0.5 truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</p>
-                  </div>
-                  <div className="min-w-0 text-right">
-                    <p className="truncate text-xs font-medium text-slate-700">{access ? accessLabel(access) : "Sem acesso"}</p>
-                    <p className="truncate text-[11px] text-slate-400">{member.accessEmail || "—"}</p>
-                  </div>
-                  <span className="shrink-0 text-lg font-semibold text-[#13038D]">{isOpen ? "−" : "+"}</span>
-                </button>
-
-                {isOpen && (
-                  <div className="border-t border-slate-100 p-4">
-                    {isEditing && draft ? (
-                      <Editor
-                        draft={draft}
-                        accessOptions={accessOptions}
-                        busy={busy}
-                        onMemberChange={(next) => setDraft({ ...draft, member: next })}
-                        onAccessChange={updateAccessEmail}
-                        onModuleChange={toggleModule}
-                        onMobileModuleChange={toggleMobileModule}
-                        onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
-                        onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
-                        onSave={() => void saveDraft()}
-                        onCancel={() => { setEditingId(""); setDraft(null); }}
-                        onDelete={() => void deleteMember(member)}
-                      />
-                    ) : (
-                      <div>
-                        <div className="grid gap-3 sm:grid-cols-3">
-                          <div><p className="text-[11px] font-semibold uppercase text-slate-400">Função</p><p className="mt-1 text-sm text-slate-800">{member.role || "Não definida"}</p></div>
-                          <div><p className="text-[11px] font-semibold uppercase text-slate-400">Acesso</p><p className="mt-1 text-sm text-slate-800">{member.accessEmail || "Não vinculado"}</p></div>
-                          <div><p className="text-[11px] font-semibold uppercase text-slate-400">Confirmação de leitura</p><p className="mt-1 text-sm text-slate-800">{access?.noticeRequired ? "Sim" : "Não"}</p></div>
-                        </div>
-                        <div className="mt-3">
-                          <p className="text-[11px] font-semibold uppercase text-slate-400">Módulos</p>
-                          <div className="mt-1 flex flex-wrap gap-1.5">
-                            {labels.length ? labels.map((label) => <span key={label} className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-[#13038D]">{label}</span>) : <span className="text-sm text-slate-500">Nenhum módulo</span>}
-                          </div>
-                        </div>
-                        <div className="mt-4 flex justify-end gap-2">
-                          <button type="button" onClick={() => startEdit(member)} className="rounded-lg border border-blue-200 px-4 py-2 text-sm font-semibold text-[#13038D]">Editar</button>
-                          <button type="button" disabled={busy === `delete:${member.id}`} onClick={() => void deleteMember(member)} className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-[#D40C0D]">Excluir</button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </article>
-            );
-          })}
-
-          {!visibleMembers.length && openId !== "__new__" && <p className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-slate-500 md:col-span-2 xl:col-span-4">Nenhum colaborador encontrado.</p>}
+      {loading ? <p className="mt-5 text-sm text-slate-500">Carregando...</p> : draft && (
+        <section className="mt-4 rounded-2xl border border-blue-200 bg-white shadow-sm">
+          <div className="px-4 py-3">
+            <p className="font-semibold text-slate-950">{openId === "__new__" ? "Novo acesso" : draft.member.accessEmail}</p>
+          </div>
+          <Editor
+            draft={draft}
+            accessOptions={accessOptions}
+            busy={busy}
+            onMemberChange={(member) => setDraft({ ...draft, member })}
+            onAccessChange={updateAccessEmail}
+            onModuleChange={toggleModule}
+            onMobileModuleChange={toggleMobileModule}
+            onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
+            onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
+            onSave={() => void saveDraft()}
+            onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
+          />
         </section>
       )}
     </div>
