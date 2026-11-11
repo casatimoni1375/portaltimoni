@@ -206,15 +206,18 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
 
   async function saveDraft() {
     if (!draft) return;
+    const accessEmail = normalizeEmail(draft.member.accessEmail);
+    const typedName = draft.member.name.trim();
     const member = {
       ...draft.member,
-      name: draft.member.name.trim(),
+      // Nome é opcional: sem nome, usa o próprio e-mail de acesso.
+      name: typedName.length >= 2 ? typedName : accessEmail,
       role: draft.member.role.trim(),
-      accessEmail: normalizeEmail(draft.member.accessEmail),
+      accessEmail,
       active: true,
     };
-    if (member.name.length < 2) {
-      setError("Informe o nome do colaborador.");
+    if (!member.name) {
+      setError("Informe o e-mail de acesso.");
       return;
     }
     if (member.accessEmail && !member.accessEmail.includes("@")) {
