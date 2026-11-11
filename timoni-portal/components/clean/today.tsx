@@ -33,7 +33,7 @@ const formatTime=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"Amer
 const addDays=(day:string,days:number)=>{const date=new Date(`${day}T12:00:00-03:00`);date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10);};
 
 export type TodayNoticesConfig={store:"geral"|"araras"|"rio claro";isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]};
-export default function Today({name,capabilities,defaultUnit,notices=null}:{name:string;capabilities:TodayCapabilities;defaultUnit:string;notices?:TodayNoticesConfig|null}){
+export default function Today({name,email,capabilities,defaultUnit,notices=null}:{name:string;email?:string;capabilities:TodayCapabilities;defaultUnit:string;notices?:TodayNoticesConfig|null}){
  const params=useSearchParams();const requested=params.get("unidade");
  const unit=defaultUnit==="todas"&&["rio_claro","araras","todas"].includes(requested||"")?requested!:defaultUnit;
  const [data,setData]=useState<Source>({}),[errors,setErrors]=useState<Record<string,string>>({});
@@ -106,7 +106,7 @@ export default function Today({name,capabilities,defaultUnit,notices=null}:{name
  const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||pending.length>0||events.length>0;
 
  return <div className="ct-clean-today">
-  <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p>{/* Acessos compartilhados de vendedores: saudação sem nome. */}<h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}{name?`, ${name}.`:"!"}</h1></header>
+  <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p>{/* Acessos compartilhados de vendedores: saudação sem nome. */}<h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}{name?`, ${name}.`:"!"}</h1>{email&&<small className="ct-clean-today-email">{email}</small>}</header>
   {operational?<>
    <div className={`ct-today-op-top${notices?"":" no-notices"}`}>
     <div className="ct-today-op-cards">{tripsCard}{agendaCard}</div>
