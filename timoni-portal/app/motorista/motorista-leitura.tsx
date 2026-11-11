@@ -236,7 +236,7 @@ export default function MotoristaLeitura() {
           <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>
-              <p className="mt-1 text-sm text-slate-600">Visualização somente leitura.</p>
+              <p className="mt-1 text-xs text-slate-600">Visualização somente leitura.</p>
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setInicio((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7))} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700">← 7 dias</button>
