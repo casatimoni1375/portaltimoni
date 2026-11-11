@@ -160,8 +160,17 @@ function grossPrice(price: number | null, ipi: number | null) {
   return price * (1 + ipi / 100);
 }
 
+function comparisonLabel(row: { cheaper: "first" | "second" | "equal" | null; reason: string } | undefined) {
+  if (!row) return "OK";
+  if (row.cheaper === "first") return "MENOR: COTAÇÃO 1";
+  if (row.cheaper === "second") return "MENOR: COTAÇÃO 2";
+  if (row.cheaper === "equal") return "PREÇO IGUAL";
+  return `NÃO COMPARÁVEL: ${row.reason}`;
+}
+
 function buildSheet(result: ConferenciaResult) {
   const rows: string[] = [], merges: string[] = [];
+  const cmp = result.supplierComparison;
   const supplier = normalizeText(result.fornecedor_curto || result.fornecedor_nome);
   const pedido = normalizeText(result.pedido_numero);
   const pedidoDisplay = /(?:MCR|ROD)$/i.test(pedido) ? pedido : `${pedido}MCR`;
@@ -170,21 +179,21 @@ function buildSheet(result: ConferenciaResult) {
   const docInfo = docs.map((d) => [d.identificador === "NÃO INFORMADO" ? "" : d.identificador, d.gerado_em === "NÃO INFORMADO" ? "" : d.gerado_em].filter(Boolean).join(" - ")).filter(Boolean).join(" | ") || normalizeText(result.data_documento_fornecedor);
   const add = (r: number, cells: string[], height = 18) => rows.push(makeRow(r, cells, height));
 
-  add(1,[textCell("A1",`CONFERÊNCIA DE PREÇOS - PEDIDO ${pedido} - ${supplier}`,29)],30); merges.push("A1:N1");
+  add(1,[textCell("A1",cmp?`CONFERÊNCIA DE COTAÇÕES - ${normalizeText(cmp.names[0])} x ${normalizeText(cmp.names[1])}`:`CONFERÊNCIA DE PREÇOS - PEDIDO ${pedido} - ${supplier}`,29)],30); merges.push("A1:N1");
   const dl=`DOCUMENTOS CONSIDERADOS: ${files.join(" | ") || "SEM DADOS"}`;
   add(2,[textCell("A2",dl,30)],rowHeightForText(dl,22,180)); merges.push("A2:N2");
-  add(3,[textCell("A3","Pedido Casa Timoni",31),textCell("B3",pedidoDisplay,13),textCell("C3","Data do pedido",31),textCell("D3",normalizeText(result.data_pedido),13)],22); merges.push("D3:E3");
+  add(3,cmp?[textCell("A3","Cotação 1",31),textCell("B3",normalizeText(cmp.names[0]),13),textCell("C3","Cotação 2",31),textCell("D3",normalizeText(cmp.names[1]),13)]:[textCell("A3","Pedido Casa Timoni",31),textCell("B3",pedidoDisplay,13),textCell("C3","Data do pedido",31),textCell("D3",normalizeText(result.data_pedido),13)],22); merges.push("D3:E3");
   add(4,[],14);
-  add(5,[textCell("A5","Fornecedor",31),textCell("B5",normalizeText(result.fornecedor_nome),13),textCell("E5",docInfo,13)],28); merges.push("B5:D5","E5:H5");
+  add(5,cmp?[textCell("A5","Base da comparação",31),textCell("B5","Preços líquidos; frete, impostos e descontos não considerados",13)]:[textCell("A5","Fornecedor",31),textCell("B5",normalizeText(result.fornecedor_nome),13),textCell("E5",docInfo,13)],28); merges.push("B5:D5","E5:H5");
   add(6,[],14);
-  add(7,[textCell("A7","Forma de pagamento fornecedor:",31),textCell("D7",normalizeText(result.condicoes.pagamento_fornecedor),13)],22); merges.push("A7:C7","D7:F7");
+  add(7,cmp?[textCell("A7","Condições comerciais:",31),textCell("D7","Não comparadas nesta conferência",13)]:[textCell("A7","Forma de pagamento fornecedor:",31),textCell("D7",normalizeText(result.condicoes.pagamento_fornecedor),13)],22); merges.push("A7:C7","D7:F7");
   add(8,[],14);
-  add(9,[textCell("A9","Data de Entrega",31),textCell("B9",normalizeText(result.condicoes.entrega_mcr || result.condicoes.entrega_fornecedor),13)],22); merges.push("B9:F9");
+  add(9,cmp?[textCell("A9","Produtos comparáveis",31),textCell("B9",String(cmp.comparableItems),13)]:[textCell("A9","Data de Entrega",31),textCell("B9",normalizeText(result.condicoes.entrega_mcr || result.condicoes.entrega_fornecedor),13)],22); merges.push("B9:F9");
   add(10,[],14); add(11,[textCell("A11","PONTOS DE ATENÇÃO",23)],22); merges.push("A11:N11");
   const attention=(result.pontos_atencao.length?result.pontos_atencao:["Nenhuma divergência relevante identificada."]).slice(0,3);
   for(let i=0;i<3;i++){const r=12+i,p=attention[i]||"";add(r,p?[textCell(`A${r}`,normalizeText(p),32)]:[],p?rowHeightForText(p,22,170):18);if(p)merges.push(`A${r}:N${r}`);}
   add(15,[]);add(16,[]);add(17,[]);
-  const headers=["P-L (local.)","Cód. MCR","Cód. forn. pedido","Cód. forn. documento","Descrição / especificações","Qtd. pedido","Qtd. fornecedor","Preço pedido","Preço fornecedor","IPI pedido","IPI fornecedor","Preço bruto pedido","Preço bruto fornecedor","Conferência"];
+  const headers=cmp?["P-L (local.)","Cód. interno","Referência cot. 1","Referência cot. 2","Descrição / especificações","Qtd. cot. 1","Qtd. cot. 2","Preço cot. 1","Preço cot. 2","IPI cot. 1","IPI cot. 2","Preço bruto cot. 1","Preço bruto cot. 2","Conferência"]:["P-L (local.)","Cód. MCR","Cód. forn. pedido","Cód. forn. documento","Descrição / especificações","Qtd. pedido","Qtd. fornecedor","Preço pedido","Preço fornecedor","IPI pedido","IPI fornecedor","Preço bruto pedido","Preço bruto fornecedor","Conferência"];
   add(18,headers.map((h,i)=>textCell(`${colName(i+1)}18`,h,14)),42);
   let row=19;
   for(const item of result.itens){
@@ -200,13 +209,13 @@ function buildSheet(result: ConferenciaResult) {
       numberCell(`H${row}`,item.preco_mcr,ps,"SEM DADOS"),numberCell(`I${row}`,item.preco_fornecedor,ps,"SEM DADOS"),
       numberCell(`J${row}`,item.ipi_mcr,ips,"SEM DADOS"),numberCell(`K${row}`,item.ipi_fornecedor,ips,"SEM DADOS"),
       numberCell(`L${row}`,grossM,ps,"SEM DADOS"),numberCell(`M${row}`,grossF,ps,"SEM DADOS"),
-      textCell(`N${row}`,price?"PREÇO DIVERGENTE":other?"OUTRA DIVERGÊNCIA":"OK",price||other?24:25)
+      cmp?textCell(`N${row}`,comparisonLabel(cmp.rows[row-19]),cmp.rows[row-19]?.cheaper?25:24):textCell(`N${row}`,price?"PREÇO DIVERGENTE":other?"OUTRA DIVERGÊNCIA":"OK",price||other?24:25)
     ],rowHeightForText(item.descricao,28,48));row++;
   }
   row++;
-  const base=result.totais.subtotal_mcr, total=result.totais.total_fornecedor??result.totais.subtotal_fornecedor;
+  const base=cmp?cmp.subtotalFirst:result.totais.subtotal_mcr, total=cmp?cmp.subtotalSecond:(result.totais.total_fornecedor??result.totais.subtotal_fornecedor);
   const diff=typeof base==="number"&&typeof total==="number"?total-base:null;
-  add(row,[textCell(`A${row}`,"TOTAIS DOS DOCUMENTOS",33),numberCell(`H${row}`,base,27,"SEM DADOS"),numberCell(`I${row}`,total,27,"SEM DADOS"),textCell(`J${row}`,`Diferença: ${formatCurrency(diff)}`,28)],24);
+  add(row,[textCell(`A${row}`,cmp?"SUBTOTAL DA CESTA COMPARÁVEL (preços líquidos)":"TOTAIS DOS DOCUMENTOS",33),numberCell(`H${row}`,base,27,"SEM DADOS"),numberCell(`I${row}`,total,27,"SEM DADOS"),textCell(`J${row}`,`Diferença: ${formatCurrency(diff)}`,28)],24);
   merges.push(`A${row}:G${row}`,`J${row}:M${row}`);
   row+=3;add(row,[textCell(`A${row}`,"RESUMO DA CONFERÊNCIA",31)],22);merges.push(`A${row}:N${row}`);
   row++;add(row,[textCell(`A${row}`,normalizeText(result.resumo_texto),13)],rowHeightForText(result.resumo_texto,38,180));merges.push(`A${row}:N${row}`);
@@ -416,7 +425,7 @@ function fileDate() {
 }
 
 export function createWorkbook(result: ConferenciaResult) {
-  const sheetName = `Conferencia ${result.pedido_numero || "pedido"}`.slice(0, 31);
+  const sheetName = (result.supplierComparison ? "Cotacoes" : `Conferencia ${result.pedido_numero || "pedido"}`).slice(0, 31);
   const now = new Date().toISOString();
   const files: ZipEntry[] = [
     encoded(
@@ -482,7 +491,10 @@ export function createWorkbook(result: ConferenciaResult) {
   const data = zip(files);
   const supplier = safeSupplier(result.fornecedor_curto || result.fornecedor_nome);
   const pedido = String(result.pedido_numero || "pedido").replace(/[^a-zA-Z0-9-]/g, "");
-  const filename = `${fileDate()} conferencia pedido ${pedido || "pedido"} mcr ${supplier}.xlsx`;
+  const cmp = result.supplierComparison;
+  const filename = cmp
+    ? `${fileDate()} conferencia cotacoes ${safeSupplier(cmp.names[0])} x ${safeSupplier(cmp.names[1])}.xlsx`
+    : `${fileDate()} conferencia pedido ${pedido || "pedido"} mcr ${supplier}.xlsx`;
   const blob = new Blob([data], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });

@@ -69,6 +69,7 @@ export default function ComprasClient() {
   const [company, setCompany] = useState<Company>("MCR");
   const [supplierName, setSupplierName] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
+  const [dataEnvio, setDataEnvio] = useState(todayLocal);
   const [dataEntrega, setDataEntrega] = useState("");
 
   const [busy, setBusy] = useState(false);
@@ -81,7 +82,6 @@ export default function ComprasClient() {
     () => suppliers.find((supplier) => supplier.id === selectedId) || null,
     [selectedId, suppliers],
   );
-  const dataEnvio = todayLocal();
   const finalTitle = supplierName.trim()
     ? [supplierName.trim(), orderNumber.trim() ? `${orderNumber.trim()}${company}` : company].filter(Boolean).join(" ")
     : `Compra ${company} ${dataEnvio}`;
@@ -240,6 +240,7 @@ export default function ComprasClient() {
       setOrderNumber("");
       setUnit("");
       setDataEntrega("");
+      setDataEnvio(todayLocal());
       await loadTrello();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Não foi possível finalizar o pedido.");
@@ -562,9 +563,8 @@ export default function ComprasClient() {
             Envio
             <BrazilianDateInput
               value={dataEnvio}
-              onChange={() => undefined}
-              readOnly
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm text-slate-700"
+              onChange={setDataEnvio}
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
             />
           </label>
           <label className="text-sm font-semibold text-slate-800">
