@@ -418,7 +418,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
   const openNeeds = filtered.filter((need) => ["pendente", "observacao", "consulta"].includes(need.status));
   const purchaseNeeds = filtered.filter((need) => need.status === "em_compra");
   const onWay = filtered.filter((need) => need.status === "pedido_existente");
-  const finalizedCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const finalizedCutoff = Date.now() - 5 * 24 * 60 * 60 * 1000; // Chegou: visível por 5 dias a partir da data de chegada (depois só no arquivo, sem apagar).
   const history = filtered
     .filter((need) => need.status === "chegou" && timestamp(need.chegouEm) >= finalizedCutoff)
     .slice(0, 50);

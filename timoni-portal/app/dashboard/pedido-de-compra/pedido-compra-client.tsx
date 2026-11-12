@@ -77,56 +77,44 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
 
   useEffect(()=>{const id=query.get("pedido");if(id){const order=sentOrders.find(item=>item.id===id);if(order)setSelected(order);}},[query,sentOrders]);
   const visibleOrders=sentOrders.filter(order=>(!query.get("unidade")||query.get("unidade")==="todas"||order.unidade===query.get("unidade"))&&(query.get("filtro")!=="atrasados"||(order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())))).sort((a,b)=>(a.previsaoEntrega||"9999").localeCompare(b.previsaoEntrega||"9999"));
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const isLate = (order: SentOrder) => Boolean(order.previsaoEntrega) && order.previsaoEntrega.slice(0, 10) < todayKey;
   return (
-    <div className="ct-modern-workspace pb-10 space-y-5">
-      {error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">{error}</p>}
+    <section className="ct-clean-card">
+      <div className="ct-clean-card-heading">
+        <h2>Pedidos em andamento</h2>
+        <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="ct-clean-action">Atualizar lista</button>
+      </div>
+      {error && <p role="alert" className="ct-notice-error">{error}</p>}
       {!loading && exceptions.length > 0 && (
-        <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">Exceções</p>
-          <h2 className="mt-1 text-lg font-semibold text-slate-950">Pedidos que exigem atenção</h2>
-          <div className="mt-3 divide-y divide-amber-200">
-            {exceptions.map((item) => (
-              <div key={`${item.id}-${item.tipo}`} className="py-3 text-sm">
-                <button type="button" onClick={() => setSelected(item)} className="min-h-11 text-left font-semibold text-[#14038D] underline decoration-slate-300 underline-offset-4">{item.nome} · {unitLabel(item.unidade)}</button>
-                <p className="mt-1 text-slate-600">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</p>
+        <div className="ct-clean-action-row">
+          <strong>Pedidos que exigem atenção</strong>
+          {exceptions.map((item) => (
+            <div key={`${item.id}-${item.tipo}`}>
+              <button type="button" onClick={() => setSelected(item)} className="ct-link-button">{item.nome} · {unitLabel(item.unidade)}</button>
+              <small className="text-red-700">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</small>
+            </div>
+          ))}
+        </div>
+      )}
+      {visibleUnits.map((currentUnit) => {
+        const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
+        return (
+          <div key={currentUnit}>
+            <h3 className="ct-notice-scope">{unitLabel(currentUnit)} · {orders.length}</h3>
+            {orders.map((order) => (
+              <div key={order.id} className="ct-clean-action-row">
+                <button type="button" onClick={() => setSelected(order)} aria-label={`Ver itens do pedido ${order.nome}`} className="ct-link-button">{order.nome}</button>
+                <small>Enviado: {dateOnly(order.enviadoEm)}</small>
+                <small className={isLate(order) ? "font-semibold text-red-700" : undefined}>Entrega: {dateOnly(order.previsaoEntrega)}{isLate(order) ? " · atrasado" : ""}</small>
               </div>
             ))}
+            {!loading && !orders.length && <p className="ct-clean-muted">Nenhum pedido em andamento.</p>}
+            {loading && <p className="ct-clean-muted">Atualizando...</p>}
           </div>
-        </section>
-      )}
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Acompanhamento</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Pedidos enviados</h2>
-          </div>
-          <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50">Atualizar lista</button>
-        </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          {visibleUnits.map((currentUnit) => {
-            const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
-            return (
-              <div key={currentUnit} className="overflow-hidden rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between bg-slate-50 px-4 py-3">
-                  <h3 className="font-semibold text-slate-950">{unitLabel(currentUnit)}</h3>
-                  <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">{orders.length}</span>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {orders.map((order) => (
-                    <article key={order.id} className="px-4 py-3">
-                      <button type="button" onClick={() => setSelected(order)} aria-label={`Ver itens do pedido ${order.nome}`} className="min-h-11 text-left font-semibold text-[#14038D] underline decoration-slate-300 underline-offset-4">{order.nome}</button>
-                      <p className="mt-1 text-sm text-slate-500">Enviado: {dateOnly(order.enviadoEm)} · Entrega: {dateOnly(order.previsaoEntrega)}</p>
-                    </article>
-                  ))}
-                  {!loading && !orders.length && <p className="px-4 py-5 text-sm text-slate-500">Nenhum pedido enviado.</p>}
-                  {loading && <p className="px-4 py-5 text-sm text-slate-500">Atualizando...</p>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+        );
+      })}
       {selected && <PedidoDetalhes key={selected.id} id={selected.id} name={selected.nome} onClose={() => setSelected(null)} />}
-    </div>
+    </section>
   );
 }

@@ -118,7 +118,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
     <aside className="ct-today-side">{peopleBlock}</aside>
    </div>
   </>:<>
-  {!!cards.length&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.label} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting("purchases")?"…":card.value}</strong><span>{card.label}</span></Link>)}{capabilities.shortcuts?.estoque&&<Link href="/dashboard/estoque" className="ct-clean-metric ct-clean-normal"><strong>→</strong><span>Estoque</span></Link>}</section>}
+  {false&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.label} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting("purchases")?"…":card.value}</strong><span>{card.label}</span></Link>)}{capabilities.shortcuts?.estoque&&<Link href="/dashboard/estoque" className="ct-clean-metric ct-clean-normal"><strong>→</strong><span>Estoque</span></Link>}</section>}
   {shortcuts}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
