@@ -15,6 +15,7 @@ type Source={
  trips?:{viagens:Trip[]};
  people?:{events:DateItem[];meetings:Array<{id:string;title:string;date:string;time:string}>};
  agenda?:{events:CalendarEvent[]};
+ estoque?:{necessidades:Array<{status:string;unidade:string;chegouEm:string}>};
 };
 
 /**
@@ -37,7 +38,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const params=useSearchParams();const requested=params.get("unidade");
  const unit=defaultUnit==="todas"&&["rio_claro","araras","todas"].includes(requested||"")?requested!:defaultUnit;
  const [data,setData]=useState<Source>({}),[errors,setErrors]=useState<Record<string,string>>({});
- const [loading,setLoading]=useState<Record<string,boolean>>({orders:capabilities.orders,purchases:capabilities.purchases,trips:capabilities.trips,people:capabilities.people,agenda:Boolean(capabilities.agenda)});
+ const [loading,setLoading]=useState<Record<string,boolean>>({orders:capabilities.orders,purchases:capabilities.purchases,trips:capabilities.trips,people:capabilities.people,agenda:Boolean(capabilities.agenda),estoque:Boolean(capabilities.shortcuts?.estoque)});
  const [reload,setReload]=useState(0);const capabilityKey=JSON.stringify(capabilities);
 
  useEffect(()=>{let active=true,pending=false;const controller=new AbortController();const caps=JSON.parse(capabilityKey) as TodayCapabilities;
@@ -45,6 +46,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
    if(caps.orders)sources.push(["orders","/api/pedido-de-compra"]);
    if(caps.purchases)sources.push(["purchases","/api/compras"]);
    if(caps.trips)sources.push(["trips",`/api/agenda-motorista?action=dia&data=${day}`]);
+   if(caps.shortcuts?.estoque)sources.push(["estoque","/api/estoque"]);
    if(caps.people)sources.push(["people",`/api/hoje/equipe?unidade=${unit}`]);
    if(caps.agenda)sources.push(["agenda",`/api/events?calendarKey=${caps.agenda}&timeMin=${encodeURIComponent(`${day}T00:00:00-03:00`)}&timeMax=${encodeURIComponent(`${addDays(day,1)}T00:00:00-03:00`)}`]);
    await Promise.all(sources.map(async([key,url])=>{if(active)setLoading(old=>({...old,[key]:true}));try{let response:Response|undefined;
@@ -69,6 +71,9 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const agendaEvents=[...(data.agenda?.events||[])].sort((a,b)=>Number(b.allDay)-Number(a.allDay)||a.start.localeCompare(b.start));
  const agendaIds=new Set(agendaEvents.map(event=>event.id));
  const meetings=(data.people?.meetings||[]).filter(meeting=>!agendaIds.has(meeting.id));
+ // Estoque: total = soma das quatro colunas (Em aberto, Relação de compra, A caminho, Chegou nos últimos 5 dias).
+ const stockFive=Date.now()-5*24*60*60*1000;
+ const stockCount=(data.estoque?.necessidades||[]).filter(need=>allowed(need.unidade)&&(["pendente","observacao","consulta","em_compra","pedido_existente"].includes(need.status)||(need.status==="chegou"&&Date.parse(need.chegouEm)>=stockFive))).length;
  const agendaTitle=capabilities.agenda==="principal"?"Minha agenda":"Agenda CT";
  const agendaHref=capabilities.agenda==="principal"?"/agenda?view=minha":"/agenda?view=loja";
 
@@ -118,6 +123,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
     <aside className="ct-today-side">{peopleBlock}</aside>
    </div>
   </>:<>
+  {capabilities.shortcuts?.estoque&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Estoque"><Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"…":stockCount}</strong><span>Estoque</span></Link></section>}
   {false&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.label} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting("purchases")?"…":card.value}</strong><span>{card.label}</span></Link>)}{capabilities.shortcuts?.estoque&&<Link href="/dashboard/estoque" className="ct-clean-metric ct-clean-normal"><strong>→</strong><span>Estoque</span></Link>}</section>}
   {shortcuts}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
