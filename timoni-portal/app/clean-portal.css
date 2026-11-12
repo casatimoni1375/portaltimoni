@@ -94,9 +94,9 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-notice-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 0;border:0;background:transparent;text-align:left;cursor:pointer;color:var(--ct-clean-ink);font-size:15px;}
 .ct-notice-date{flex:none;font-size:var(--ct-font-caption);color:var(--ct-clean-muted);min-width:38px;}
 .ct-notice-title{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600;}
-.ct-notice-stamp{flex:none;border:1.5px solid currentColor;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;transform:rotate(-3deg);}
-.ct-notice-stamp.is-pending{color:#b45309;}
-.ct-notice-stamp.is-signed{color:#15803d;}
+.ct-notice-stamp{flex:none;align-self:center;display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;}
+.ct-notice-stamp.is-pending{color:#b91c1c;}
+.ct-notice-scope{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ct-clean-blue);margin-bottom:2px;}
 .ct-notice-body{padding:4px 0 12px;display:grid;gap:10px;font-size:15px;}
 .ct-notice-body>p{margin:0;white-space:pre-wrap;line-height:1.5;}
 .ct-notice-image{border:0;padding:0;background:none;cursor:zoom-in;}
@@ -161,3 +161,10 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 @media(max-width:1000px){.ct-today-layout.ct-today-v2{grid-template-columns:minmax(0,1fr);}}
 
 .ct-clean-today-email{display:block;font-size:11px;color:var(--ct-clean-muted);margin-top:4px;}
+
+/* Pedidos em andamento: link de pedido como botão de texto (mesmo visual de Recebidos). */
+.ct-link-button{min-height:44px;text-align:left;font-weight:600;color:#14038D;text-decoration:underline;text-underline-offset:4px;background:transparent;border:0;cursor:pointer;}
+
+/* Estoque no cabeçalho (entre Todas e Atualizar): atalho compacto. */
+.ct-clean-stock-link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d7deea;border-radius:8px;font-size:13px;font-weight:600;color:var(--ct-clean-blue);text-decoration:none;background:#fff;white-space:nowrap;}
+@media(max-width:767px){.ct-clean-stock-link span{display:none;}.ct-clean-stock-link{padding:6px;}}

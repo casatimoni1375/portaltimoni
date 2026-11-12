@@ -7,15 +7,16 @@ type Notice={id:string;createdAt:string;unit:Unit;title:string;message:string;st
 type Reader={employee:string;unit:string;readAt:string};
 export type NoticeMember={name:string;unit:string};
 
-const COLUMN_LABEL:Record<Unit,string>={geral:"Geral",araras:"Araras","rio claro":"Rio Claro"};
+const SCOPE_LABEL:Record<Unit,string>={geral:"Geral · Araras + Rio Claro",araras:"Araras","rio claro":"Rio Claro"};
 const fmtDate=(value:string)=>value?new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit"}).format(new Date(value)):"";
 const fmtDateTime=(value:string)=>value?new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(value)):"";
 function withinEnd(value:string,now=Date.now()){if(!value)return true;const date=new Date(value);if(Number.isNaN(date.getTime()))return false;const [y,m,d]=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(date).split("-").map(Number);return now<Date.UTC(y,m-1,d+1,3);}
 
 /**
- * Comunicados na tela Hoje: uma coluna por destino (Geral, Araras, Rio Claro).
- * Cada aviso é uma linha curta (data · assunto · carimbo). Clicou, abre na mesma tela
- * para ler e confirmar; clicou de novo, fecha. Passado o prazo final, sai sozinho.
+ * Comunicados na tela Hoje: um card por loja (Geral · Araras + Rio Claro, Araras ou Rio Claro),
+ * em lista, um abaixo do outro. Só o mais recente de cada destino fica visível; os anteriores
+ * vão para Arquivados. Passado o prazo final, arquiva (não apaga) e pode ser reativado.
+ * Carimbo: "Pendente" em vermelho; some quando todos confirmarem.
  */
 export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{store:Unit;isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]}){
  const [items,setItems]=useState<Notice[]>([]),[completed,setCompleted]=useState<string[]>([]),[unsigned,setUnsigned]=useState<string[]>([]),[readers,setReaders]=useState<Record<string,Reader[]>>({});
@@ -31,11 +32,15 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
  }catch(err){setError(err instanceof Error?err.message:"Não foi possível carregar os comunicados.");}finally{setLoaded(true);}},[]);
  useEffect(()=>{void load();const refresh=()=>void load();window.addEventListener("comunicados:changed",refresh);window.addEventListener("avisos:read-changed",refresh);return()=>{window.removeEventListener("comunicados:changed",refresh);window.removeEventListener("avisos:read-changed",refresh);};},[load]);
 
- // Comunicado "Geral" não tem coluna própria: aparece em Araras e em Rio Claro.
- const columns:Unit[]=store==="geral"?["araras","rio claro"]:[store];
  const now=Date.now();
- const active=useMemo(()=>items.filter(item=>item.status==="ativo"&&(!item.startsAt||Date.parse(item.startsAt)<=now)&&withinEnd(item.expiresAt,now)).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),[items,now]);
- const archived=useMemo(()=>isAdmin?items.filter(item=>item.status==="arquivado"||!withinEnd(item.expiresAt,now)).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)):[],[items,isAdmin,now]);
+ const sorted=useMemo(()=>[...items].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),[items]);
+ const liveActive=useMemo(()=>sorted.filter(item=>item.status==="ativo"&&(!item.startsAt||Date.parse(item.startsAt)<=now)&&withinEnd(item.expiresAt,now)),[sorted,now]);
+ // Um comunicado vigente por destino: o mais recente. Os demais vão para Arquivados (reativáveis).
+ const shown=useMemo(()=>{const seen=new Set<Unit>();const list:Notice[]=[];for(const item of liveActive){if(seen.has(item.unit))continue;seen.add(item.unit);list.push(item);}return list;},[liveActive]);
+ const shownIds=useMemo(()=>new Set(shown.map(item=>item.id)),[shown]);
+ // Loja comum vê o geral e o da própria loja; o Geral aparece uma única vez.
+ const visible=shown.filter(item=>store==="geral"||item.unit===store||item.unit==="geral");
+ const archived=useMemo(()=>isAdmin?sorted.filter(item=>!shownIds.has(item.id)||item.status==="arquivado"||!withinEnd(item.expiresAt,now)):[],[sorted,shownIds,isAdmin,now]);
 
  async function changeStatus(id:string,activate:boolean){setBusy(id);setError("");try{const response=await fetch("/api/comunicados",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,action:activate?"activate":"archive"})});const data=await response.json();if(!response.ok)throw Error(data?.error||"Não foi possível alterar.");await load();setOpen("");}catch(err){setError(err instanceof Error?err.message:"Não foi possível alterar.");}finally{setBusy("");}}
  async function confirmRead(item:Notice,pool:NoticeMember[]){
@@ -49,11 +54,13 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
  function membersFor(unit:Unit){return unit==="geral"?members:members.filter(member=>member.unit===(unit==="araras"?"Araras":"Rio Claro"));}
  function toggle(key:string){setOpen(current=>current===key?"":key);setFeedback(null);setEmployee("");}
 
- const row=(item:Notice,inArchive=false,column:Unit=item.unit)=>{const signed=completed.includes(item.id);const key=`${column}:${item.id}`;const isOpen=open===key;const pool=membersFor(column);const list=readers[item.id]||[];
+ const row=(item:Notice,inArchive=false)=>{const signed=completed.includes(item.id);const key=item.id;const isOpen=open===key;const pool=membersFor(item.unit);const list=readers[item.id]||[];
+  const pending=!inArchive&&!signed&&!unsigned.includes(item.id);
   return <li key={item.id} className={`ct-notice${isOpen?" is-open":""}`}>
    <button type="button" className="ct-notice-row" aria-expanded={isOpen} onClick={()=>toggle(key)}>
-    <span className="ct-notice-date">{fmtDate(item.createdAt)}</span><span className="ct-notice-title">{item.title}</span>
-    {!inArchive&&!unsigned.includes(item.id)&&<span className={`ct-notice-stamp ${signed?"is-signed":"is-pending"}`}>{signed?"Assinado":"Pendente"}</span>}
+    <span className="ct-notice-date">{fmtDate(item.createdAt)}</span>
+    <span className="ct-notice-title"><small className="ct-notice-scope">{SCOPE_LABEL[item.unit]}</small>{item.title}</span>
+    {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}
    </button>
    {isOpen&&<div className="ct-notice-body">
     <p>{item.message}</p>
@@ -79,7 +86,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
  return <section className="ct-clean-card ct-today-notices" aria-label="Comunicados">
   <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<Link href="/colaboradores#comunicados">+ Novo</Link>}</div>
   {error&&<p className="ct-notice-error">{error}</p>}
-  <div className={`ct-notice-columns cols-${columns.length}`}>{columns.map(unit=>{const list=active.filter(item=>item.unit===unit||item.unit==="geral");return <div key={unit} className="ct-notice-column">{columns.length>1&&<h3>{COLUMN_LABEL[unit]}</h3>}{!loaded?<p className="ct-clean-muted">Carregando…</p>:list.length?<ul>{list.map(item=>row(item,false,unit))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}</div>;})}</div>
+  {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}
   {isAdmin&&archived.length>0&&<div className="ct-notice-archive"><button type="button" onClick={()=>setShowArchived(value=>!value)} aria-expanded={showArchived}>{showArchived?"Ocultar arquivados":`Arquivados (${archived.length})`}</button>{showArchived&&<ul>{archived.map(item=>row(item,true))}</ul>}</div>}
   {image&&<div className="ct-notice-lightbox" onClick={()=>setImage("")}><button type="button" aria-label="Fechar imagem" onClick={()=>setImage("")}>✕</button><img src={image} alt="Imagem do comunicado ampliada" onClick={event=>event.stopPropagation()}/></div>}
  </section>;
