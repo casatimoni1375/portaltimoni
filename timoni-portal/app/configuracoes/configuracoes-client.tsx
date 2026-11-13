@@ -112,29 +112,28 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     [data.users],
   );
 
-  const visibleMembers = useMemo(() => {
-    const term = filterName.trim().toLocaleLowerCase("pt-BR");
-    return [...data.collaborators]
-      .filter((member) => member.active !== false)
-      .filter((member) => !term || member.name.toLocaleLowerCase("pt-BR").includes(term))
-      .filter((member) => !filterAccess || normalizeEmail(member.accessEmail) === filterAccess)
-      .filter((member) => {
-        if (!filterModule) return true;
-        const access = usersByEmail.get(normalizeEmail(member.accessEmail));
-        return Boolean(access?.modules.includes(filterModule as PortalModule));
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }) || a.unit.localeCompare(b.unit, "pt-BR"));
-  }, [data.collaborators, filterName, filterAccess, filterModule, usersByEmail]);
-
   const selectedAccessEmail = draft?.member.accessEmail ? normalizeEmail(draft.member.accessEmail) : "";
-  const linkedMembers = useMemo(
-    () => selectedAccessEmail
-      ? data.collaborators
-        .filter((member) => member.active !== false && normalizeEmail(member.accessEmail) === selectedAccessEmail)
-        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }))
-      : [],
-    [data.collaborators, selectedAccessEmail],
-  );
+
+  const accessGroups = useMemo(() => {
+    const term = filterName.trim().toLocaleLowerCase("pt-BR");
+    return accessOptions
+      .map((user) => {
+        const email = normalizeEmail(user.email);
+        const members = data.collaborators
+          .filter((member) => member.active !== false && normalizeEmail(member.accessEmail) === email)
+          .filter((member) => !term || member.name.toLocaleLowerCase("pt-BR").includes(term))
+          .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+        return { email, label: accessLabel(user), members };
+      })
+      .filter((group) => !term || group.members.length > 0 || group.label.toLocaleLowerCase("pt-BR").includes(term));
+  }, [accessOptions, data.collaborators, filterName]);
+
+  const orphanMembers = useMemo(() => {
+    const emails = new Set(accessOptions.map((user) => normalizeEmail(user.email)));
+    return data.collaborators
+      .filter((member) => member.active !== false && !emails.has(normalizeEmail(member.accessEmail)))
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+  }, [accessOptions, data.collaborators]);
 
   function startEdit(member: ConfiguredCollaborator) {
     const access = usersByEmail.get(normalizeEmail(member.accessEmail));
@@ -394,112 +393,103 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
         </div>
       </section>
 
-      {!draft && (
-      <section className="rounded-2xl border border-slate-200 bg-white p-3">
-        <label className="text-xs font-semibold text-slate-600">
-          E-mail de acesso
-          <select value={selectedAccessEmail} onChange={(event) => chooseAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
-            <option value="">Selecione um e-mail</option>
-            {accessOptions.map((user) => <option key={user.email} value={normalizeEmail(user.email)}>{accessLabel(user)} · {user.email}</option>)}
-          </select>
-        </label>
-        {selectedAccessEmail && (
-          <div className="mt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores neste acesso ({linkedMembers.length})</p>
-            {!linkedMembers.length && <p className="mt-2 text-sm text-slate-500">Nenhum colaborador ligado a este e-mail.</p>}
-            <ul className="mt-2 divide-y divide-slate-100">
-              {linkedMembers.map((member) => (
-                <li key={memberKey(member)}>
-                  <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50">
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
-                      <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
-      )}
-
-      {!selectedAccessEmail && (
       <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores ({visibleMembers.length})</p>
-          <input value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="Buscar nome" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 sm:w-60" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Acessos ({accessGroups.length})</p>
+          <input value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="Buscar colaborador" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 sm:w-60" />
         </div>
-        {!loading && !visibleMembers.length && <p className="mt-3 text-sm text-slate-500">Nenhum colaborador encontrado.</p>}
-        <ul className="mt-2 divide-y divide-slate-100">
-          {visibleMembers.map((member) => (
-            <li key={memberKey(member)}>
-              <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50">
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
-                  <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
-                </span>
-                <span className="max-w-[45%] shrink-0 truncate text-xs text-slate-500">{member.accessEmail || "Sem acesso"}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
       </section>
+
+      {!loading && accessGroups.map((group) => {
+        const open = group.email === selectedAccessEmail;
+        return (
+          <section key={group.email} className={`mt-3 rounded-2xl border bg-white ${open ? "border-blue-200 shadow-sm" : "border-slate-200"}`}>
+            <button type="button" onClick={() => chooseAccess(open ? "" : group.email)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left">
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-slate-950">{group.label}</span>
+                <span className="block truncate text-xs text-slate-500">{group.email}</span>
+              </span>
+              <span className="shrink-0 text-xs font-semibold text-slate-500">{group.members.length} colaborador(es)</span>
+            </button>
+            {open && draft && (
+              <div className="border-t border-slate-100 px-4 py-3">
+                {!group.members.length && <p className="text-sm text-slate-500">Nenhum colaborador ligado a este e-mail.</p>}
+                <ul className="divide-y divide-slate-100">
+                  {group.members.map((member) => (
+                    <li key={memberKey(member)}>
+                      <button type="button" onClick={() => startEdit(member)} className={`flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50 ${draft.member.id === member.id ? "bg-blue-50" : ""}`}>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
+                          <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 border-t border-slate-100 pt-4">
+                  <Editor
+                    draft={draft}
+                    lockAccess
+                    accessOptions={accessOptions}
+                    busy={busy}
+                    onMemberChange={(member) => setDraft({ ...draft, member })}
+                    onAccessChange={updateAccessEmail}
+                    onModuleChange={toggleModule}
+                    onMobileModuleChange={toggleMobileModule}
+                    onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
+                    onReadOnlyModuleChange={(module, checked) => setDraft({ ...draft, readOnlyModules: checked ? [...draft.readOnlyModules.filter((item) => item !== module), module] : draft.readOnlyModules.filter((item) => item !== module) })}
+                    onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
+                    onSave={() => void saveDraft()}
+                    onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
+                    onDelete={draft.member.id ? () => void deleteMember(draft.member) : undefined}
+                  />
+                </div>
+              </div>
+            )}
+          </section>
+        );
+      })}
+
+      {!loading && orphanMembers.length > 0 && (
+        <section className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Colaboradores sem acesso vinculado ({orphanMembers.length})</p>
+          <ul className="mt-2 divide-y divide-amber-100">
+            {orphanMembers.map((member) => (
+              <li key={memberKey(member)}>
+                <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left">
+                  <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
+                  <span className="shrink-0 text-xs text-slate-500">{member.accessEmail || "Sem e-mail"}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {message && <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">{message}</p>}
       {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
 
-      {loading ? <p className="mt-5 text-sm text-slate-500">Carregando...</p> : draft && (
+      {loading ? <p className="mt-5 text-sm text-slate-500">Carregando...</p> : draft && openId === "__new__" && (
         <section className="mt-4 rounded-2xl border border-blue-200 bg-white shadow-sm">
           <div className="px-4 py-3">
-            <p className="font-semibold text-slate-950">{openId === "__new__" ? "Novo acesso" : draft.member.accessEmail}</p>
+            <p className="font-semibold text-slate-950">Novo acesso</p>
           </div>
-          {openId !== "__new__" && (
-          <div className="border-b border-slate-100 px-4 py-3">
-        <label className="text-xs font-semibold text-slate-600">
-          E-mail de acesso
-          <select value={draft?.member.accessEmail ? normalizeEmail(draft.member.accessEmail) : ""} onChange={(event) => chooseAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
-            <option value="">Selecione um e-mail</option>
-            {accessOptions.map((user) => <option key={user.email} value={normalizeEmail(user.email)}>{accessLabel(user)} · {user.email}</option>)}
-          </select>
-        </label>
-        {selectedAccessEmail && (
-          <div className="mt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores neste acesso ({linkedMembers.length})</p>
-            {!linkedMembers.length && <p className="mt-2 text-sm text-slate-500">Nenhum colaborador ligado a este e-mail.</p>}
-            <ul className="mt-2 divide-y divide-slate-100">
-              {linkedMembers.map((member) => (
-                <li key={memberKey(member)}>
-                  <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50">
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
-                      <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-          </div>
-          )}
-          <Editor
-            draft={draft}
-            lockAccess={openId !== "__new__"}
-            accessOptions={accessOptions}
-            busy={busy}
-            onMemberChange={(member) => setDraft({ ...draft, member })}
-            onAccessChange={updateAccessEmail}
-            onModuleChange={toggleModule}
-            onMobileModuleChange={toggleMobileModule}
-            onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
-            onReadOnlyModuleChange={(module, checked) => setDraft({ ...draft, readOnlyModules: checked ? [...draft.readOnlyModules.filter((item) => item !== module), module] : draft.readOnlyModules.filter((item) => item !== module) })}
-            onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
-            onSave={() => void saveDraft()}
-            onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
-            onDelete={draft.member.id && openId !== "__new__" ? () => void deleteMember(draft.member) : undefined}
-          />
+              <Editor
+                draft={draft}
+                lockAccess={openId !== "__new__"}
+                accessOptions={accessOptions}
+                busy={busy}
+                onMemberChange={(member) => setDraft({ ...draft, member })}
+                onAccessChange={updateAccessEmail}
+                onModuleChange={toggleModule}
+                onMobileModuleChange={toggleMobileModule}
+                onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
+                onReadOnlyModuleChange={(module, checked) => setDraft({ ...draft, readOnlyModules: checked ? [...draft.readOnlyModules.filter((item) => item !== module), module] : draft.readOnlyModules.filter((item) => item !== module) })}
+                onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
+                onSave={() => void saveDraft()}
+                onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
+                onDelete={draft.member.id && openId !== "__new__" ? () => void deleteMember(draft.member) : undefined}
+              />
         </section>
       )}
     </div>
