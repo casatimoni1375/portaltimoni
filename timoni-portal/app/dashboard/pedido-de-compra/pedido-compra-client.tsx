@@ -87,7 +87,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
       </div>
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
       {!loading && exceptions.length > 0 && (
-        <div className="ct-clean-action-row">
+        <div className="ct-clean-exceptions">
           <strong>Pedidos que exigem atenção</strong>
           {exceptions.map((item) => (
             <div key={`${item.id}-${item.tipo}`}>
@@ -104,7 +104,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
             <h3 className="ct-notice-scope">{unitLabel(currentUnit)} · {orders.length}</h3>
             {orders.map((order) => (
               <div key={order.id} className="ct-clean-action-row">
-                <button type="button" onClick={() => setSelected(order)} aria-label={`Ver itens do pedido ${order.nome}`} className="ct-link-button">{order.nome}</button>
+                <strong className="ct-clean-order-name">{order.nome}</strong>
                 <small>Enviado: {dateOnly(order.enviadoEm)}</small>
                 <small className={isLate(order) ? "font-semibold text-red-700" : undefined}>Entrega: {dateOnly(order.previsaoEntrega)}{isLate(order) ? " · atrasado" : ""}</small>
               </div>
