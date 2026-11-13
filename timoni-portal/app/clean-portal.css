@@ -168,3 +168,8 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 /* Estoque no cabeçalho (entre Todas e Atualizar): atalho compacto. */
 .ct-clean-stock-link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d7deea;border-radius:8px;font-size:13px;font-weight:600;color:var(--ct-clean-blue);text-decoration:none;background:#fff;white-space:nowrap;}
 @media(max-width:767px){.ct-clean-stock-link span{display:none;}.ct-clean-stock-link{padding:6px;}}
+.ct-clean-exceptions{display:grid;gap:8px;border-top:1px solid #edf0f6;padding:10px 0;min-width:0;}
+.ct-clean-exceptions>strong{display:block;font-size:var(--ct-font-body);line-height:1.4;color:var(--ct-clean-blue);}
+.ct-clean-exceptions>div{display:grid;gap:2px;min-width:0;}
+.ct-clean-exceptions small{color:var(--ct-clean-muted);font-size:var(--ct-font-caption);}
+.ct-clean-order-name{display:block;font-size:var(--ct-font-body);color:var(--ct-clean-blue);overflow-wrap:anywhere;}
