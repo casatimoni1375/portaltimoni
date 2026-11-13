@@ -3,21 +3,17 @@ import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { canReadUnit } from "@/lib/module-authorization";
 import type { PortalUser } from "@/lib/access-control";
 import { loadPortalConfiguration } from "@/lib/portal-config";
-import { google } from "googleapis";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SPREADSHEET_ID = "1cESMTRx98e6AbY5vxPCcT7VrqYAbgH0xGUk87ybqHUo";
-
 type Seller = { nome: string; unidade: string };
 type Responsible = { email: string; name: string; unit: string };
 type Configuration = Awaited<ReturnType<typeof loadPortalConfiguration>>;
-type Fonte = "planilha" | "cadastro" | "indisponivel";
 
-// Nenhum nome de pessoa fica escrito aqui. A lista vem da aba Vendedores da planilha
-// e, se ela não puder ser lida, do cadastro de colaboradores do Portal.
+// Vendedores = colaboradores ativos cadastrados em Configurações, a mesma base das permissões.
+// A aba Vendedores da planilha não é mais usada: ela tinha nomes que não batiam com o cadastro.
 
 function dedupeSellers(vendedores: Seller[]) {
   const vistos = new Set<string>();
@@ -29,14 +25,13 @@ function dedupeSellers(vendedores: Seller[]) {
   });
 }
 
-function resposta(vendedores: Seller[], responsaveis: Responsible[], fonte: Fonte, actor: PortalUser) {
+function resposta(vendedores: Seller[], responsaveis: Responsible[], disponivel: boolean, actor: PortalUser) {
   return NextResponse.json(
     {
       ok: true,
       vendedores: dedupeSellers(vendedores).filter((v) => canReadUnit(actor, "motorista", v.unidade)),
       responsaveis: responsaveis.filter((v) => canReadUnit(actor, "motorista", v.unit)),
-      fallback: fonte !== "planilha",
-      fonte,
+      fonte: disponivel ? "cadastro" : "indisponivel",
     },
     { headers: { "Cache-Control": "no-store" } },
   );
@@ -57,26 +52,10 @@ async function comConexao<T>(userToken: string, run: (token: string) => Promise<
       return await run(token);
     } catch (error) {
       ultimoErro = error;
-      console.error("[Agenda Motorista] Falha ao ler dados do Google.", error);
+      console.error("[Agenda Motorista] Falha ao ler o cadastro do Portal.", error);
     }
   }
   throw ultimoErro;
-}
-
-async function lerAbaVendedores(token: string): Promise<Seller[]> {
-  const oauth = new google.auth.OAuth2();
-  oauth.setCredentials({ access_token: token });
-  const sheets = google.sheets({ version: "v4", auth: oauth });
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: "Vendedores!A:B",
-    valueRenderOption: "FORMATTED_VALUE",
-  });
-  const rows = response.data.values ?? [];
-  return rows
-    .slice(1)
-    .map((row) => ({ nome: String(row[0] ?? "").trim(), unidade: String(row[1] ?? "").trim().toLowerCase() }))
-    .filter((item) => item.nome);
 }
 
 function vendedoresDoCadastro(configuration: Configuration): Seller[] {
@@ -109,13 +88,6 @@ export async function GET() {
         .map((user) => ({ email: user.email, name: user.name, unit: user.unit || "Geral" }))
         .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
 
-  try {
-    const vendedores = await comConexao(userToken, lerAbaVendedores);
-    return resposta(vendedores, responsaveis, "planilha", actor);
-  } catch (error) {
-    console.error("[Agenda Motorista] Falha ao carregar a aba Vendedores; usando o cadastro de colaboradores.", error);
-  }
-
-  if (configuration) return resposta(vendedoresDoCadastro(configuration), responsaveis, "cadastro", actor);
-  return resposta([], responsaveis, "indisponivel", actor);
+  if (!configuration) return resposta([], responsaveis, false, actor);
+  return resposta(vendedoresDoCadastro(configuration), responsaveis, true, actor);
 }

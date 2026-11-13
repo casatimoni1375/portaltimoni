@@ -649,3 +649,32 @@ test("Conferência: compara com acesso autorizado e bloqueia outros perfis sem c
 test('Conferência: importar PDF exige o mesmo acesso antes de ler o arquivo',async()=>{
  const h=await harness({actor:marcelo});const route=await h.evaluate('app/api/conferencia-pedidos/importar-pdf/route.ts');assert.equal((await route.POST(new Request('https://portal.test/api/conferencia-pedidos/importar-pdf',{method:'POST'}))).status,403);
 });
+
+test("Motorista: campo Vendedor usa só colaboradores ativos do cadastro, com unidade", async () => {
+  const roster = [
+    { id: "a", name: "Ana", unit: "Araras", active: true, accessEmail: "" },
+    { id: "b", name: "Bia", unit: "Rio Claro", active: true, accessEmail: "" },
+    { id: "c", name: "Inativa", unit: "Araras", active: false, accessEmail: "" },
+  ];
+  const h = await harness({ actor: cica, extraMocks: { "@/lib/portal-config": {
+    getEffectivePortalUser: async (_token, email) => email === cica.email ? cica : null,
+    getPortalUserSessionState: async (_token, email) => ({ user: email === cica.email ? cica : null, unavailable: false }),
+    loadPortalConfiguration: async () => ({ users: [], collaborators: roster, history: [] }),
+  } } });
+  const route = await h.evaluate("app/api/agenda-motorista-vendedores/route.ts");
+  const body = await (await route.GET()).json();
+  assert.equal(body.fonte, "cadastro");
+  assert.deepEqual(body.vendedores.map((v) => `${v.nome}-${v.unidade}`).sort(), ["Ana-araras", "Bia-rio_claro"]);
+});
+
+test("Motorista: sem cadastro legível, a lista de vendedores fica indisponível e vazia", async () => {
+  const h = await harness({ actor: cica, extraMocks: { "@/lib/portal-config": {
+    getEffectivePortalUser: async (_token, email) => email === cica.email ? cica : null,
+    getPortalUserSessionState: async (_token, email) => ({ user: email === cica.email ? cica : null, unavailable: false }),
+    loadPortalConfiguration: async () => { throw new Error("Google indisponível"); },
+  } } });
+  const route = await h.evaluate("app/api/agenda-motorista-vendedores/route.ts");
+  const body = await (await route.GET()).json();
+  assert.equal(body.fonte, "indisponivel");
+  assert.deepEqual(body.vendedores, []);
+});
