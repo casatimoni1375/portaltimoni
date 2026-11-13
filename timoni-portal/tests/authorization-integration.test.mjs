@@ -678,3 +678,29 @@ test("Motorista: sem cadastro legível, a lista de vendedores fica indisponível
   assert.equal(body.fonte, "indisponivel");
   assert.deepEqual(body.vendedores, []);
 });
+
+test("Estoque: lista de vendedores vem dos colaboradores cadastrados, por unidade e ativos", async () => {
+  const sheets = { spreadsheets: { values: {
+    batchGet: async () => ({ data: { valueRanges: [{ values: [["id"]] }, { values: [["codigo"]] }] } }),
+    batchUpdate: async () => {}, append: async () => {},
+  }, batchUpdate: async () => {} } };
+  const roster = [
+    { id: "a", name: "Ana", unit: "Araras", active: true, accessEmail: "" },
+    { id: "b", name: "Bia", unit: "Rio Claro", active: true, accessEmail: "" },
+    { id: "c", name: "Inativa", unit: "Araras", active: false, accessEmail: "" },
+  ];
+  const h = await harness({ actor: cica, extraMocks: {
+    googleapis: { google: { auth: { OAuth2: class { setCredentials() {} } }, sheets: () => sheets } },
+    "@/lib/module-updates": { recordModuleUpdateSafely: async () => {} },
+    "@/lib/stock-notice-reads": { pendingStockIdsForUser: () => [] },
+    "@/lib/portal-config": {
+      getEffectivePortalUser: async (_token, email) => email === cica.email ? cica : null,
+      getPortalUserSessionState: async (_token, email) => ({ user: email === cica.email ? cica : null, unavailable: false }),
+      loadPortalConfiguration: async () => ({ users: [], collaborators: roster, history: [] }),
+    },
+  } });
+  const route = await h.evaluate("app/api/estoque/route.ts");
+  const data = await (await route.GET()).json();
+  assert.equal(data.ok, true);
+  assert.deepEqual(data.vendedores.map((v) => `${v.nome}-${v.unidade}`).sort(), ["Ana-araras", "Bia-rio_claro"]);
+});

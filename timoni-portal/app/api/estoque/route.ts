@@ -6,6 +6,7 @@ import type { PortalUser } from "@/lib/access-control";
 import { google, type sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
 import { recordModuleUpdateSafely } from "@/lib/module-updates";
+import { loadPortalConfiguration } from "@/lib/portal-config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,8 +72,22 @@ function rowsToProducts(rows: unknown[][]): Product[] {
   return rows.slice(1).map((row) => ({ codigo: value(row, 0), descricao: value(row, 1), unidade: value(row, 2) })).filter((item) => item.codigo || item.descricao);
 }
 
-function rowsToSellers(rows: unknown[][]): Seller[] {
-  return rows.slice(1).map((row) => ({ nome: value(row, 0), unidade: value(row, 1).toLowerCase() })).filter((item) => item.nome);
+// Vendedores = colaboradores ativos cadastrados em Configurações (mesma lista do Motorista).
+async function vendedoresDoCadastro(): Promise<Seller[]> {
+  try {
+    const configuration = await loadPortalConfiguration(await getAccessTokenFromRefreshToken());
+    const lista: Seller[] = [];
+    for (const colaborador of configuration.collaborators) {
+      const nome = String(colaborador.name ?? "").trim();
+      if (!nome || colaborador.active === false) continue;
+      const unidades = colaborador.unit === "Araras" ? ["araras"] : colaborador.unit === "Rio Claro" ? ["rio_claro"] : ["rio_claro", "araras"];
+      for (const unidade of unidades) lista.push({ nome, unidade });
+    }
+    return lista;
+  } catch (error) {
+    console.error("[Estoque] Cadastro de vendedores indisponível.", error);
+    return [];
+  }
 }
 
 
@@ -106,17 +121,15 @@ async function getSheets() {
 async function readAll(sheets: sheets_v4.Sheets) {
   const response = await sheets.spreadsheets.values.batchGet({
     spreadsheetId: SPREADSHEET_ID,
-    ranges: ["Necessidades!A:O", "Produtos!A:C", "Vendedores!A:B"],
+    ranges: ["Necessidades!A:O", "Produtos!A:C"],
     valueRenderOption: "FORMATTED_VALUE",
   });
-  const [needRange, productRange, sellerRange] = response.data.valueRanges ?? [];
+  const [needRange, productRange] = response.data.valueRanges ?? [];
   const needRows = (needRange?.values ?? []) as unknown[][];
   const productRows = (productRange?.values ?? []) as unknown[][];
-  const sellerRows = (sellerRange?.values ?? []) as unknown[][];
   const necessidades = needRows.slice(1).filter((row) => value(row, 0)).map(rowToNeed);
   const produtos = rowsToProducts(productRows);
-  const vendedores = rowsToSellers(sellerRows);
-  return { necessidades, produtos, vendedores, summary: summarize(necessidades), needRows };
+  return { necessidades, produtos, vendedores: [] as Seller[], summary: summarize(necessidades), needRows };
 }
 
 
@@ -145,7 +158,7 @@ export async function GET(request: Request) {
 
     const storedUnits = new Map(data.needRows.slice(1).map(row => [value(row, 0), value(row, 10)]));
     data.necessidades = data.necessidades.filter((item) => canReadUnit(user, "estoque", storedUnits.get(item.id)));
-    data.vendedores = data.vendedores.filter((item) => canReadUnit(user, "estoque", item.unidade));
+    data.vendedores = (await vendedoresDoCadastro()).filter((item) => canReadUnit(user, "estoque", item.unidade));
     data.summary = summarize(data.necessidades);
     let unreadIds: string[] | null = null;
     try { unreadIds = pendingStockIdsForUser(user, data.necessidades); }
