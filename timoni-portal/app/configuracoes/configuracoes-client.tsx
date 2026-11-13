@@ -455,6 +455,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           </div>
           <Editor
             draft={draft}
+            lockAccess={openId !== "__new__"}
             accessOptions={accessOptions}
             busy={busy}
             onMemberChange={(member) => setDraft({ ...draft, member })}
@@ -476,6 +477,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
 
 function Editor({
   draft,
+  lockAccess,
   accessOptions,
   busy,
   onMemberChange,
@@ -490,6 +492,7 @@ function Editor({
   onDelete,
 }: {
   draft: Draft;
+  lockAccess: boolean;
   accessOptions: PortalUser[];
   busy: string;
   onMemberChange: (member: ConfiguredCollaborator) => void;
@@ -525,20 +528,24 @@ function Editor({
         </label>
       </div>
 
-      <label className="mt-3 block text-xs font-semibold text-slate-600">
-        Acesso
-        <input
-          type="email"
-          list="portal-access-emails"
-          value={draft.member.accessEmail}
-          onChange={(event) => onAccessChange(event.target.value)}
-          placeholder="email@exemplo.com"
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-normal text-slate-900"
-        />
-        <datalist id="portal-access-emails">
-          {accessOptions.map((user) => <option key={user.email} value={user.email}>{accessLabel(user)}</option>)}
-        </datalist>
-      </label>
+      {lockAccess ? (
+        <p className="mt-3 text-xs text-slate-500">Acesso: <span className="font-semibold text-slate-900">{draft.member.accessEmail}</span> · para trocar, escolha outro e-mail no seletor acima.</p>
+      ) : (
+        <label className="mt-3 block text-xs font-semibold text-slate-600">
+          Acesso
+          <input
+            type="email"
+            list="portal-access-emails"
+            value={draft.member.accessEmail}
+            onChange={(event) => onAccessChange(event.target.value)}
+            placeholder="email@exemplo.com"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-normal text-slate-900"
+          />
+          <datalist id="portal-access-emails">
+            {accessOptions.map((user) => <option key={user.email} value={user.email}>{accessLabel(user)}</option>)}
+          </datalist>
+        </label>
+      )}
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Personalização</p>
