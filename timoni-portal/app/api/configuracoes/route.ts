@@ -87,6 +87,7 @@ function cleanUser(value: Record<string, unknown>): PortalUser {
     mobileModules: Array.isArray(value.mobileModules) ? cleanModules(value.mobileModules).filter((module) => modules.includes(module)) : undefined,
     requiresPassword: Boolean(value.requiresPassword),
     readOnly: Boolean(value.readOnly),
+    readOnlyModules: cleanModules(value.readOnlyModules).filter((module) => modules.includes(module)),
     active: isCicaAccess(email) ? true : value.active !== false,
     directPainel: Boolean(value.directPainel),
     lastAccess: String(value.lastAccess || ""),

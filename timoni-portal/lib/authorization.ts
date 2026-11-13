@@ -98,6 +98,8 @@ export function can(
 ): boolean {
   const user = resolveConfiguredUser(configured?.email, configured);
   if (!user || !ACTIONS.includes(action) || !RESOURCES.includes(resource)) return false;
+  // Somente leitura por módulo: vale para qualquer perfil, inclusive administração.
+  if (action !== "visualizar" && user.readOnlyModules?.includes(resource as PortalModule)) return false;
   if (context.canal !== undefined && context.canal !== "portal" && context.canal !== "mobile") return false;
   if (context.unidade !== undefined) {
     if (!["Rio Claro", "Araras", "Geral"].includes(context.unidade)) return false;
@@ -134,8 +136,11 @@ export function can(
 }
 
 function sameValue(a: unknown, b: unknown) {
-  if (Array.isArray(a) && Array.isArray(b)) return JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
-  return JSON.stringify(a) === JSON.stringify(b);
+  // Lista vazia e campo ausente são o mesmo estado (ex.: somente leitura por módulo sem itens).
+  const na = Array.isArray(a) && a.length === 0 ? undefined : a;
+  const nb = Array.isArray(b) && b.length === 0 ? undefined : b;
+  if (Array.isArray(na) && Array.isArray(nb)) return JSON.stringify([...na].sort()) === JSON.stringify([...nb].sort());
+  return JSON.stringify(na) === JSON.stringify(nb);
 }
 
 /** Allowlisted metadata only; editing never means granting/revoking permissions. */
