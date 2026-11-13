@@ -47,9 +47,12 @@ export function motoristaUnitsForStore(value: unknown): PortalUnit[] {
   return unidade ? [unidade] : [];
 }
 
-/** O acesso pode executar a ação numa viagem desta empresa (em qualquer unidade permitida). */
+/**
+ * Agendamento de viagens: qualquer acesso com o módulo Motorista (exceto somente leitura)
+ * pode criar, editar e excluir viagens nas duas empresas (decisão da gestão, 13/11/2026).
+ */
 export function canMotoristaStore(user: PortalUser, action: AuthorizationAction, value: unknown) {
-  return motoristaUnitsForStore(value).some((unidade) => unidade !== "Geral" && canModuleOperation(user, "motorista", action, { unidade }));
+  return motoristaUnitsForStore(value).length > 0 && canModuleOperation(user, "motorista", action);
 }
 
 /** Unknown record units are visible only to an explicitly global official user. */

@@ -240,16 +240,17 @@ test("Motorista: somente leitura e Marcelo não criam/excluem via chamada direta
     assert.equal(h.calls.length, 0);
   }
 });
-test("Motorista: ID de outra unidade, data forjada, unidade alterada e ID ausente não gravam", async () => {
+test("Motorista: ID inexistente e ID ausente não gravam; agendamento vale para as duas empresas", async () => {
   const h = await motorHarness(moduleActor());
   const route = await h.evaluate("app/api/agenda-motorista/route.ts");
   for (const input of [
-    { action: "atualizar", id: "ara", data: "2026-11-02", loja: "rio_claro" },
     { action: "excluir", id: "desconhecido", data: "2026-11-02" },
-    { action: "atualizar", id: "rc", data: "2026-11-02", loja: "araras" },
     { action: "atualizar", id: "rc" }
   ]) assert.ok((await route.POST(motorPost(input))).status >= 400);
   assert.equal(h.calls.filter(c => c.method === "POST").length, 0);
+  // Decisão da gestão (13/11/2026): agendar viagem da outra empresa é permitido.
+  assert.equal((await route.POST(motorPost({ action: "atualizar", id: "ara", data: "2026-11-02", loja: "rio_claro" }))).status, 200);
+  assert.equal((await route.POST(motorPost({ action: "atualizar", id: "rc", data: "2026-11-02", loja: "araras" }))).status, 200);
 });
 test("Motorista: edição autorizada e Ciça criando preservam o fluxo operacional", async () => {
   const h = await motorHarness(moduleActor("mrodini@gmail.com", { unit: "Geral" }));
