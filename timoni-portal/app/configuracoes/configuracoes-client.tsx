@@ -388,6 +388,27 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
         </label>
       </section>
 
+      <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores ({visibleMembers.length})</p>
+          <input value={filterName} onChange={(event) => setFilterName(event.target.value)} placeholder="Buscar nome" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal text-slate-900 sm:w-60" />
+        </div>
+        {!loading && !visibleMembers.length && <p className="mt-3 text-sm text-slate-500">Nenhum colaborador encontrado.</p>}
+        <ul className="mt-2 divide-y divide-slate-100">
+          {visibleMembers.map((member) => (
+            <li key={memberKey(member)}>
+              <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
+                  <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
+                </span>
+                <span className="max-w-[45%] shrink-0 truncate text-xs text-slate-500">{member.accessEmail || "Sem acesso"}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {message && <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">{message}</p>}
       {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
 
@@ -408,6 +429,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
             onSave={() => void saveDraft()}
             onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
+            onDelete={draft.member.id && openId !== "__new__" ? () => void deleteMember(draft.member) : undefined}
           />
         </section>
       )}
