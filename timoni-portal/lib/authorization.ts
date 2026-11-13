@@ -114,6 +114,8 @@ export function can(
   if (profile === "administracao-cica") return true;
   if (resource === "publicacao" || context.operation === "publicar-codigo") return false;
   if (profile === "administracao-marcelo") {
+    // Agendamento de viagens liberado para todos os acessos com o módulo, exceto somente leitura (decisão da gestão, 13/11/2026).
+    if (resource === "motorista") return context.operation === undefined && user.modules.includes("motorista") && user.readOnly !== true && ["visualizar", "editar", "criar", "excluir"].includes(action);
     if (action !== "visualizar" && action !== "editar") return false;
     if (context.operation !== undefined) return false;
     if (resource === "agenda") return false; // Preserve the approved Agenda Ciça restriction.

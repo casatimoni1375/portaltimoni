@@ -232,13 +232,14 @@ test("Motorista: todos com o módulo veem todas as viagens e nada arbitrário é
   assert.equal((await route.GET(urlRequest("action=mes&mes=2026-11"))).status, 403);
   assert.equal(h.calls.length, 1);
 });
-test("Motorista: somente leitura e Marcelo não criam/excluem via chamada direta", async () => {
-  for (const actor of [moduleActor(undefined, { readOnly: true }), moduleActor("mrodini@gmail.com", { unit: "Geral" })]) {
-    const h = await motorHarness(actor);
-    const route = await h.evaluate("app/api/agenda-motorista/route.ts");
-    for (const action of ["criar", "excluir"]) assert.equal((await route.POST(motorPost({ action, id: "rc", data: "2026-11-02", loja: "rio_claro" }))).status, 403);
-    assert.equal(h.calls.length, 0);
-  }
+test("Motorista: somente leitura não cria/exclui; Marcelo com o módulo também agenda (13/11/2026)", async () => {
+  const h0 = await motorHarness(moduleActor(undefined, { readOnly: true }));
+  const route0 = await h0.evaluate("app/api/agenda-motorista/route.ts");
+  for (const action of ["criar", "excluir"]) assert.equal((await route0.POST(motorPost({ action, id: "rc", data: "2026-11-02", loja: "rio_claro" }))).status, 403);
+  assert.equal(h0.calls.length, 0);
+  const h1 = await motorHarness(moduleActor("mrodini@gmail.com", { unit: "Geral" }));
+  const route1 = await h1.evaluate("app/api/agenda-motorista/route.ts");
+  assert.equal((await route1.POST(motorPost({ action: "criar", data: "2026-11-03", loja: "araras" }))).status, 200);
 });
 test("Motorista: ID inexistente e ID ausente não gravam; agendamento vale para as duas empresas", async () => {
   const h = await motorHarness(moduleActor());
