@@ -394,10 +394,11 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
         </div>
       </section>
 
+      {!draft && (
       <section className="rounded-2xl border border-slate-200 bg-white p-3">
         <label className="text-xs font-semibold text-slate-600">
           E-mail de acesso
-          <select value={draft?.member.accessEmail ? normalizeEmail(draft.member.accessEmail) : ""} onChange={(event) => chooseAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
+          <select value={selectedAccessEmail} onChange={(event) => chooseAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
             <option value="">Selecione um e-mail</option>
             {accessOptions.map((user) => <option key={user.email} value={normalizeEmail(user.email)}>{accessLabel(user)} · {user.email}</option>)}
           </select>
@@ -421,6 +422,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           </div>
         )}
       </section>
+      )}
 
       {!selectedAccessEmail && (
       <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
@@ -453,6 +455,35 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           <div className="px-4 py-3">
             <p className="font-semibold text-slate-950">{openId === "__new__" ? "Novo acesso" : draft.member.accessEmail}</p>
           </div>
+          {openId !== "__new__" && (
+          <div className="border-b border-slate-100 px-4 py-3">
+        <label className="text-xs font-semibold text-slate-600">
+          E-mail de acesso
+          <select value={draft?.member.accessEmail ? normalizeEmail(draft.member.accessEmail) : ""} onChange={(event) => chooseAccess(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900">
+            <option value="">Selecione um e-mail</option>
+            {accessOptions.map((user) => <option key={user.email} value={normalizeEmail(user.email)}>{accessLabel(user)} · {user.email}</option>)}
+          </select>
+        </label>
+        {selectedAccessEmail && (
+          <div className="mt-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores neste acesso ({linkedMembers.length})</p>
+            {!linkedMembers.length && <p className="mt-2 text-sm text-slate-500">Nenhum colaborador ligado a este e-mail.</p>}
+            <ul className="mt-2 divide-y divide-slate-100">
+              {linkedMembers.map((member) => (
+                <li key={memberKey(member)}>
+                  <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50">
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
+                      <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+          </div>
+          )}
           <Editor
             draft={draft}
             lockAccess={openId !== "__new__"}
