@@ -16,7 +16,7 @@ type Draft = {
   mobileModules: PortalModule[];
   noticeRequired: boolean;
   todayBlocks: string[] | null;
-  readOnly: boolean;
+  readOnlyModules: PortalModule[];
 };
 
 const MODULES: Array<{ id: PortalModule; label: string }> = [
@@ -134,7 +134,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       member: { ...member },
       modules: access ? [...access.modules] : [],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
-      readOnly: Boolean(access?.readOnly),
+      readOnlyModules: [...(access?.readOnlyModules ?? [])],
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
@@ -146,7 +146,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     const member = emptyMember();
     setOpenId("__new__");
     setEditingId("__new__");
-    setDraft({ member, modules: [...ALL_MODULE_IDS], mobileModules: [...ALL_MODULE_IDS], noticeRequired: false, todayBlocks: null, readOnly: false });
+    setDraft({ member, modules: [...ALL_MODULE_IDS], mobileModules: [...ALL_MODULE_IDS], noticeRequired: false, todayBlocks: null, readOnlyModules: [] });
     setError("");
     setMessage("");
   }
@@ -159,7 +159,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       member: { ...draft.member, accessEmail: normalized },
       modules: access ? [...access.modules] : [...ALL_MODULE_IDS],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [...ALL_MODULE_IDS],
-      readOnly: Boolean(access?.readOnly),
+      readOnlyModules: [...(access?.readOnlyModules ?? [])],
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
@@ -258,7 +258,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             mobileModules: draft.mobileModules.filter((module) => draft.modules.includes(module)),
             noticeRequired: draft.noticeRequired,
             todayBlocks: draft.todayBlocks ?? undefined,
-            readOnly: draft.readOnly,
+            readOnlyModules: draft.readOnlyModules.filter((module) => draft.modules.includes(module)),
           });
         } else {
           access = await putUser({
@@ -270,7 +270,8 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             boxes,
             mobileModules: draft.mobileModules.filter((module) => draft.modules.includes(module)),
             requiresPassword: false,
-            readOnly: draft.readOnly,
+            readOnly: false,
+            readOnlyModules: draft.readOnlyModules.filter((module) => draft.modules.includes(module)),
             active: true,
             directPainel: false,
             lastAccess: "",
@@ -353,7 +354,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       member: { ...member, accessEmail: normalized },
       modules: access ? [...access.modules] : [],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
-      readOnly: Boolean(access?.readOnly),
+      readOnlyModules: [...(access?.readOnlyModules ?? [])],
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
@@ -431,7 +432,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             onModuleChange={toggleModule}
             onMobileModuleChange={toggleMobileModule}
             onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
-            onReadOnlyChange={(checked) => setDraft({ ...draft, readOnly: checked })}
+            onReadOnlyModuleChange={(module, checked) => setDraft({ ...draft, readOnlyModules: checked ? [...draft.readOnlyModules.filter((item) => item !== module), module] : draft.readOnlyModules.filter((item) => item !== module) })}
             onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
             onSave={() => void saveDraft()}
             onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
@@ -452,7 +453,7 @@ function Editor({
   onModuleChange,
   onMobileModuleChange,
   onNoticeChange,
-  onReadOnlyChange,
+  onReadOnlyModuleChange,
   onTodayChange,
   onSave,
   onCancel,
@@ -466,7 +467,7 @@ function Editor({
   onModuleChange: (module: PortalModule, checked: boolean) => void;
   onMobileModuleChange: (module: PortalModule, checked: boolean) => void;
   onNoticeChange: (checked: boolean) => void;
-  onReadOnlyChange: (checked: boolean) => void;
+  onReadOnlyModuleChange: (module: PortalModule, checked: boolean) => void;
   onTodayChange: (blocks: string[] | null) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -561,10 +562,20 @@ function Editor({
           </div>
         </div>
 
-        <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
-          <input type="checkbox" checked={draft.readOnly} disabled={!draft.member.accessEmail} onChange={(event) => onReadOnlyChange(event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
-          Somente leitura (não agenda, edita nem exclui viagens do motorista)
-        </label>
+        <div className="mt-3">
+          <p className="text-xs font-semibold text-slate-600">Somente leitura por módulo (o módulo continua visível, mas não cria, edita nem exclui)</p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {MODULES.filter((module) => draft.modules.includes(module.id)).map((module) => {
+              const readOnlyChecked = draft.readOnlyModules.includes(module.id);
+              return (
+                <label key={module.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${readOnlyChecked ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-white text-slate-700"}`}>
+                  <input type="checkbox" checked={readOnlyChecked} disabled={!draft.member.accessEmail} onChange={(event) => onReadOnlyModuleChange(module.id, event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
+                  {module.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
         <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
           <input type="checkbox" checked={draft.noticeRequired} disabled={!draft.member.accessEmail} onChange={(event) => onNoticeChange(event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
           Exige confirmação de leitura

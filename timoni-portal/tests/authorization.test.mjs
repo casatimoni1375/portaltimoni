@@ -178,3 +178,13 @@ test("Ciça corporativa mantém administração e Conferência exige identidade 
   assert.equal(access.isCicaAccess("mrodini@gmail.com"), false);
   assert.equal(access.getPortalUser(corporate.email, null), null);
 });
+test("Somente leitura por módulo: só o módulo marcado bloqueia criar/editar/excluir (inclusive administração)", () => {
+  const actor = user("vendas@example.test", { unit: "Rio Claro", modules: ["motorista", "estoque"], readOnlyModules: ["estoque"] });
+  assert.equal(modulePolicy.canModuleOperation(actor, "estoque", "visualizar"), true);
+  assert.equal(modulePolicy.canModuleOperation(actor, "estoque", "editar"), false);
+  assert.equal(modulePolicy.canModuleOperation(actor, "motorista", "criar"), true);
+  const admin = user("mcrodini@gmail.com", { modules: ["motorista", "estoque"], readOnlyModules: ["motorista"] });
+  assert.equal(modulePolicy.canModuleOperation(admin, "motorista", "visualizar"), true);
+  assert.equal(modulePolicy.canModuleOperation(admin, "motorista", "criar"), false);
+  assert.equal(modulePolicy.canModuleOperation(admin, "estoque", "editar"), true);
+});

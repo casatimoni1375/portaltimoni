@@ -31,6 +31,8 @@ export type PortalUser = {
   mobileModules?: PortalModule[];
   requiresPassword: boolean;
   readOnly?: boolean;
+  /** Módulos que aparecem mas não permitem criar, editar ou excluir (somente leitura por módulo). */
+  readOnlyModules?: PortalModule[];
   active?: boolean;
   directPainel?: boolean;
   unit?: "Geral" | "Araras" | "Rio Claro";
