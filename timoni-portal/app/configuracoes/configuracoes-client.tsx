@@ -150,11 +150,6 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     [activeMembers, selected, isNew],
   );
 
-  const orphanMembers = useMemo(
-    () => activeMembers.filter((member) => !usersByEmail.has(normalizeEmail(member.accessEmail))).sort(byName),
-    [activeMembers, usersByEmail],
-  );
-
   function selectAccess(value: string) {
     setSelected(value);
     setPerm(permissionsOf(value === NEW_ACCESS ? undefined : usersByEmail.get(value)));
@@ -281,6 +276,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       setError("Informe o nome do colaborador.");
       return;
     }
+    if (!usersByEmail.has(member.accessEmail)) member.accessEmail = selected;
     setBusy("save:member");
     setError("");
     setMessage("");
@@ -383,18 +379,6 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
               </p>
             )}
 
-            {orphanMembers.length > 0 && (
-              <p className="mt-2 text-sm leading-7 text-amber-800">
-                <span className="font-semibold">Sem e-mail de acesso: </span>
-                {orphanMembers.map((member, index) => (
-                  <span key={memberKey(member)}>
-                    <button type="button" onClick={() => { setMemberDraft({ ...member }); setError(""); setMessage(""); }} className="underline decoration-amber-300 underline-offset-4">{member.name}</button>
-                    {index < orphanMembers.length - 1 ? ", " : "."}
-                  </span>
-                ))}
-              </p>
-            )}
-
             {memberDraft && (
               <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className={SECTION_TITLE}>{memberDraft.id ? "Editar colaborador" : "Novo colaborador"}</p>
@@ -417,8 +401,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                   </label>
                   <label className="text-xs font-semibold text-slate-600">
                     E-mail de acesso
-                    <select value={usersByEmail.has(normalizeEmail(memberDraft.accessEmail)) ? normalizeEmail(memberDraft.accessEmail) : ""} onChange={(event) => setMemberDraft({ ...memberDraft, accessEmail: event.target.value })} className={FIELD}>
-                      <option value="">Sem acesso</option>
+                    <select value={usersByEmail.has(normalizeEmail(memberDraft.accessEmail)) ? normalizeEmail(memberDraft.accessEmail) : selected} onChange={(event) => setMemberDraft({ ...memberDraft, accessEmail: event.target.value })} className={FIELD}>
                       {accessOptions.map((user) => (
                         <option key={user.email} value={normalizeEmail(user.email)}>{user.email}</option>
                       ))}
