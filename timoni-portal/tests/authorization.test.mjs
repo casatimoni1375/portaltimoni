@@ -115,7 +115,10 @@ test("1B: módulos preservam edição de Marcelo e bloqueiam criação/exclusão
   const actor = { ...marcelo, modules: ["motorista", "estoque", "leads", "compras", "reunioes", "agenda-ct"] };
   for (const resource of actor.modules) {
     assert.equal(modulePolicy.canModuleOperation(actor, resource, "editar"), true, resource);
-    for (const action of ["criar", "excluir", "administrar"]) assert.equal(modulePolicy.canModuleOperation(actor, resource, action), false, resource + ":" + action);
+    // Motorista: agendamento liberado para quem tem o módulo (13/11/2026).
+    const bloqueados = resource === "motorista" ? ["administrar"] : ["criar", "excluir", "administrar"];
+    for (const action of bloqueados) assert.equal(modulePolicy.canModuleOperation(actor, resource, action), false, resource + ":" + action);
+    if (resource === "motorista") for (const action of ["criar", "excluir"]) assert.equal(modulePolicy.canModuleOperation(actor, resource, action), true, resource + ":" + action);
   }
 });
 test("1B: unidade desconhecida falha para contas locais e nenhuma ação amplia módulos", () => {
