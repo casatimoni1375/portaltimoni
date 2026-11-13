@@ -16,6 +16,7 @@ type Draft = {
   mobileModules: PortalModule[];
   noticeRequired: boolean;
   todayBlocks: string[] | null;
+  readOnly: boolean;
 };
 
 const MODULES: Array<{ id: PortalModule; label: string }> = [
@@ -133,6 +134,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       member: { ...member },
       modules: access ? [...access.modules] : [],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
+      readOnly: Boolean(access?.readOnly),
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
@@ -144,7 +146,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     const member = emptyMember();
     setOpenId("__new__");
     setEditingId("__new__");
-    setDraft({ member, modules: [...ALL_MODULE_IDS], mobileModules: [...ALL_MODULE_IDS], noticeRequired: false, todayBlocks: null });
+    setDraft({ member, modules: [...ALL_MODULE_IDS], mobileModules: [...ALL_MODULE_IDS], noticeRequired: false, todayBlocks: null, readOnly: false });
     setError("");
     setMessage("");
   }
@@ -157,6 +159,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       member: { ...draft.member, accessEmail: normalized },
       modules: access ? [...access.modules] : [...ALL_MODULE_IDS],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [...ALL_MODULE_IDS],
+      readOnly: Boolean(access?.readOnly),
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
@@ -255,6 +258,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             mobileModules: draft.mobileModules.filter((module) => draft.modules.includes(module)),
             noticeRequired: draft.noticeRequired,
             todayBlocks: draft.todayBlocks ?? undefined,
+            readOnly: draft.readOnly,
           });
         } else {
           access = await putUser({
@@ -266,7 +270,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             boxes,
             mobileModules: draft.mobileModules.filter((module) => draft.modules.includes(module)),
             requiresPassword: false,
-            readOnly: false,
+            readOnly: draft.readOnly,
             active: true,
             directPainel: false,
             lastAccess: "",
@@ -349,6 +353,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       member: { ...member, accessEmail: normalized },
       modules: access ? [...access.modules] : [],
       mobileModules: access ? [...(access.mobileModules ?? access.modules)] : [],
+      readOnly: Boolean(access?.readOnly),
       noticeRequired: Boolean(access?.noticeRequired),
       todayBlocks: access?.todayBlocks?.length ? [...access.todayBlocks] : null,
     });
@@ -426,6 +431,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             onModuleChange={toggleModule}
             onMobileModuleChange={toggleMobileModule}
             onNoticeChange={(checked) => setDraft({ ...draft, noticeRequired: checked })}
+            onReadOnlyChange={(checked) => setDraft({ ...draft, readOnly: checked })}
             onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
             onSave={() => void saveDraft()}
             onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
@@ -446,6 +452,7 @@ function Editor({
   onModuleChange,
   onMobileModuleChange,
   onNoticeChange,
+  onReadOnlyChange,
   onTodayChange,
   onSave,
   onCancel,
@@ -459,6 +466,7 @@ function Editor({
   onModuleChange: (module: PortalModule, checked: boolean) => void;
   onMobileModuleChange: (module: PortalModule, checked: boolean) => void;
   onNoticeChange: (checked: boolean) => void;
+  onReadOnlyChange: (checked: boolean) => void;
   onTodayChange: (blocks: string[] | null) => void;
   onSave: () => void;
   onCancel: () => void;
@@ -553,6 +561,10 @@ function Editor({
           </div>
         </div>
 
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+          <input type="checkbox" checked={draft.readOnly} disabled={!draft.member.accessEmail} onChange={(event) => onReadOnlyChange(event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
+          Somente leitura (não agenda, edita nem exclui viagens do motorista)
+        </label>
         <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
           <input type="checkbox" checked={draft.noticeRequired} disabled={!draft.member.accessEmail} onChange={(event) => onNoticeChange(event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
           Exige confirmação de leitura
