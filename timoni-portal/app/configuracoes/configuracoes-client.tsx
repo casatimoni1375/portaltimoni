@@ -126,6 +126,16 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }) || a.unit.localeCompare(b.unit, "pt-BR"));
   }, [data.collaborators, filterName, filterAccess, filterModule, usersByEmail]);
 
+  const selectedAccessEmail = draft?.member.accessEmail ? normalizeEmail(draft.member.accessEmail) : "";
+  const linkedMembers = useMemo(
+    () => selectedAccessEmail
+      ? data.collaborators
+        .filter((member) => member.active !== false && normalizeEmail(member.accessEmail) === selectedAccessEmail)
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }))
+      : [],
+    [data.collaborators, selectedAccessEmail],
+  );
+
   function startEdit(member: ConfiguredCollaborator) {
     const access = usersByEmail.get(normalizeEmail(member.accessEmail));
     setOpenId(memberKey(member));
@@ -392,8 +402,27 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             {accessOptions.map((user) => <option key={user.email} value={normalizeEmail(user.email)}>{accessLabel(user)} · {user.email}</option>)}
           </select>
         </label>
+        {selectedAccessEmail && (
+          <div className="mt-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores neste acesso ({linkedMembers.length})</p>
+            {!linkedMembers.length && <p className="mt-2 text-sm text-slate-500">Nenhum colaborador ligado a este e-mail.</p>}
+            <ul className="mt-2 divide-y divide-slate-100">
+              {linkedMembers.map((member) => (
+                <li key={memberKey(member)}>
+                  <button type="button" onClick={() => startEdit(member)} className="flex w-full items-center justify-between gap-3 px-1 py-2.5 text-left hover:bg-slate-50">
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-slate-950">{member.name}</span>
+                      <span className="block truncate text-xs text-slate-500">{member.role || "Função não definida"} · {member.unit}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
+      {!selectedAccessEmail && (
       <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Colaboradores ({visibleMembers.length})</p>
@@ -414,6 +443,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           ))}
         </ul>
       </section>
+      )}
 
       {message && <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">{message}</p>}
       {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
