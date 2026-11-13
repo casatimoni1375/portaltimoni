@@ -77,13 +77,13 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const agendaTitle=capabilities.agenda==="principal"?"Minha agenda":"Agenda CT";
  const agendaHref=capabilities.agenda==="principal"?"/agenda?view=minha":"/agenda?view=loja";
 
- useEffect(()=>{window.dispatchEvent(new CustomEvent("ct-pending-counts",{detail:{compras:orders.length+urgent.length,motorista:trips.length,agenda:agendaEvents.length+meetings.length}}));},[orders.length,urgent.length,trips.length,agendaEvents.length,meetings.length]);
 
  const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",hour:"2-digit",hour12:false}).format(new Date()));
  // Tela Hoje v2 (acessos com Compras/Pedidos): contadores = cards do Trello por coluna.
  const pending=(data.purchases?.suppliers||[]).filter(item=>allowed(item.unit));
  const summary=data.purchases?.summary;
  const pendingCount=unit==="todas"?(summary?.pedidosParaFazer??pending.length):pending.length;
+ useEffect(()=>{window.dispatchEvent(new CustomEvent("ct-pending-counts",{detail:{compras:pendingCount,motorista:trips.length,agenda:agendaEvents.length+meetings.length}}));},[pendingCount,trips.length,agendaEvents.length,meetings.length]);
  const sentRC=unit==="araras"?0:(summary?.enviadosRioClaro??0);
  const sentAR=unit==="rio_claro"?0:(summary?.enviadosAraras??0);
  const cards=[
