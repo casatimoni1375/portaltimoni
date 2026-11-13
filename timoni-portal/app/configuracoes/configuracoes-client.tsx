@@ -429,6 +429,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             onTodayChange={(todayBlocks) => setDraft({ ...draft, todayBlocks })}
             onSave={() => void saveDraft()}
             onCancel={() => { setOpenId(""); setEditingId(""); setDraft(null); }}
+            onDelete={draft.member.id && openId !== "__new__" ? () => void deleteMember(draft.member) : undefined}
           />
         </section>
       )}
