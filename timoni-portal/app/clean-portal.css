@@ -173,3 +173,10 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 .ct-clean-exceptions>div{display:grid;gap:2px;min-width:0;}
 .ct-clean-exceptions small{color:var(--ct-clean-muted);font-size:var(--ct-font-caption);}
 .ct-clean-order-name{display:block;font-size:var(--ct-font-body);color:var(--ct-clean-blue);overflow-wrap:anywhere;}
+
+/* Menu inferior do celular mais baixo e ícones menores (alvo de toque de 44 px mantido). */
+@media(max-width:767px){
+  .ct-clean-bottom{padding:2px 2px max(2px,env(safe-area-inset-bottom))!important;}
+  .ct-clean-bottom .ct-clean-nav-link{min-height:44px!important;padding:2px 4px!important;gap:2px!important;flex-direction:column!important;font-size:11px!important;}
+  .ct-clean-bottom svg{width:20px!important;height:20px!important;}
+}

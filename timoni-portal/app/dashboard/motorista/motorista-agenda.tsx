@@ -336,41 +336,21 @@ function ordenarViagens(viagens: Viagem[]) {
 function estiloBoxViagem(v: Viagem) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
   // Card branco com faixa lateral da cor da empresa (padrão ct-clean).
-  const base = { backgroundColor: "#ffffff", borderColor: "#e1e6f0", borderLeftWidth: 6 };
-  if (tipo === "Retirada") {
-    return { ...base, borderLeftColor: "#2E8B47" };
-  }
+  // Faixa colorida no topo do card (leitura mais fácil que a lateral).
+  const base = { backgroundColor: "#ffffff", borderColor: "#e1e6f0", borderTopWidth: 6 };
+  if (tipo === "Retirada") return { ...base, borderTopColor: "#2E8B47" };
   const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
   const entregaAraras = loja === "araras" || loja === "casa timoni";
-  return entregaAraras
-    ? { ...base, borderLeftColor: "#ffd438" }
-    : { ...base, borderLeftColor: "#2F5BD3" };
+  return entregaAraras ? { ...base, borderTopColor: "#ffd438" } : { ...base, borderTopColor: "#2F5BD3" };
 }
 
 function classeLinhaPrincipal(_v: Viagem) {
   return "font-bold text-black";
 }
 
-// Cor da faixa do card (mesma regra de estiloBoxViagem), usada também no marca-texto do título.
-function corFaixaViagem(v: Viagem) {
-  if (lerMetaMotorista(v.notasJson).tipo === "Retirada") return "#2E8B47";
-  const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
-  return loja === "araras" || loja === "casa timoni" ? "#ffd438" : "#2F5BD3";
-}
-
-// Marca-texto leve atrás do título, na cor do card (ocupa a metade de baixo da linha).
-function estiloLinhaPrincipal(v: Viagem) {
-  const cor = corFaixaViagem(v);
-  return {
-    fontFamily: "Calibri, Arial, sans-serif",
-    fontWeight: 700,
-    color: "#000000",
-    background: `linear-gradient(transparent 40%, ${cor}55 40%, ${cor}55 92%, transparent 92%)`,
-    padding: "0 4px",
-    borderRadius: 3,
-    boxDecorationBreak: "clone" as const,
-    WebkitBoxDecorationBreak: "clone" as const,
-  };
+// Título sem marca-texto, na fonte do portal (Roboto).
+function estiloLinhaPrincipal(_v: Viagem) {
+  return { fontFamily: "inherit", fontWeight: 700, color: "#182443" };
 }
 
 function pagamentoTexto(notasJson?: string) {
