@@ -180,3 +180,9 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
   .ct-clean-bottom .ct-clean-nav-link{min-height:44px!important;padding:2px 4px!important;gap:2px!important;flex-direction:column!important;font-size:11px!important;}
   .ct-clean-bottom svg{width:20px!important;height:20px!important;}
 }
+
+/* Logo da barra superior no celular: tamanho proporcional ao cabeçalho (sem reduzir o arquivo oficial). */
+@media(max-width:767px){
+  .ct-clean-brand{width:168px!important;min-height:40px!important;}
+  .ct-clean-brand img{width:160px!important;height:32px!important;}
+}
