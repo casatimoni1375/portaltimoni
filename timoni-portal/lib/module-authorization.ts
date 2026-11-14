@@ -14,6 +14,7 @@ export function canModuleOperation(user: PortalUser | null | undefined, module: 
   else if (module === "motorista") legacyAllowed = user.readOnly !== true;
   else if (module === "compras" || module === "leads") legacyAllowed = action !== "administrar";
   else if (module === "estoque") legacyAllowed = action === "criar" || action === "editar";
+  else if (module === "estoque-rotativo") legacyAllowed = hasRotativoFullAccess(user);
   return can(user, module, action, { ...context, legacyAllowed });
 }
 
@@ -88,11 +89,19 @@ export function canStockOperation(user: PortalUser, operation: string, unidade: 
 export type RotativoRole = "report" | "conference" | "manage";
 // Existing named operational exception; no e-mail allowlists in route handlers.
 const ROTATIVO_CONFERENCE_IDENTITY = "carolina@casatimoni.com.br";
-export function canRotativoOperation(user: PortalUser, role: RotativoRole, action: AuthorizationAction) {
+/**
+ * Rotativo: acesso completo (registrar, conferir, atualizar, padronizar e excluir) para
+ * Ciça, Marcelo, Lucas (Estoque Rio Claro) e Carolina (decisão da gestão, 14/11/2026).
+ * O módulo precisa estar liberado no cadastro; somente leitura por módulo continua valendo.
+ */
+function hasRotativoFullAccess(user: PortalUser) {
   const profile = getAuthorizationProfile(user);
-  const manager = profile === "administracao-cica" || profile === "administracao-marcelo";
-  const legacyAllowed = manager || (role === "report" && profile === "estoque-rio-claro")
-    || (role === "conference" && user.email === ROTATIVO_CONFERENCE_IDENTITY);
+  return profile === "administracao-cica" || profile === "administracao-marcelo"
+    || profile === "estoque-rio-claro" || user.email === ROTATIVO_CONFERENCE_IDENTITY;
+}
+
+export function canRotativoOperation(user: PortalUser, _role: RotativoRole, action: AuthorizationAction) {
+  const legacyAllowed = hasRotativoFullAccess(user);
   return legacyAllowed && can(user, "estoque-rotativo", action, { legacyAllowed });
 }
 

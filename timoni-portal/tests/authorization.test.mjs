@@ -138,16 +138,24 @@ test("1B: Estoque preserva transições operacionais, edição restrita e proibi
   assert.equal(modulePolicy.canStockOperation(marcelo, "editar", "Rio Claro"), true);
   assert.equal(modulePolicy.canStockOperation(marcelo, "excluir", "Rio Claro"), false);
 });
-test("1B: Rotativo preserva papéis operacionais, sem gestão/backup para Marcelo", () => {
+test("Rotativo: acesso completo para Ciça, Marcelo, Lucas e Carolina (14/11/2026)", () => {
   const lucas = user("estoquetimoni@gmail.com", { unit: "Rio Claro", modules: ["estoque-rotativo"] });
   const carolina = user("carolina@casatimoni.com.br", { modules: ["estoque-rotativo"] });
   const manager = { ...marcelo, modules: ["estoque-rotativo"] };
-  assert.equal(modulePolicy.canRotativoOperation(lucas, "report", "criar"), true);
-  assert.equal(modulePolicy.canRotativoOperation(lucas, "conference", "editar"), false);
-  assert.equal(modulePolicy.canRotativoOperation(carolina, "conference", "editar"), true);
-  assert.equal(modulePolicy.canRotativoOperation(carolina, "manage", "administrar"), false);
-  assert.equal(modulePolicy.canRotativoOperation(manager, "conference", "editar"), true);
-  for (const action of ["criar", "excluir", "administrar"]) assert.equal(modulePolicy.canRotativoOperation(manager, "manage", action), false);
+  for (const person of [lucas, carolina, manager]) {
+    for (const role of ["report", "conference", "manage"]) {
+      for (const action of ["visualizar", "criar", "editar", "excluir", "administrar"]) {
+        assert.equal(modulePolicy.canRotativoOperation(person, role, action), true, `${person.email} ${role} ${action}`);
+      }
+    }
+    assert.equal(modulePolicy.canModuleOperation(person, "estoque-rotativo", "administrar"), true);
+  }
+  const semModulo = user("carolina@casatimoni.com.br", { modules: [] });
+  assert.equal(modulePolicy.canRotativoOperation(semModulo, "report", "criar"), false);
+  const leitura = user("estoquetimoni@gmail.com", { unit: "Rio Claro", modules: ["estoque-rotativo"], readOnlyModules: ["estoque-rotativo"] });
+  assert.equal(modulePolicy.canRotativoOperation(leitura, "report", "criar"), false);
+  const outro = user("vendas@example.test", { unit: "Rio Claro", modules: ["estoque-rotativo"] });
+  assert.equal(modulePolicy.canRotativoOperation(outro, "report", "criar"), false);
 });
 
 test("Motorista: nomes reais das lojas respeitam a unidade sem alterar o formulário", () => {
