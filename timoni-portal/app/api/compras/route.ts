@@ -199,8 +199,8 @@ export async function GET(request: Request) {
         summary: {
           pedidosParaFazer: pendingCards.length,
           urgentes: suppliers.filter((supplier) => supplier.urgent).length,
-          enviadosRioClaro: canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaro.length : 0,
-          enviadosAraras: canReadUnit(central.current.user, "compras", "araras") ? sentAraras.length : 0,
+          enviadosRioClaro: enviadosOnly || canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaro.length : 0,
+          enviadosAraras: enviadosOnly || canReadUnit(central.current.user, "compras", "araras") ? sentAraras.length : 0,
         },
         suppliers,
         destinations: {

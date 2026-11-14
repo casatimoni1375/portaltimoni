@@ -1,7 +1,7 @@
 import {Suspense} from "react";
 import {redirect} from "next/navigation";
 import {getPortalSession} from "@/lib/portal-session";
-import {hasModuleAccess,isCicaAccess,isManagementEmail} from "@/lib/access-control";
+import {COMPRAS_ENVIADOS_SOMENTE_EMAILS,hasModuleAccess,isCicaAccess,isManagementEmail} from "@/lib/access-control";
 import {getEffectivePanelData,getEffectivePortalUser} from "@/lib/portal-config";
 import {wantsTodayBlock} from "@/lib/today-blocks";
 import type {TodayNoticesConfig} from "@/components/clean/today";
@@ -30,6 +30,6 @@ export default async function DashboardPage(){
  const blocks=configured?.todayBlocks;
  const want=(id:string)=>wantsTodayBlock(blocks,id,has);
  const ordersAll=want("pedidos");
- const capabilities={orders:ordersAll||want("pedidos-atrasados"),ordersMode:(ordersAll?"todos":"atrasados") as "todos"|"atrasados",purchases:want("compras"),trips:want("viagens"),tripsCreate:want("viagens")&&canModuleOperation(user,"motorista","criar"),people:want("aniversarios"),agenda:!want("agenda")?null:isCicaAccess(user.email)?(has("agenda")?"principal" as const:null):(has("agenda-ct")?"timoni" as const:null),shortcuts:{estoque:want("atalho-estoque"),equipe:want("atalho-equipe"),vendas:want("atalho-vendas")}};
+ const capabilities={orders:ordersAll||want("pedidos-atrasados"),ordersMode:(ordersAll?"todos":"atrasados") as "todos"|"atrasados",purchases:want("compras"),comprasEnviadosTodas:COMPRAS_ENVIADOS_SOMENTE_EMAILS.has(user.email.trim().toLowerCase()),trips:want("viagens"),tripsCreate:want("viagens")&&canModuleOperation(user,"motorista","criar"),people:want("aniversarios"),agenda:!want("agenda")?null:isCicaAccess(user.email)?(has("agenda")?"principal" as const:null):(has("agenda-ct")?"timoni" as const:null),shortcuts:{estoque:want("atalho-estoque"),equipe:want("atalho-equipe"),vendas:want("atalho-vendas")}};
  return <Suspense fallback={<p role="status">Abrindo Hoje…</p>}><Today email={user.email} name={isCicaAccess(user.email)?"Ciça":sharedAccess||/^vendedores\b/i.test((user.accessLabel||user.name||"").trim())?"":user.name.split(" ")[0]} defaultUnit={user.unit==="Geral"?"todas":user.unit==="Araras"?"araras":"rio_claro"} capabilities={capabilities} notices={notices}/></Suspense>;
 }

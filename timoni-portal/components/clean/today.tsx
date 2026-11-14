@@ -26,7 +26,7 @@ type Source={
  * - trips: card "Viagens do motorista hoje" (atalho clicável para a agenda do Motorista)
  * - people: Aniversários e Férias
  */
-export type TodayCapabilities={orders:boolean;ordersMode?:"atrasados"|"todos";purchases:boolean;trips:boolean;tripsCreate:boolean;people:boolean;agenda:"principal"|"timoni"|null;shortcuts?:{estoque:boolean;equipe:boolean;vendas:boolean}};
+export type TodayCapabilities={orders:boolean;ordersMode?:"atrasados"|"todos";purchases:boolean;comprasEnviadosTodas?:boolean;trips:boolean;tripsCreate:boolean;people:boolean;agenda:"principal"|"timoni"|null;shortcuts?:{estoque:boolean;equipe:boolean;vendas:boolean}};
 
 const todayKey=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const formatDate=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit"}).format(new Date(value.includes("T")?value:`${value}T12:00:00-03:00`));
@@ -88,8 +88,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const sentAR=unit==="rio_claro"?0:(summary?.enviadosAraras??0);
  const cards=[
   {key:"purchases",value:pendingCount,label:"Pedidos pendentes",href:`/dashboard/compras?aba=montar&unidade=${unit}`,tone:"urgent"},
-  ...(unit!=="araras"?[{key:"purchases",value:sentRC,label:"Enviados Rio Claro",href:"/dashboard/compras?aba=acompanhar&unidade=rio_claro",tone:"normal"}]:[]),
-  ...(unit!=="rio_claro"?[{key:"purchases",value:sentAR,label:"Enviados Araras",href:"/dashboard/compras?aba=acompanhar&unidade=araras",tone:"normal"}]:[]),
+  ...(unit!=="araras"||capabilities.comprasEnviadosTodas?[{key:"purchases",value:sentRC,label:"Enviados Rio Claro",href:"/dashboard/compras?aba=acompanhar&unidade=rio_claro",tone:"normal"}]:[]),
+  ...(unit!=="rio_claro"||capabilities.comprasEnviadosTodas?[{key:"purchases",value:sentAR,label:"Enviados Araras",href:"/dashboard/compras?aba=acompanhar&unidade=araras",tone:"normal"}]:[]),
  ].filter(()=>capabilities.purchases);
  const waiting=(key:keyof Source)=>loading[key]&&!data[key];
  // Acessos operacionais (sem Compras e sem Pedidos, ex.: Caixa, Estoque) usam o layout da Bruna:
