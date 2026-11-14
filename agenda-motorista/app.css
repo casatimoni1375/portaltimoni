@@ -360,3 +360,8 @@ button:disabled{opacity:0.6;cursor:not-allowed;}
 .icon-btn{color:#102a83;}
 .icon-btn:hover{background:#f0f3fb;}
 .card{box-shadow:none;}
+/* Marca-texto no nome do cliente, na cor do card (padrão do portal). */
+.viagem-card .viagem-resumo strong{padding:0 4px;border-radius:3px;background:linear-gradient(transparent 45%, var(--marca) 45%);}
+.viagem-card.cor-amarelo{--marca:#ffd438;}
+.viagem-card.cor-verde{--marca:#a8e0b8;}
+.viagem-card.cor-azul{--marca:#b9ccff;}

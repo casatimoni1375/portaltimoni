@@ -466,7 +466,10 @@ function renderDia(destacarId) {
     const isBloqueio = v.tipoHorario === 'Bloqueio';
     const enderecoResumo = [v.endereco, v.numero].filter(Boolean).join(', ');
     const card = document.createElement('div');
-    card.className = 'viagem-card' + (isBloqueio ? ' viagem-bloqueio' : '');
+    // Marca-texto no nome do cliente, com a mesma cor da faixa do card no portal:
+    // Coleta = verde, Araras = amarelo, Rio Claro = azul.
+    const corCard = v.tipoHorario === 'Retirada' ? 'cor-verde' : (v.loja === 'araras' ? 'cor-amarelo' : 'cor-azul');
+    card.className = 'viagem-card ' + corCard + (isBloqueio ? ' viagem-bloqueio' : '');
     card.id = 'viagem-' + v.id;
     const tagTipo = v.tipoHorario === 'Retirada' ? 'tag-retirada' : (isBloqueio ? 'tag-bloqueio' : 'tag-entrega');
     card.innerHTML = `
