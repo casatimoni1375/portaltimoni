@@ -53,6 +53,12 @@ function toEventDateTime(value: string): calendar_v3.Schema$EventDateTime {
     : { dateTime: value, timeZone: TIME_ZONE };
 }
 
+// Editado = alterado mais de 1 minuto depois da criação (folga para a própria criação).
+function isEditado(created?: string | null, updated?: string | null): boolean {
+  if (!created || !updated) return false;
+  return new Date(updated).getTime() - new Date(created).getTime() > 60_000;
+}
+
 function toDTO(
   event: calendar_v3.Schema$Event,
   calendarKey: CalendarKey,
@@ -75,6 +81,7 @@ function toDTO(
     calendarLabel: CALENDARS[calendarKey].label,
     calendarColor,
     completed: event.extendedProperties?.private?.completed === "true",
+    edited: isEditado(event.created, event.updated),
     recurringEventId: event.recurringEventId ?? undefined,
     originalStartTime,
     allDay: Boolean(event.start.date),

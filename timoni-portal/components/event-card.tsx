@@ -38,8 +38,10 @@ export function EventCard({
 }) {
   const isAllDay = !event.start.includes("T");
   const calendarColor = event.calendarColor || CALENDAR_COLOR_FALLBACKS[event.calendarKey];
-  // Evento que já passou conta como concluído (sem botão Concluir).
-  const concluido = Boolean(event.completed) || new Date(event.end).getTime() < Date.now();
+  // Evento que já passou conta como concluído, a menos que tenha sido editado.
+  // Editado não ganha o carimbo sozinho: fica sem marcação até alguém decidir.
+  const passou = new Date(event.end).getTime() < Date.now();
+  const concluido = Boolean(event.completed) || (passou && !event.edited);
 
   const timeLabel = isAllDay
     ? `${event.start.slice(8, 10)}/${event.start.slice(5, 7)}`
