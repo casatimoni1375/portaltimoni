@@ -620,6 +620,12 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setModal(true);
   }
 
+  // Erro junto do campo obrigatório, mostrado depois de tentar salvar.
+  function mensagemCampo(name: keyof FormState) {
+    if (!invalidos.has(name)) return null;
+    return <span className="mt-1 block text-xs font-normal text-red-600">Preencha este campo.</span>;
+  }
+
   function fieldClass(name: keyof FormState) {
     return `mt-1 w-full min-w-0 rounded-xl border bg-white px-3 py-2.5 text-base md:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${invalidos.has(name) ? "border-red-500" : "border-slate-300"}`;
   }
@@ -966,10 +972,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(4, minmax(0, 1fr))")} className="mt-5 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{vendedoresIndisponiveis && vendedoresDisponiveis.length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">Lista de vendedores indisponível no momento. Avise a gestão.</span>}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select>{mensagemCampo("tipo")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("loja")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required />{mensagemCampo("data")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{vendedoresIndisponiveis && vendedoresDisponiveis.length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">Lista de vendedores indisponível no momento. Avise a gestão.</span>}{mensagemCampo("vendedor")}</label>
             </div>
 
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -978,8 +984,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Nota Fiscal/Pedido<input value={form.numeroPedido} onChange={(e) => set("numeroPedido", e.target.value)} className={fieldClass("numeroPedido")} /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Cliente/Fornecedor<input value={form.clienteFornecedor} onChange={(e) => set("clienteFornecedor", e.target.value.toUpperCase())} className={fieldClass("clienteFornecedor")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Nota Fiscal/Pedido<input value={form.numeroPedido} onChange={(e) => set("numeroPedido", e.target.value)} className={fieldClass("numeroPedido")} />{mensagemCampo("numeroPedido")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Cliente/Fornecedor<input value={form.clienteFornecedor} onChange={(e) => set("clienteFornecedor", e.target.value.toUpperCase())} className={fieldClass("clienteFornecedor")} />{mensagemCampo("clienteFornecedor")}</label>
               <label className="min-w-0 text-sm font-medium text-slate-700">A/C<input value={form.contatoNome} onChange={(e) => set("contatoNome", e.target.value)} className={fieldClass("contatoNome")} /></label>
             </div>
 
@@ -990,8 +996,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("minmax(0, 1fr) 180px")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} />{mensagemCampo("endereco")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} />{mensagemCampo("numeroEndereco")}</label>
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
@@ -1001,7 +1007,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("180px minmax(0, 1fr)")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} />{mensagemCampo("volumes")}</label>
               <div className="min-w-0"><label className="min-w-0 text-sm font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-xs font-semibold text-blue-800 underline underline-offset-2">Repetir última discriminação</button></div>
             </div>
 
