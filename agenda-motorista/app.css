@@ -337,3 +337,26 @@ button:disabled{opacity:0.6;cursor:not-allowed;}
   .motorista-obs{min-height:72px;font-size:16px;}
   .btn-grande{min-height:56px;}
 }
+
+/* Padrão visual limpo (ct-clean): cores da proposta aprovada. */
+:root{
+  --blue:#102a83;
+  --blue-dark:#0c1f66;
+  --blue-disabled:#b8c3ea;
+  --ink:#182443;
+  --ink-soft:#65718a;
+  --border:#e1e6f0;
+  --card-bg:#ffffff;
+  --page-bg:#f5f6fb;
+  --header-bg:#ffffff;
+  --amber:#996000;
+  --amber-bg:#fff4e1;
+}
+.topbar{background:#ffffff;border-bottom:1px solid #e1e6f0;box-shadow:none;}
+.brand-title{color:#182443;}
+.brand-dim{color:#65718a;}
+.portal-back{background:#edf0fa;color:#102a83;}
+.portal-back:hover{background:#e0e6f7;}
+.icon-btn{color:#102a83;}
+.icon-btn:hover{background:#f0f3fb;}
+.card{box-shadow:none;}

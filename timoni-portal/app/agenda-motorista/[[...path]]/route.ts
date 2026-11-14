@@ -13,7 +13,7 @@ const ALLOWED_FILES = new Map<string, string>([
 
 async function fetchAgendaFile(ref: string, filePath: string, accept: string) {
   const safePath = filePath.split("/").map(encodeURIComponent).join("/");
-  const sourceUrl = `https://raw.githubusercontent.com/mcrodini-Hub/portaltimoni/${ref}/agenda-motorista/${safePath}`;
+  const sourceUrl = `https://raw.githubusercontent.com/casatimoni1375/portaltimoni/${ref}/agenda-motorista/${safePath}`;
   return fetch(sourceUrl, { headers: { Accept: accept }, next: { revalidate: 300 } });
 }
 
