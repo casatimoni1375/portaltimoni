@@ -75,6 +75,13 @@ function formatTime(value: string) {
   return value ? value.replace(/^0/, "") : "";
 }
 
+// Reunião sem nenhuma data futura continua na tela enquanto tiver data passada
+// aguardando arquivamento. Sem isso, o botão "Arquivar" da última reunião da série some.
+function semDataFutura(meeting: Meeting): Meeting | null {
+  if (meeting.status !== "agendada" || pastOccurrences(meeting).length === 0) return null;
+  return { ...meeting, date: "", time: "", secondDate: "", secondTime: "", additionalDates: [] };
+}
+
 function upcomingMeeting(meeting: Meeting): Meeting | null {
   if (meeting.status !== "agendada") return null;
   const dates = [
@@ -126,7 +133,7 @@ function MeetingCard({
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="min-w-0 rounded-xl bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Próxima</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{formatDate(meeting.date)}</p>
+          <p className="mt-1 text-xl font-bold text-slate-900">{meeting.date ? formatDate(meeting.date) : "A definir"}</p>
           {meeting.time && <p className="text-sm text-slate-500">{formatTime(meeting.time)}</p>}
         </div>
         <div className="min-w-0 rounded-xl bg-slate-50 p-4">
@@ -223,7 +230,7 @@ export default function ReunioesClient({
   const visible = useMemo(
     () => items
       .filter((item) => allowedUnits.includes(item.unit))
-      .map(upcomingMeeting)
+      .map((item) => upcomingMeeting(item) ?? semDataFutura(item))
       .filter((item): item is Meeting => Boolean(item)),
     [items, allowedUnits],
   );
