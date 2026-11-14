@@ -46,9 +46,24 @@ export async function getPortalConfigurationRevision(): Promise<string> {
   return rows[0]?.revision ?? "1";
 }
 
+// Usado na checagem de sessão (callback jwt, a cada requisição). Cache curto por processo,
+// zerado quando este processo grava uma revisão. Em outras instâncias, vale em até 10 s.
+// A rota /api/configuracoes/version continua lendo sem cache.
+const REVISION_CACHE_TTL_MS = 10_000;
+let revisionCache: { value: Promise<string>; until: number } | null = null;
+
+function getPortalConfigurationRevisionCached(): Promise<string> {
+  const now = Date.now();
+  if (revisionCache && revisionCache.until > now) return revisionCache.value;
+  const value = getPortalConfigurationRevision();
+  revisionCache = { value, until: now + REVISION_CACHE_TTL_MS };
+  value.catch(() => { if (revisionCache?.value === value) revisionCache = null; });
+  return value;
+}
+
 export async function getPortalConfigurationRevisionSafely(): Promise<string | null> {
   try {
-    return await getPortalConfigurationRevision();
+    return await getPortalConfigurationRevisionCached();
   } catch (error) {
     console.error("[portal-config-revision] Falha ao ler a versão.", error);
     return null;
@@ -56,6 +71,7 @@ export async function getPortalConfigurationRevisionSafely(): Promise<string | n
 }
 
 export async function bumpPortalConfigurationRevision(): Promise<void> {
+  revisionCache = null;
   await ensureSchema();
   const sql = getDatabase();
   await sql`
