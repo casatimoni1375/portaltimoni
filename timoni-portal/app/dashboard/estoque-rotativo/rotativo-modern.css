@@ -1,0 +1,35 @@
+/* Estoque Rotativo no padrão visual novo (Hoje e Compras). Só aparência; o fluxo não muda. */
+.ct-rotativo { max-width: 1180px; margin: 0 auto; }
+
+.ct-rt-heading { display: grid; gap: 6px; }
+.ct-rt-back { width: fit-content; min-height: 44px; display: inline-flex; align-items: center; color: var(--ct-clean-blue); font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+main .ct-rotativo .ct-rt-heading h1 { color: var(--ct-clean-ink); margin: 0; font-weight: 600 !important; }
+.ct-rt-heading > p { color: var(--ct-clean-muted); margin: 0; font-size: 16px; }
+
+.ct-rt-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.ct-rt-flow > li { border: 1px solid var(--ct-clean-line); border-radius: 10px; background: #fff; color: var(--ct-clean-blue); font-size: 15px; padding: 10px 12px; }
+
+.ct-rotativo .ct-rt-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 0; }
+
+.ct-rt-alert { border-radius: 9px; padding: 10px 14px; font-size: 15px; }
+.ct-rt-ok { border: 1px solid #bfe3cd; background: #f1fbf4; color: #1f6b3d; }
+.ct-rt-error { border: 1px solid #f4b9bc; background: #fff0f0; color: #b12532; }
+
+.ct-rotativo .ct-rt-card { border: 1px solid var(--ct-clean-line); border-radius: 12px !important; background: #fff; box-shadow: none; padding: 18px 20px; min-width: 0; }
+.ct-rt-step { color: var(--ct-clean-muted); font-size: 14px !important; margin: 0; }
+main .ct-rotativo .ct-rt-title { color: var(--ct-clean-ink); font-weight: 600 !important; margin: 2px 0 0; }
+.ct-rt-summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--ct-clean-ink); font-size: 18px; font-weight: 600; }
+
+.ct-rt-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 7px; background: var(--ct-clean-blue); color: #fff; font-size: 16px; font-weight: 600; padding: 8px 16px; white-space: nowrap; }
+.ct-rt-primary:hover { background: #0b1f66; }
+.ct-rt-primary:disabled, .ct-rotativo .ct-clean-action:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Tabelas e listas internas: linhas finas, sem sombras. */
+.ct-rotativo :is(.rounded-2xl, .rounded-xl).border { border-color: var(--ct-clean-line); }
+.ct-rotativo .shadow-sm { box-shadow: none; }
+.ct-rotativo thead { background: #f5f6fb; color: var(--ct-clean-muted); }
+
+@media (max-width: 767px) {
+  .ct-rt-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ct-rotativo .ct-rt-card { padding: 16px; }
+}
