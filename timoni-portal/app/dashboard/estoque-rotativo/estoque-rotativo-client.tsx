@@ -563,53 +563,51 @@ export default function EstoqueRotativoClient() {
   const visibleItems = data?.items || [];
 
   return (
-    <div className="ct-modern-workspace space-y-5 pb-10">
-      <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Módulo operacional</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Estoque Rotativo</h1>
-          </div>
-        </div>
-      </section>
+    <div className="ct-modern-workspace ct-rotativo space-y-5 pb-10">
+      <header className="ct-rt-heading">
+        <a href="/dashboard/compras?aba=necessidades" className="ct-rt-back">← Compras</a>
+        <h1>Estoque Rotativo</h1>
+        <p>Origem: Trello, lista ESTOQUE ROTATIVO LUCAS/CAROL. A planilha do fornecedor atualiza o Rotativo pelo COD-VENDA.</p>
+      </header>
 
-      <section className="grid grid-cols-2 gap-2 sm:gap-3">
+      <ol className="ct-rt-flow" aria-label="Etapas do Rotativo">
+        <li>1. Card no Trello</li>
+        <li>2. Planilha do fornecedor</li>
+        <li>3. Conferência</li>
+        <li>4. Atualizar Rotativo</li>
+      </ol>
+
+      <section className="ct-clean-metrics ct-rt-metrics" aria-label="Situação do Rotativo">
         {[
-          ["Estoque atual pendente", pending],
-          ["Estoque atual atualizado", stockUpdated],
-        ].map(([label, value]) => (
-          <article key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <p className="text-2xl font-semibold text-slate-950 sm:text-3xl">{loading ? "…" : value ?? "—"}</p>
-            <p className="mt-1 text-xs text-slate-600 sm:mt-2 sm:text-sm">{label}</p>
+          ["Cards pendentes no Trello", pending, "ct-clean-urgent"],
+          ["Atualizações concluídas", stockUpdated, "ct-clean-normal"],
+        ].map(([label, value, tone]) => (
+          <article key={String(label)} className={`ct-clean-metric ${tone}`}>
+            <strong>{loading ? "…" : value ?? "—"}</strong>
+            <span>{label}</span>
           </article>
         ))}
       </section>
 
-      {feedback ? (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-800">
-          {feedback}
-        </p>
-      ) : null}
+      {feedback ? <p role="status" className="ct-rt-alert ct-rt-ok">{feedback}</p> : null}
 
-      {error ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-800">{error}</p>
-      ) : null}
+      {error ? <p role="alert" className="ct-rt-alert ct-rt-error">{error}</p> : null}
 
 
 
       {data?.permissions.canReport ? (
         <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <article className="ct-rt-card">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">1. Fornecedor</p>
-                <h2 className="mt-2 text-xl font-semibold text-slate-950">Atualizações pendentes</h2>
+                <p className="ct-rt-step">1. Card no Trello</p>
+                <h2 className="ct-rt-title">Atualizações pendentes</h2>
               </div>
               <button
                 type="button"
                 onClick={() => void refreshTrello(true)}
                 disabled={refreshingTrello}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50"
+                className="ct-clean-action"
               >
                 {refreshingTrello ? "Atualizando..." : "Atualizar"}
               </button>
@@ -666,7 +664,7 @@ export default function EstoqueRotativoClient() {
                 href={TRELLO_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-11 items-center rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-800"
+                className="ct-clean-action"
               >
                 Abrir Trello
               </a>
@@ -674,16 +672,16 @@ export default function EstoqueRotativoClient() {
                 href={SUPPLIERS_DRIVE_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm font-semibold text-white"
+                className="ct-rt-primary"
               >
                 Abrir pasta de fornecedores
               </a>
             </div>
           </article>
 
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">3. Itens do estoque</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Planilha do fornecedor</h2>
+          <article className="ct-rt-card">
+            <p className="ct-rt-step">2. Planilha do fornecedor</p>
+            <h2 className="ct-rt-title">Planilha do fornecedor</h2>
             <label className="mt-4 block text-sm font-semibold text-slate-800">
               Fornecedor / grupo · opcional
               <input
@@ -769,7 +767,7 @@ export default function EstoqueRotativoClient() {
               type="button"
               onClick={() => void filterItems()}
               disabled={busy}
-              className="mt-4 min-h-12 rounded-xl bg-blue-700 px-6 text-sm font-semibold text-white hover:bg-blue-800 disabled:bg-slate-300"
+              className="ct-rt-primary mt-4"
             >
               {busy ? "Filtrando..." : "Filtrar itens do estoque"}
             </button>
@@ -781,10 +779,10 @@ export default function EstoqueRotativoClient() {
       ) : null}
 
       {activeId && data ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="ct-rt-card">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Itens filtrados</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Total: {visibleItems.length} itens</h2>
+            <p className="ct-rt-step">3. Conferência</p>
+            <h2 className="ct-rt-title">Total: {visibleItems.length} itens</h2>
           </div>
 
           <div id="rotativo-itens-filtrados" className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
@@ -902,9 +900,9 @@ export default function EstoqueRotativoClient() {
       ) : null}
 
       {activeId && data ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">4. Finalizar</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-950">Atualizar Rotativo</h2>
+        <section className="ct-rt-card">
+          <p className="ct-rt-step">4. Atualizar Rotativo</p>
+          <h2 className="ct-rt-title">Atualizar Rotativo</h2>
 
           {(data.items || []).some((item) => item.situation === "nao_encontrado") ? (
             <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
@@ -927,7 +925,7 @@ export default function EstoqueRotativoClient() {
                 type="button"
                 onClick={() => document.getElementById("rotativo-itens-filtrados")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 disabled={busy}
-                className="min-h-11 rounded-xl border border-blue-200 px-5 text-sm font-semibold text-blue-800 disabled:opacity-50"
+                className="ct-clean-action"
               >
                 Não · Editar
               </button>
@@ -937,10 +935,10 @@ export default function EstoqueRotativoClient() {
       ) : null}
 
       {data?.history?.length ? (
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="ct-rt-card">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Histórico</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Comparação entre períodos</h2>
+            <p className="ct-rt-step">Histórico</p>
+            <h2 className="ct-rt-title">Comparação entre períodos</h2>
           </div>
           <div className="mt-4 max-h-96 overflow-auto rounded-2xl border border-slate-200">
             <table className="w-full min-w-[700px] border-collapse text-sm">
@@ -971,10 +969,10 @@ export default function EstoqueRotativoClient() {
 
       <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
       {data ? (
-        <section className="order-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="ct-rt-card order-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Estoque Rotativo</p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-950">Estoque atualizado</h2>
+            <p className="ct-rt-step">Rotativo</p>
+            <h2 className="ct-rt-title">Estoque atualizado</h2>
           </div>
           <div className="mt-3 space-y-2">
             {visibleUpdates.length ? visibleUpdates.map((item) => (
@@ -1036,7 +1034,7 @@ export default function EstoqueRotativoClient() {
                         href={updatedSheetUrl(item.id)}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm font-semibold text-white"
+                        className="ct-rt-primary"
                       >
                         Rotativo atualizado
                       </a>
@@ -1126,8 +1124,8 @@ export default function EstoqueRotativoClient() {
           if (!event.currentTarget.open || selectedStandardizationSupplierId) return;
           const supplier = pendingSupplierFiles.find((item) => spreadsheetReference.includes(item.id) || item.name.toLocaleLowerCase("pt-BR") === supplierName.trim().toLocaleLowerCase("pt-BR"));
           if (supplier) void selectStandardizationSupplier(supplier.id);
-        }} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <summary className="cursor-pointer text-base font-semibold text-[#13038D]">Padronização das planilhas</summary>
+        }} className="ct-rt-card">
+          <summary className="ct-rt-summary">Padronização das planilhas</summary>
           {standardizationError ? <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{standardizationError}</p> : null}
           <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
             <label className="min-w-0 text-sm font-semibold text-slate-800">Fornecedor
@@ -1150,18 +1148,18 @@ export default function EstoqueRotativoClient() {
               ) : selectedPreparedSupplier ? (
                 <>
                   <a href={selectedPreparedSupplier.spreadsheet_url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[#13038D] underline">Abrir aba para conferir</a>
-                  <button type="button" onClick={() => void confirmSupplierSheet()} disabled={busy || standardizingSupplier} className="min-h-11 rounded-xl bg-[#13038D] px-4 text-sm font-semibold text-white disabled:opacity-50">Salvar padronização</button>
-                  <button type="button" onClick={() => void revertPreparedSupplier()} disabled={busy || standardizingSupplier} className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 disabled:opacity-50">Reverter</button>
+                  <button type="button" onClick={() => void confirmSupplierSheet()} disabled={busy || standardizingSupplier} className="ct-rt-primary">Salvar padronização</button>
+                  <button type="button" onClick={() => void revertPreparedSupplier()} disabled={busy || standardizingSupplier} className="ct-clean-action">Reverter</button>
                 </>
               ) : (
-                <button type="button" onClick={() => void standardizeNextSupplier(selectedStandardizationSupplier.id)} disabled={busy || standardizingSupplier} className="min-h-11 rounded-xl bg-[#13038D] px-4 text-sm font-semibold text-white disabled:opacity-50">{standardizingSupplier ? "Padronizando..." : "Padronizar e conferir"}</button>
+                <button type="button" onClick={() => void standardizeNextSupplier(selectedStandardizationSupplier.id)} disabled={busy || standardizingSupplier} className="ct-rt-primary">{standardizingSupplier ? "Padronizando..." : "Padronizar e conferir"}</button>
               )}
             </div>
           ) : null}
         <div className="mt-5 border-t border-slate-200 pt-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Planilhas de fornecedores</p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-950">Abas padronizadas</h2>
+            <p className="ct-rt-step">Planilhas de fornecedores</p>
+            <h2 className="ct-rt-title">Abas padronizadas</h2>
           </div>
           <div className="mt-3 space-y-2">
             {(data.supplierStandardizations || []).filter((item) => item.status === "atualizada").length ? (
