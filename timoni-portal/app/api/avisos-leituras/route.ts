@@ -120,11 +120,15 @@ export async function POST(request: Request) {
       listConfiguredPortalUsers(current.accessToken),
     ]);
     const confirmationAccesses = new Set(users.filter((user) => user.active !== false && user.noticeRequired).map((user) => normalizeEmail(user.email)));
-    if (!collaborators.some((member) => member.name === employee && member.unit === unit && member.active && confirmationAccesses.has(normalizeEmail(member.accessEmail)))) {
+    const matchedMember = collaborators.find((member) => member.name === employee && member.unit === unit);
+    if (!matchedMember || !matchedMember.active || !confirmationAccesses.has(normalizeEmail(matchedMember.accessEmail))) {
+      // Diagnóstico: motivo da recusa (sem nomes nem e-mails).
+      console.warn("[avisos-leituras][POST] funcionário recusado", { encontrado: Boolean(matchedMember), ativo: matchedMember?.active ?? null, acessoExigeConfirmacao: matchedMember ? confirmationAccesses.has(normalizeEmail(matchedMember.accessEmail)) : null, unidadeRecebida: unit, totalColaboradores: collaborators.length });
       return NextResponse.json({ error: "Selecione um funcionário válido." }, { status: 400 });
     }
     const permittedUnit = allowedUnit(current.email, current.portalUser);
     if (permittedUnit !== "geral" && unit !== permittedUnit) {
+      console.warn("[avisos-leituras][POST] unidade fora do acesso", { unidadeRecebida: unit, unidadePermitida: permittedUnit });
       return NextResponse.json({ error: "Funcionário fora da unidade deste acesso." }, { status: 403 });
     }
 
@@ -133,7 +137,10 @@ export async function POST(request: Request) {
     const notices = await listComunicados(current.accessToken);
     const currentUnit = permittedUnit === "Araras" ? "araras" : permittedUnit === "Rio Claro" ? "rio claro" : "geral";
     const notice = notices.find((item) => item.id === avisoId && item.status === "ativo" && (MANAGEMENT_EMAILS.has(current.email) || canViewComunicado(item, current.email, currentUnit)));
-    if (!notice) return NextResponse.json({ error: "Aviso não encontrado ou encerrado." }, { status: 404 });
+    if (!notice) {
+      console.warn("[avisos-leituras][POST] aviso não encontrado para este acesso", { unidadePermitida: permittedUnit, avisosAtivos: notices.filter((item) => item.status === "ativo").length });
+      return NextResponse.json({ error: "Aviso não encontrado ou encerrado." }, { status: 404 });
+    }
     const noticeUnit = notice.unit === "rio claro" ? "Rio Claro" : notice.unit === "araras" ? "Araras" : "geral";
     if (noticeUnit !== "geral" && noticeUnit !== unit) {
       return NextResponse.json({ error: "Este aviso não pertence à unidade selecionada." }, { status: 403 });
