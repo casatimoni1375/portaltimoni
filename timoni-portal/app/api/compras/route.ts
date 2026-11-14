@@ -2,7 +2,7 @@ import { canReadUnit } from "@/lib/module-authorization";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { savePurchaseOrdersSnapshot } from "@/lib/purchase-orders";
 import { auth } from "@/lib/auth";
-import { hasModuleAccess } from "@/lib/access-control";
+import { COMPRAS_ENVIADOS_SOMENTE_EMAILS, hasModuleAccess } from "@/lib/access-control";
 import {
   getStoredTrelloCredentials,
   normalizeTrelloText,
@@ -112,6 +112,8 @@ export async function GET(request: Request) {
   }
 
   const summaryOnly = new URL(request.url).searchParams.get("summary") === "1";
+  // Contas listadas aqui leem apenas os pedidos enviados: sem pendências, urgências nem gravação de snapshot.
+  const enviadosOnly = COMPRAS_ENVIADOS_SOMENTE_EMAILS.has(String(central.current.user.email || "").trim().toLowerCase());
   // A leitura do painel não deve criar nem atualizar documentação no Trello.
   const portalDocsSync = null;
 
@@ -141,7 +143,7 @@ export async function GET(request: Request) {
       hasAllTokens(list.name, ["pedidos", "enviado", "araras"]),
     );
 
-    const pendingCards = pendingList
+    const pendingCards = pendingList && !enviadosOnly
       ? cards.filter((card) => {
         if (card.idList !== pendingList.id) return false;
         const labels = labelNames(card);
@@ -156,7 +158,7 @@ export async function GET(request: Request) {
       ? cards.filter((card) => card.idList === sentArarasList.id)
       : []);
 
-    if (!summaryOnly) await savePurchaseOrdersSnapshot([
+    if (!summaryOnly && !enviadosOnly) await savePurchaseOrdersSnapshot([
       ...sentRioClaro.map((card) => sentOrder(card, "rio_claro")),
       ...sentAraras.map((card) => sentOrder(card, "araras")),
     ], startedAt);
