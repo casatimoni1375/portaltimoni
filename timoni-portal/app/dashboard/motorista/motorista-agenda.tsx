@@ -768,33 +768,6 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     }
   }
 
-  async function concluirViagem(v: Viagem) {
-    if (lerConclusao(v.notasJson)) return;
-    const observacao = window.prompt("Observação da conclusão (opcional):", "");
-    if (observacao === null) return;
-    setSaving(true);
-    setErro("");
-    try {
-      const payload = new URLSearchParams({
-        action: "atualizar",
-        id: v.id,
-        data: v.data,
-        notasJson: notasComConclusao(v.notasJson, observacao),
-      });
-      const response = await fetch("/api/agenda-motorista", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body: payload,
-      });
-      await parseResponse(response);
-      await carregarDia(v.data);
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não foi possível concluir a viagem.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function excluirViagem(v: Viagem) {
     if (!window.confirm("Excluir esta viagem definitivamente?")) return;
     setSaving(true);
@@ -897,7 +870,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         {v.info && <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
                         <p className="mt-1 text-xs text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {lerConclusao(v.notasJson) ? <Carimbo>Concluído</Carimbo> : <><Carimbo tom="pendente">Pendente</Carimbo><button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg border border-[#102a83] bg-white px-3 py-1.5 text-xs font-semibold text-[#102a83] disabled:opacity-60">Concluir</button></>}
+                          {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
                           <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                           {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
@@ -930,7 +903,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
-                    {lerConclusao(v.notasJson) ? <Carimbo>Concluído</Carimbo> : <><Carimbo tom="pendente">Pendente</Carimbo><button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg border border-[#102a83] bg-white px-3 py-2 text-sm font-semibold text-[#102a83] disabled:opacity-60">Concluir</button></>}
+                    {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
                     <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                     {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                   </div>}
