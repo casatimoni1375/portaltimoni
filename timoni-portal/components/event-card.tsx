@@ -38,16 +38,16 @@ export function getUrgency(startIso: string, endIso: string, nowMs: number): Urg
 export function EventCard({
   event,
   onEdit,
-  onComplete,
   onDelete,
 }: {
   event: CalendarEventDTO;
   onEdit: (event: CalendarEventDTO) => void;
-  onComplete: (event: CalendarEventDTO) => void;
   onDelete: (event: CalendarEventDTO) => void;
 }) {
   const isAllDay = !event.start.includes("T");
   const calendarColor = event.calendarColor || CALENDAR_COLOR_FALLBACKS[event.calendarKey];
+  // Evento que já passou conta como concluído (sem botão Concluir).
+  const concluido = Boolean(event.completed) || new Date(event.end).getTime() < Date.now();
 
   const timeLabel = isAllDay
     ? `${event.start.slice(8, 10)}/${event.start.slice(5, 7)}`
@@ -77,24 +77,13 @@ export function EventCard({
               {event.calendarLabel}
             </span>
           </div>
-          <p className={clsx("mt-2 break-words text-base font-medium", event.completed && "text-slate-500 line-through")}>
+          <p className={clsx("mt-2 break-words text-base font-medium", concluido && "text-slate-500 line-through")}>
             {event.summary}
           </p>
+          {concluido && <span className="mt-1 inline-flex text-xs font-semibold text-green-700">✓ Concluído</span>}
           {event.location && <p className="mt-1 break-words text-[15px] text-slate-500 sm:text-sm">{event.location}</p>}
         </div>
         <div className="grid w-full grid-cols-3 items-center gap-2 sm:flex sm:w-auto sm:shrink-0 sm:flex-wrap sm:items-center">
-          <button
-            type="button"
-            onClick={() => onComplete(event)}
-            className={clsx(
-              "inline-flex min-h-9 min-w-0 items-center justify-center rounded-lg px-2 py-2 text-[13px] font-medium transition sm:px-3 sm:text-sm",
-              event.completed
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "bg-green-50 text-green-700 hover:bg-green-100"
-            )}
-          >
-            ✓ {event.completed ? "Concluído" : "Concluir"}
-          </button>
           <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="secondary" onClick={() => onEdit(event)}>
             Editar
           </Button>

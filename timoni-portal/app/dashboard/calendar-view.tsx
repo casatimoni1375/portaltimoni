@@ -137,7 +137,6 @@ export function CalendarView({
   const [formOpen, setFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEventDTO | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [completingId, setCompletingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchSourceEvents, setSearchSourceEvents] = useState<CalendarEventDTO[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -253,30 +252,6 @@ export function CalendarView({
     }
   }
 
-  async function handleComplete(event: CalendarEventDTO) {
-    setCompletingId(event.id);
-    try {
-      const res = await fetch(`/api/events/${event.id}?calendarKey=${event.calendarKey}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: !event.completed }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? "Não foi possível atualizar o compromisso.");
-        return;
-      }
-      await Promise.all([
-        refreshEvents(view, periodOffset),
-        searchSourceEvents ? refreshSearchEvents() : Promise.resolve(),
-      ]);
-    } catch {
-      setError("Falha de conexão ao atualizar o compromisso.");
-    } finally {
-      setCompletingId(null);
-    }
-  }
-
   const pendingUpcomingEvents = useMemo(
     () => events.filter((event) => !event.completed && eventDateKey(event.start) >= todayKey),
     [events, todayKey]
@@ -381,7 +356,6 @@ export function CalendarView({
           setEditingEvent(selected);
           setFormOpen(true);
         }}
-        onComplete={handleComplete}
         onDelete={handleDelete}
       />
     );
@@ -671,12 +645,6 @@ export function CalendarView({
             if (searchSourceEvents) void refreshSearchEvents();
           }}
         />
-      )}
-
-      {completingId && (
-        <p className="fixed bottom-4 right-4 rounded-lg bg-slate-900 px-3 py-2 text-sm text-white">
-          Atualizando compromisso…
-        </p>
       )}
 
       {deletingId && (

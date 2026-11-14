@@ -1,6 +1,5 @@
 "use client";
 
-import { escapePrintHtml, safePrintUrl } from "@/lib/motorista-print";
 import { createMotoristaReadLoader } from "@/lib/motorista-read-loader";
 
 // MOTORISTA DASHBOARD: manter Dia, Semana e Mês. A rota /motorista (relatório/leitura) não deve ser alterada nesta reestruturação.
@@ -441,6 +440,28 @@ function notasComRetirada(notasJson?: string) {
   return JSON.stringify({ ...base, status: "retirado", retiradoEm: new Date().toISOString() });
 }
 
+// Último vendedor e empresa usados ao salvar uma viagem, para já virem preenchidos.
+const CHAVE_ULTIMO_MOTORISTA = "motorista:ultimo";
+
+function lerUltimoMotorista(): { loja: string; vendedor: string } {
+  if (typeof window === "undefined") return { loja: "", vendedor: "" };
+  try {
+    const dados = JSON.parse(window.localStorage.getItem(CHAVE_ULTIMO_MOTORISTA) || "{}");
+    return { loja: String(dados.loja || ""), vendedor: String(dados.vendedor || "") };
+  } catch {
+    return { loja: "", vendedor: "" };
+  }
+}
+
+function guardarUltimoMotorista(loja: string, vendedor: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CHAVE_ULTIMO_MOTORISTA, JSON.stringify({ loja, vendedor }));
+  } catch {
+    // Armazenamento indisponível: o formulário segue sem lembrar a última escolha.
+  }
+}
+
 function formatarCep(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 8);
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
@@ -466,6 +487,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   const [layoutViewport, setLayoutViewport] = useState<"mobile" | "tablet" | "desktop">("desktop");
   const leituraAtual = useRef<ReturnType<typeof createMotoristaReadLoader> | null>(null);
   const ativo = useRef(false);
+  const numeroRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     ativo.current = true;
@@ -563,7 +585,13 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   function abrirNova(data = selecionado) {
     setEditandoId(null);
     // Com uma só empresa permitida (ex.: Araras = Casa Timoni), ela já vem escolhida.
-    setForm({ ...emptyForm(data), loja: empresas.length === 1 ? empresas[0] : "" });
+    // Nos demais casos, vem a empresa e o vendedor da última viagem salva.
+    const ultimo = lerUltimoMotorista();
+    setForm({
+      ...emptyForm(data),
+      loja: empresas.length === 1 ? empresas[0] : empresas.includes(ultimo.loja) ? ultimo.loja : "",
+      vendedor: ultimo.vendedor,
+    });
     setInvalidos(new Set());
     setErro("");
     setAviso("");
@@ -589,15 +617,6 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setModal(true);
   }
 
-  function duplicarViagem(v: Viagem) {
-    setEditandoId(null);
-    setForm({ ...formFromViagem(v), notasJson: "[]" });
-    setInvalidos(new Set());
-    setErro("");
-    setAviso("");
-    setModal(true);
-  }
-
   function fieldClass(name: keyof FormState) {
     return `mt-1 w-full min-w-0 rounded-xl border bg-white px-3 py-2.5 text-base md:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${invalidos.has(name) ? "border-red-500" : "border-slate-300"}`;
   }
@@ -612,8 +631,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     });
   }
 
-  async function buscarCep() {
-    const cep = form.cep.replace(/\D/g, "");
+  async function buscarCep(cepInformado = form.cep) {
+    const cep = cepInformado.replace(/\D/g, "");
     if (cep.length !== 8) {
       setAviso("");
       setErro("Digite um CEP com 8 números.");
@@ -636,10 +655,32 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       set("numeroEndereco", "");
       set("linkEndereco", "");
       setAviso("CEP localizado. Confirme o número para gerar o link do Google Maps.");
+      // Depois do CEP, o cursor vai direto para o Número.
+      numeroRef.current?.focus();
     } catch (e) {
       setAviso("");
       setErro(e instanceof Error ? e.message : "Não foi possível buscar o CEP.");
     }
+  }
+
+  // Copia a discriminação da entrega mais recente do mesmo cliente/fornecedor.
+  function repetirUltimaDiscriminacao() {
+    const cliente = form.clienteFornecedor.trim().toUpperCase();
+    if (!cliente) {
+      setErro("Preencha Cliente/Fornecedor para repetir a última discriminação.");
+      return;
+    }
+    const anterior = Object.keys(viagens)
+      .sort()
+      .reverse()
+      .flatMap((data) => viagens[data] || [])
+      .find((v) => v.id !== editandoId && (v.clienteFornecedor || "").trim().toUpperCase() === cliente && v.info?.trim());
+    if (!anterior) {
+      setErro("Não há discriminação anterior para este cliente.");
+      return;
+    }
+    setErro("");
+    set("discriminacao", anterior.info || "");
   }
 
   async function salvar(event: FormEvent) {
@@ -708,6 +749,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
         body: payload,
       });
       await parseResponse(response);
+      guardarUltimoMotorista(form.loja, form.vendedor);
       setModal(false);
       setSelecionado(form.data);
       if (modo === "mes") await carregarMes();
@@ -771,38 +813,6 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setModo("dia");
   }
 
-  function imprimirDia() {
-    const itens = (viagens[selecionado] || [])
-      .slice()
-      .sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
-
-    if (!itens.length) {
-      setErro("Não há registros neste dia para imprimir.");
-      return;
-    }
-
-    const data = dateFromString(selecionado);
-    const diaSemana = data.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
-    const linhas = itens.map((v, index) => {
-      const tipo = lerMetaMotorista(v.notasJson).tipo;
-      const endereco = formatarEnderecoExibicao(v.endereco, v.numero, v.complemento);
-      const link = safePrintUrl(separarEndereco(v.endereco).link);
-      const linha1 = linhaPrincipalRelatorio(v, index);
-      const empresa = (v.clienteFornecedor || "").toUpperCase();
-      const documento = documentoTexto(v.numeroPedido);
-      const linha2 = [documento, empresa ? `${v.contatoNome ? "CLIENTE " : ""}${empresa}` : "", v.contatoNome ? `A/C: ${v.contatoNome.toUpperCase()}` : "", !v.contatoNome && v.volumes ? `VOLUME: ${String(v.volumes).toUpperCase()}` : ""].filter(Boolean).join(" | ");
-      const volume = v.contatoNome && v.volumes ? `<p><strong>VOLUME: ${escapePrintHtml(String(v.volumes).toUpperCase())}</strong></p>` : "";
-      const detalhe = v.info ? `<p>${"Observação"}: ${escapePrintHtml(String(v.info).replace(/^[\r\n]+/, ""))}</p>` : "";
-      const maps = link ? ` | <a href="${escapePrintHtml(link)}" target="_blank" rel="noopener noreferrer"><strong>Google Maps</strong></a>` : "";
-      return `<div class="item"><p><strong>${escapePrintHtml(linha1)}</strong></p><p><strong>${escapePrintHtml(linha2)}</strong></p>${endereco ? `<p>End.: ${escapePrintHtml(endereco)}${maps}</p>` : ""}${volume}${detalhe}<p><strong>Preenchido por:</strong>${v.preenchidoPor ? ` ${escapePrintHtml(v.preenchidoPor)}` : ""} | <strong>Forma de pagamento:</strong>${pagamentoTexto(v.notasJson) ? ` ${escapePrintHtml(pagamentoTexto(v.notasJson))}` : ""}</p></div>`;
-    }).join("");
-
-    const popup = window.open("", "_blank", "width=850,height=900");
-    if (!popup) return;
-    popup.document.write(`<!doctype html><html><head><title>Agenda Motorista</title><style>body{font-family:Arial,sans-serif;margin:28px;color:#111}h1{font-size:18px;margin-bottom:28px}.item{margin-bottom:24px;page-break-inside:avoid}.item p{margin:3px 0;font-family:Arial,sans-serif;font-size:11pt;line-height:1.35}.item .preenchido{font-size:10pt;margin-top:8px}</style></head><body><h1>AGENDA MOTORISTA - DIA ${data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} - ${diaSemana}</h1>${linhas}<script>window.onload=()=>window.print()</script></body></html>`);
-    popup.document.close();
-  }
-
   const itensDia = ordenarViagens(viagens[selecionado] || []);
   const dataSelecionada = dateFromString(selecionado);
 
@@ -812,7 +822,6 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {canCreate && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
-            <button type="button" onClick={imprimirDia} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Imprimir dia</button>
             <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "dia" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
             <button type="button" onClick={() => setModo("semana")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "semana" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Semana</button>
             <button type="button" onClick={() => setModo("mes")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "mes" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Mês</button>
@@ -882,7 +891,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         <p className="mt-1 text-xs text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Concluir</button>}
-                          <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button>{canCreate && <button type="button" onClick={() => duplicarViagem(v)} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Duplicar</button>}
+                          <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                           {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
                         {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-xs text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
@@ -915,7 +924,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
                     {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">Concluir</button>}
-                    <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>{canCreate && <button type="button" onClick={() => duplicarViagem(v)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Duplicar</button>}
+                    <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                     {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                   </div>}
                 </div>
@@ -972,14 +981,14 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("220px 160px minmax(0, 1fr)")} className="mt-4 grid gap-4 items-end">
-              <label className="min-w-0 text-sm font-medium text-slate-700">CEP<input value={form.cep} onChange={(e) => set("cep", formatarCep(e.target.value))} inputMode="numeric" placeholder="00000-000" className={fieldClass("cep")} /></label>
-              <button type="button" onClick={buscarCep} className="h-[42px] rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Buscar CEP</button>
+              <label className="min-w-0 text-sm font-medium text-slate-700">CEP<input value={form.cep} onChange={(e) => { const cepDigitado = formatarCep(e.target.value); set("cep", cepDigitado); if (cepDigitado.replace(/\D/g, "").length === 8) void buscarCep(cepDigitado); }} inputMode="numeric" placeholder="00000-000" className={fieldClass("cep")} /></label>
+              <button type="button" onClick={() => void buscarCep()} className="h-[42px] rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Buscar CEP</button>
               <div className="min-w-0 text-sm font-medium text-slate-700">Link do endereço<div className="mt-1 flex h-[42px] items-center">{linkMapsFormulario ? <a href={linkMapsFormulario} target="_blank" rel="noreferrer" className="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-800">Google Maps</a> : <span className="text-sm text-slate-400">Gerado após informar o número</span>}</div></div>
             </div>
 
             <div style={colunasFormulario("minmax(0, 1fr) 180px")} className="mt-4 grid gap-4">
               <label className="min-w-0 text-sm font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} /></label>
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
@@ -990,7 +999,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
 
             <div style={colunasFormulario("180px minmax(0, 1fr)")} className="mt-4 grid gap-4">
               <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label>
+              <div className="min-w-0"><label className="min-w-0 text-sm font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-xs font-semibold text-blue-800 underline underline-offset-2">Repetir última discriminação</button></div>
             </div>
 
             <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-4 grid gap-4">

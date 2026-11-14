@@ -15,6 +15,8 @@ export default function PortalNavigation({items,name,initials,units,settings,act
  const requested=params.get("unidade")||"todas";
  const unit=units.includes(requested)?requested:units.length>1?"todas":units[0];
  const active=activeNavigation(pathname);
+ // Agenda da loja já mostra as duas lojas: o seletor de unidade não aparece nessa aba.
+ const onAgendaLoja=pathname.startsWith("/agenda")&&params.get("view")==="loja";
  const [counts,setCounts]=useState<Record<string,number>>({});
  useEffect(()=>{const onCounts=(e:Event)=>setCounts((e as CustomEvent<Record<string,number>>).detail||{});window.addEventListener("ct-pending-counts",onCounts);return()=>window.removeEventListener("ct-pending-counts",onCounts);},[identity]);
  useEffect(()=>{const onKey=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();setSearch(value=>!value);}if(event.key==="Escape"){setSearch(false);setProfile(false);}};window.addEventListener("keydown",onKey);return()=>window.removeEventListener("keydown",onKey);},[]);
@@ -24,7 +26,7 @@ export default function PortalNavigation({items,name,initials,units,settings,act
  return <div className="ct-clean-navigation">
   <header className="ct-clean-top"><Link href="/dashboard" aria-label="Casa Timoni — Hoje" className="ct-clean-brand"><Image src="/brand/CasaTimoni_horizontal_azul.svg" width={140} height={28} alt="Casa Timoni" priority/></Link>
    <button type="button" className="ct-clean-search-trigger" aria-label="Buscar no Portal" onClick={()=>setSearch(true)}><span>Buscar</span><PortalIcon name="search" className="h-4 w-4"/></button>
-   <div className={`ct-clean-unit${units.length>1?" ct-clean-unit-multi":""}`} role="group" aria-label="Unidade">{[...units,...(units.length>1?["todas"]:[])].map(value=><button key={value} type="button" aria-pressed={unit===value} disabled={units.length===1} onClick={()=>changeUnit(value)}>{value==="rio_claro"?"Rio Claro":value==="araras"?"Araras":"Todas"}</button>)}</div>
+   {!onAgendaLoja&&<div className={`ct-clean-unit${units.length>1?" ct-clean-unit-multi":""}`} role="group" aria-label="Unidade">{[...units,...(units.length>1?["todas"]:[])].map(value=><button key={value} type="button" aria-pressed={unit===value} disabled={units.length===1} onClick={()=>changeUnit(value)}>{value==="rio_claro"?"Rio Claro":value==="araras"?"Araras":"Todas"}</button>)}</div>}
    <div className="ct-clean-top-actions"><UpdateButton/>{actions}</div>
    <div className="ct-clean-profile"><button type="button" aria-label="Menu do usuário" aria-expanded={profile} aria-controls="ct-clean-profile-menu" onClick={()=>setProfile(value=>!value)}>{initials}</button>{profile&&<div id="ct-clean-profile-menu" className="ct-clean-profile-menu"><strong>{name}</strong><small className="ct-clean-profile-email">{identity}</small><nav aria-label="Menu do usuário">{items.filter(i=>["comercial","equipe"].includes(i.key)).map(nav)}{settings&&<Link href="/configuracoes">Configurações</Link>}<Link href="/login" prefetch={false}>Minha conta</Link></nav></div>}</div>
   </header>
