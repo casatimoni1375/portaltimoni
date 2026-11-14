@@ -1075,7 +1075,7 @@ export async function POST(request: Request) {
       const existing = snapshot.supplierStandardizations.find(
         (item) => item.spreadsheet_id === next.id && item.sheet_name === requestedSheetName,
       );
-      if (existing?.status === "atualizada") throw new Error("Esta aba já está padronizada.");
+      // Aba já padronizada pode ser refeita: o modelo TERUYA (14/11/2026) substitui o anterior.
       if (existing?.status === "preparada") {
         await standardizeSupplierSpreadsheet(sheets, next, requestedSheetName);
         return NextResponse.json({ ok: true, awaitingReview: true,

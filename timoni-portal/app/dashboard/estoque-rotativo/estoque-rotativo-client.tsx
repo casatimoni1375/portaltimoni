@@ -1144,7 +1144,10 @@ export default function EstoqueRotativoClient() {
           {selectedStandardizationSupplier && standardizationSheetName ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {data.supplierStandardizations.some((item) => item.spreadsheet_id === selectedStandardizationSupplierId && item.sheet_name === standardizationSheetName && item.status === "atualizada") && !selectedPreparedSupplier ? (
-                <span className="text-sm font-semibold text-emerald-700">Padronizada ✓</span>
+                <>
+                  <span className="text-sm font-semibold text-emerald-700">Padronizada ✓</span>
+                  <button type="button" onClick={() => void standardizeNextSupplier(selectedStandardizationSupplier.id)} disabled={busy || standardizingSupplier} className="ct-clean-action">{standardizingSupplier ? "Padronizando..." : "Refazer no modelo TERUYA"}</button>
+                </>
               ) : selectedPreparedSupplier ? (
                 <>
                   <a href={selectedPreparedSupplier.spreadsheet_url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[#13038D] underline">Abrir aba para conferir</a>

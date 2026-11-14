@@ -3,7 +3,22 @@ import type { sheets_v4 } from "googleapis";
 
 type Cell = sheets_v4.Schema$CellData;
 type Request = sheets_v4.Schema$Request;
-export const ROTATIVO_HEADERS = ["VENDA", "COMPRA", "DESCRIÇÃO", "ESTOQUE", "UN"];
+// Modelo TERUYA (decisão de 14/11/2026): linha 4 = empresa da compra, linha 5 = data + CONT.VALORES,
+// linha 6 = cabeçalho, produtos a partir da linha 7.
+export const ROTATIVO_HEADERS = ["VENDA", "COMPRA", "DESCRIÇÃO", "EMB", "ESTOQUE", "UN"];
+export const ROTATIVO_HEADER_ROW = 5;
+const FIXED = ROTATIVO_HEADERS.length;
+const COMPANY_ROW = 3, COUNT_ROW = 4, DATA_ROW = ROTATIVO_HEADER_ROW + 1;
+const filledYellow = { red: 0.9843137, green: 0.9098039, blue: 0.69411767 };
+const COMPANY = /^(rod|rodini|mcr|ct|ro\s*\/\s*mcr|rod\s*\/\s*mcr|mcr\s*\/\s*rod)$/i;
+function dateSerial(text: string) {
+  const m = text.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if (!m) return null;
+  const year = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+  const month = Number(m[2]), day = Number(m[1]);
+  if (year < 2020 || month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return Math.round((Date.UTC(year, month - 1, day) - Date.UTC(1899, 11, 30)) / 86400000);
+}
 const norm = (v: unknown) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const occupied = (c?: Cell) => Boolean(c?.userEnteredValue && Object.values(c.userEnteredValue).some(v => v !== "" && v != null));
 const label = (c?: Cell) => c?.formattedValue ?? c?.userEnteredValue?.stringValue ?? "";
@@ -32,24 +47,26 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   if (sheetId == null) throw new Error("A aba selecionada não foi encontrada.");
   const rows = gridRows(sheet);
   const aliases = [
-    ["venda", "codigo", "cod venda", "codigo venda", "codigo de venda", "sku", "referencia"],
-    ["compra", "cod compra", "codigo compra", "codigo de compra", "codigo fornecedor", "cod fornecedor"],
+    ["venda", "cod venda", "codigo venda", "codigo de venda", "codigo", "cod", "sku", "referencia"],
+    ["compra", "cod compra", "codigo compra", "codigo de compra"],
     ["descricao", "produto", "mercadoria", "nome produto"],
-    ["estoque", "quantidade", "qtd", "saldo", "estoque atual"], ["un", "unidade", "und"],
+    ["emb", "embalagem"],
+    ["estoque", "quantidade", "qtd", "saldo", "estoque atual"], ["un", "unidade", "und", "uni"],
   ];
+  const matches = (allowed: string[], n: string, slot: number) => allowed.includes(n) || (slot === 2 && n.startsWith("descricao "));
   const candidates = rows.map((row, index) => {
     const names = row.map(c => norm(label(c)));
-    const columns = aliases.map(allowed => {
-      const hits = names.map((n, i) => allowed.includes(n) ? i : -1).filter(i => i >= 0);
+    const columns = aliases.map((allowed, slot) => {
+      const hits = names.map((n, i) => matches(allowed, n, slot) ? i : -1).filter(i => i >= 0);
       return hits.length === 1 ? hits[0] : -1;
     });
     return { index, columns, names };
-  }).filter(x => x.columns[0] >= 0 && x.columns[2] >= 0 && x.columns[3] >= 0);
+  }).filter(x => x.columns[0] >= 0 && x.columns[2] >= 0 && x.columns[4] >= 0);
   if (candidates.length !== 1) throw new Error("Cabeçalho desconhecido ou ambíguo. Nenhuma alteração foi feita.");
   const { index: headerIndex, columns, names } = candidates[0];
-  const official = headerIndex === 6 && ROTATIVO_HEADERS.every((h, i) => names[i] === norm(h));
-  if (headerIndex > 6) throw new Error("Cabeçalho abaixo da linha 7. Revise a estrutura antes de padronizar.");
-  const rowShift = 6 - headerIndex;
+  const official = headerIndex === ROTATIVO_HEADER_ROW && ROTATIVO_HEADERS.every((h, i) => names[i] === norm(h));
+  if (headerIndex > 11) throw new Error("Cabeçalho abaixo da linha 12. Revise a estrutura antes de padronizar.");
+  const rowShift = ROTATIVO_HEADER_ROW - headerIndex;
   let lastSourceRow = headerIndex;
   rows.forEach((row, i) => { if (i > headerIndex && row.some(occupied)) lastSourceRow = i; });
   if (lastSourceRow === headerIndex) throw new Error("Nenhum produto encontrado abaixo do cabeçalho.");
@@ -58,9 +75,13 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
     while (end && !occupied(row[end - 1])) end--;
     return end;
   }));
-  const excluded = names.map((n, i) => ["item", "numero", "min", "minimo", "max", "maximo", "estoque minimo", "estoque maximo"].includes(n) ? i : -1).filter(i => i >= 0 && !columns.includes(i));
+  const excluded = names.map((n, i) => ["item", "numero", "min", "minimo", "max", "maximo", "estoque minimo", "estoque maximo", "est min", "est max"].includes(n) ? i : -1).filter(i => i >= 0 && !columns.includes(i));
   const histories = Array.from({ length: sourceWidth }, (_, i) => i).filter(i => !columns.includes(i) && !excluded.includes(i));
-  const lastRow = lastSourceRow + rowShift + 1, lastColumn = 5 + histories.length;
+  const lastRow = lastSourceRow + rowShift + 1, lastColumn = FIXED + histories.length;
+  // Empresa da compra (ROD/MCR) acima dos meses: preservada na linha 4.
+  const companyRow = rows.slice(0, headerIndex).map((row, i) => ({ i, hits: histories.filter(c => COMPANY.test(String(label(row?.[c])).trim())).length }))
+    .sort((a, b) => b.hits - a.hits)[0];
+  const companies = companyRow?.hits ? histories.map(c => rows[companyRow.i]?.[c]?.userEnteredValue) : [];
   for (const c of columns.slice(0, 2).filter(c => c >= 0)) for (let r = headerIndex + 1; r <= lastSourceRow; r++) {
     const cell = rows[r]?.[c], n = cell?.userEnteredValue?.numberValue;
     if (n != null && cell?.formattedValue != null && cell.formattedValue !== String(n)) throw new Error(`Código com formato especial em ${colLetter(c)}${r + 1}. A conversão para texto alteraria sua exibição.`);
@@ -73,9 +94,10 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   for (const f of sheet.filterViews || []) if (f.filterViewId != null) requests.push({ deleteFilterView: { filterId: f.filterViewId } });
   for (const b of sheet.bandedRanges || []) if (b.bandedRangeId != null) requests.push({ deleteBanding: { bandedRangeId: b.bandedRangeId } });
   if ((sheet as sheets_v4.Schema$Sheet & { tables?: unknown[] }).tables?.length) throw new Error("A aba contém tabela nativa. Revise a estrutura antes de padronizar.");
-  if (rowShift) requests.push({ insertDimension: { range: { sheetId, dimension: "ROWS", startIndex: headerIndex, endIndex: 6 }, inheritFromBefore: false } });
+  if (rowShift > 0) requests.push({ insertDimension: { range: { sheetId, dimension: "ROWS", startIndex: headerIndex, endIndex: ROTATIVO_HEADER_ROW }, inheritFromBefore: false } });
+  if (rowShift < 0) requests.push({ deleteDimension: { range: { sheetId, dimension: "ROWS", startIndex: 0, endIndex: -rowShift } } });
   const order = Array.from({ length: sheet.properties?.gridProperties?.columnCount || sourceWidth }, (_, i) => i);
-  for (let dest = 0; dest < 5; dest++) {
+  for (let dest = 0; dest < FIXED; dest++) {
     const original = columns[dest];
     if (original < 0) {
       requests.push({ insertDimension: { range: { sheetId, dimension: "COLUMNS", startIndex: dest, endIndex: dest + 1 }, inheritFromBefore: false } });
@@ -101,29 +123,29 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   fmt(0, rowCount, 0, columnCount, {}, "userEnteredFormat(backgroundColor,backgroundColorStyle,borders,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy,textDirection,padding,textRotation)");
   requests.push({ repeatCell: { range: range(0, rowCount, 0, columnCount), cell: {}, fields: "dataValidation" } });
   fmt(0, lastRow, 0, lastColumn, { backgroundColor: white, textFormat: { fontFamily: "Calibri", fontSize: 11, bold: false, foregroundColor: black }, wrapStrategy: "OVERFLOW_CELL" }, "userEnteredFormat(backgroundColor,textFormat,wrapStrategy)");
-  fmt(0, 6, 0, lastColumn, { horizontalAlignment: "LEFT", verticalAlignment: "MIDDLE" }, "userEnteredFormat(horizontalAlignment,verticalAlignment)");
+  fmt(0, DATA_ROW - 1, 0, lastColumn, { horizontalAlignment: "LEFT", verticalAlignment: "MIDDLE" }, "userEnteredFormat(horizontalAlignment,verticalAlignment)");
   fmt(0, 1, 0, 1, { textFormat: { fontFamily: "Calibri", fontSize: 16, bold: true, foregroundColor: black } }, "userEnteredFormat.textFormat");
   fmt(1, 2, 0, 2, { backgroundColor: lightBlue, textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: black } }, "userEnteredFormat(backgroundColor,textFormat)");
   fmt(2, 3, 0, 2, { backgroundColor: yellow }, "userEnteredFormat.backgroundColor");
   fmt(2, 3, 0, 1, { textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: black } }, "userEnteredFormat.textFormat");
   fmt(3, 5, 0, 1, { textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: red } }, "userEnteredFormat.textFormat");
-  fmt(5, 6, 5, lastColumn, { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE" }, "userEnteredFormat(horizontalAlignment,verticalAlignment)");
-  fmt(6, lastRow, 0, lastColumn, { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE" }, "userEnteredFormat(horizontalAlignment,verticalAlignment)");
-  fmt(6, lastRow, 2, 3, { horizontalAlignment: "LEFT" }, "userEnteredFormat.horizontalAlignment");
-  fmt(6, 7, 0, lastColumn, { backgroundColor: blue, textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: white } }, "userEnteredFormat(backgroundColor,textFormat)");
-  fmt(7, lastRow, 0, 2, { numberFormat: { type: "TEXT", pattern: "@" } }, "userEnteredFormat.numberFormat");
+  fmt(COMPANY_ROW, COUNT_ROW + 1, FIXED, lastColumn, { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE", textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: black } }, "userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)");
+  fmt(ROTATIVO_HEADER_ROW, lastRow, 0, lastColumn, { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE" }, "userEnteredFormat(horizontalAlignment,verticalAlignment)");
+  fmt(DATA_ROW, lastRow, 2, 3, { horizontalAlignment: "LEFT" }, "userEnteredFormat.horizontalAlignment");
+  fmt(ROTATIVO_HEADER_ROW, DATA_ROW, 0, lastColumn, { backgroundColor: blue, textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: white } }, "userEnteredFormat(backgroundColor,textFormat)");
+  fmt(DATA_ROW, lastRow, 0, 2, { numberFormat: { type: "TEXT", pattern: "@" } }, "userEnteredFormat.numberFormat");
   for (let r = headerIndex + 1; r <= lastSourceRow; r++) {
-    const nf = rows[r]?.[columns[3]]?.userEnteredFormat?.numberFormat;
+    const nf = rows[r]?.[columns[4]]?.userEnteredFormat?.numberFormat;
     if (!nf || nf.type !== "NUMBER" || nf.pattern === "0.###############") {
-      const value = rows[r]?.[columns[3]]?.effectiveValue?.numberValue ?? rows[r]?.[columns[3]]?.userEnteredValue?.numberValue;
+      const value = rows[r]?.[columns[4]]?.effectiveValue?.numberValue ?? rows[r]?.[columns[4]]?.userEnteredValue?.numberValue;
       const [mantissa, exponent = "0"] = String(value ?? 0).split("e");
       const decimals = Math.min(15, Math.max(0, (mantissa.split(".")[1]?.length || 0) - Number(exponent)));
       const pattern = decimals ? `0.${"0".repeat(decimals)}` : "0";
-      fmt(r + rowShift, r + rowShift + 1, 3, 4, { numberFormat: { type: "NUMBER", pattern } }, "userEnteredFormat.numberFormat");
+      fmt(r + rowShift, r + rowShift + 1, 4, 5, { numberFormat: { type: "NUMBER", pattern } }, "userEnteredFormat.numberFormat");
     }
   }
   const border = { style: "SOLID", color: black };
-  requests.push({ updateBorders: { range: range(6, lastRow, 0, lastColumn), top: border, bottom: border, left: border, right: border, innerHorizontal: border, innerVertical: border } });
+  requests.push({ updateBorders: { range: range(ROTATIVO_HEADER_ROW, lastRow, 0, lastColumn), top: border, bottom: border, left: border, right: border, innerHorizontal: border, innerVertical: border } });
   for (const [r, end, c, ce] of [[0, 1, 0, 1], [1, 2, 0, 2], [2, 3, 0, 1]]) requests.push({ updateBorders: { range: range(r, end, c, ce), top: border, bottom: border, left: border, right: border, innerVertical: border } });
   const write = (r: number, c: number, value: sheets_v4.Schema$ExtendedValue) => requests.push({ updateCells: { start: { sheetId, rowIndex: r, columnIndex: c }, rows: [{ values: [{ userEnteredValue: value }] }], fields: "userEnteredValue" } });
   const top = rows.slice(0, headerIndex).flat();
@@ -134,7 +156,7 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   let responsible: Cell | undefined = official ? rows[3]?.[0] : undefined;
   let date: Cell | undefined = official ? rows[4]?.[0] : undefined;
   if (!official) for (const row of rows.slice(0, headerIndex)) {
-    const emp = row.findIndex(c => norm(label(c)).includes("funcionario"));
+    const emp = row.findIndex(c => ["funcionario", "responsavel", "nome"].some(k => norm(label(c)).startsWith(k)));
     const dt = row.findIndex(c => norm(label(c)) === "data");
     if (emp >= 0) responsible = row.slice(emp + 1, dt > emp ? dt : undefined).find(occupied) || responsible;
     if (dt >= 0) date = row.slice(dt + 1).find(occupied) || date;
@@ -142,22 +164,27 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   responsible ||= top.find(c => /^(lucas|jonatan|jonathan)$/i.test(String(label(c)).trim()));
   date ||= top.find(c => /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(String(label(c)).trim()));
   const stamp = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(now);
-  requests.push({ repeatCell: { range: range(0, 6, 0, columnCount), cell: {}, fields: "userEnteredValue" } });
+  requests.push({ repeatCell: { range: range(0, ROTATIVO_HEADER_ROW, 0, columnCount), cell: {}, fields: "userEnteredValue" } });
   write(0, 0, { stringValue: official ? String(label(rows[0]?.[0])) : title.trim().toLocaleUpperCase("pt-BR") });
   write(1, 0, standardized?.userEnteredValue || { stringValue: `Padronizada em ${stamp}` });
   write(2, 0, updated?.userEnteredValue || { stringValue: "" });
   write(3, 0, responsible?.userEnteredValue || { stringValue: "" });
-  write(4, 0, date?.userEnteredValue || { stringValue: "" });
-  if (date?.userEnteredFormat?.numberFormat) fmt(4, 5, 0, 1, { numberFormat: date.userEnteredFormat.numberFormat }, "userEnteredFormat.numberFormat");
-  for (let c = 0; c < 5; c++) write(6, c, { stringValue: ROTATIVO_HEADERS[c] });
-  for (let c = 5; c < lastColumn; c++) write(5, c, { formulaValue: `=COUNTA(${colLetter(c)}8:${colLetter(c)})` });
-  requests.push({ updateSheetProperties: { properties: { sheetId, gridProperties: { frozenRowCount: 7, frozenColumnCount: 0 } }, fields: "gridProperties(frozenRowCount,frozenColumnCount)" } });
+  // Data da contagem sempre como data dd/mm/aaaa; data inválida (ex.: 02/02/00) fica como está, para o Lucas corrigir.
+  const dateSerialValue = date?.userEnteredValue?.numberValue ?? dateSerial(String(label(date)));
+  write(4, 0, dateSerialValue != null ? { numberValue: dateSerialValue } : date?.userEnteredValue || { stringValue: "" });
+  if (dateSerialValue != null) fmt(4, 5, 0, 1, { numberFormat: { type: "DATE", pattern: "dd/mm/yyyy" } }, "userEnteredFormat.numberFormat");
+  for (let c = 0; c < FIXED; c++) write(ROTATIVO_HEADER_ROW, c, { stringValue: ROTATIVO_HEADERS[c] });
+  companies.forEach((value, i) => { if (value) write(COMPANY_ROW, FIXED + i, value); });
+  for (let c = FIXED; c < lastColumn; c++) write(COUNT_ROW, c, { formulaValue: `=COUNTA(${colLetter(c)}${DATA_ROW + 1}:${colLetter(c)})` });
+  // Única regra de cor: amarelo no que foi preenchido, só nos meses.
+  if (lastColumn > FIXED) requests.push({ addConditionalFormatRule: { index: 0, rule: { ranges: [range(DATA_ROW, rowCount, FIXED, Math.max(lastColumn, columnCount))], booleanRule: { condition: { type: "NOT_BLANK" }, format: { backgroundColor: filledYellow } } } } });
+  requests.push({ updateSheetProperties: { properties: { sheetId, gridProperties: { frozenRowCount: DATA_ROW, frozenColumnCount: 0 } }, fields: "gridProperties(frozenRowCount,frozenColumnCount)" } });
   const dim = (dimension: string, a: number, b: number, pixelSize: number) => {
     if (b > a) requests.push({ updateDimensionProperties: { range: { sheetId, dimension, startIndex: a, endIndex: b }, properties: { pixelSize }, fields: "pixelSize" } });
   };
-  [160, 160, 439, 103, 31].forEach((px, i) => dim("COLUMNS", i, i + 1, px));
-  dim("COLUMNS", 5, lastColumn, 127);
-  dim("ROWS", 0, 1, 32); dim("ROWS", 1, 5, 25); dim("ROWS", 5, 6, 19); dim("ROWS", 6, 7, 29); dim("ROWS", 7, lastRow, 19);
+  [90, 90, 420, 70, 90, 50].forEach((px, i) => dim("COLUMNS", i, i + 1, px));
+  dim("COLUMNS", FIXED, lastColumn, 75);
+  dim("ROWS", 0, 1, 32); dim("ROWS", 1, ROTATIVO_HEADER_ROW, 25); dim("ROWS", ROTATIVO_HEADER_ROW, DATA_ROW, 29); dim("ROWS", DATA_ROW, lastRow, 19);
   if (Buffer.byteLength(JSON.stringify(requests)) > 1_800_000) throw new Error("Planilha excede o tamanho seguro de uma operação. Nenhuma alteração foi feita.");
   return { requests, lastRow, lastColumn, headerIndex, rowShift, columns, histories, official, products: rows.slice(headerIndex + 1, lastSourceRow + 1).filter(r => r.some(occupied)).length };
 }
@@ -204,12 +231,12 @@ export async function applyOfficialRotativoModel(sheets: sheets_v4.Sheets, sprea
     }
   }
   const verified = await readRotativoSheet(sheets, spreadsheetId, sheetName), rows = gridRows(verified.sheet);
-  if (!ROTATIVO_HEADERS.every((h, i) => label(rows[6]?.[i]) === h)) throw new Error("Cabeçalho não confirmado após a padronização. Preserve o backup.");
-  for (let c = 5; c < plan.lastColumn; c++) if (rows[5]?.[c]?.effectiveValue?.errorValue || rows[5]?.[c]?.effectiveValue?.numberValue == null) throw new Error(`Contador ${colLetter(c)}6 não calculado. Preserve o backup.`);
+  if (!ROTATIVO_HEADERS.every((h, i) => label(rows[ROTATIVO_HEADER_ROW]?.[i]) === h)) throw new Error("Cabeçalho não confirmado após a padronização. Preserve o backup.");
+  for (let c = FIXED; c < plan.lastColumn; c++) if (rows[COUNT_ROW]?.[c]?.effectiveValue?.errorValue || rows[COUNT_ROW]?.[c]?.effectiveValue?.numberValue == null) throw new Error(`Contador ${colLetter(c)}${COUNT_ROW + 1} não calculado. Preserve o backup.`);
   const before = gridRows(snapshot.sheet);
   const mapping = [...plan.columns, ...plan.histories];
   for (let r = plan.headerIndex; r < before.length; r++) for (let c = 0; c < mapping.length; c++) {
-    if ((r === plan.headerIndex && c < 5) || mapping[c] < 0) continue;
+    if ((r === plan.headerIndex && c < FIXED) || mapping[c] < 0) continue;
     const source = before[r]?.[mapping[c]] || {}, target = rows[r + plan.rowShift]?.[c] || {};
     const a = source.userEnteredValue || {}, b = target.userEnteredValue || {};
     const structural = plan.rowShift !== 0 || mapping.some((v, i) => v !== i);
@@ -217,7 +244,7 @@ export async function applyOfficialRotativoModel(sheets: sheets_v4.Sheets, sprea
     if (formulaMoved ? (!b.formulaValue || JSON.stringify(source.effectiveValue) !== JSON.stringify(target.effectiveValue)) : JSON.stringify(a) !== JSON.stringify(b)) {
       throw new Error(`Dados divergentes em ${colLetter(c)}${r + plan.rowShift + 1}. Preserve o backup e não confirme.`);
     }
-    if (c >= 5 && JSON.stringify(source.userEnteredFormat?.numberFormat || {}) !== JSON.stringify(target.userEnteredFormat?.numberFormat || {})) throw new Error("Formato do histórico divergente. Preserve o backup.");
+    if (c >= FIXED && JSON.stringify(source.userEnteredFormat?.numberFormat || {}) !== JSON.stringify(target.userEnteredFormat?.numberFormat || {})) throw new Error("Formato do histórico divergente. Preserve o backup.");
     if (!formulaMoved && (source.formattedValue || "") !== (target.formattedValue || "")) throw new Error(`Exibição divergente em ${colLetter(c)}${r + plan.rowShift + 1}. Preserve o backup.`);
   }
   return { products: plan.products, backupUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit#gid=${backupId}`, operationId };

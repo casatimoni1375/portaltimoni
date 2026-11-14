@@ -96,10 +96,11 @@ async function alignSupplierMapping(spreadsheetId: string, sheetName: string) {
     name: supplier.supplier_name,
     spreadsheetId,
     sheetName,
-    dataRange: "A8:D100000",
+    // Modelo TERUYA: cabeçalho na linha 6, ESTOQUE na coluna E.
+    dataRange: "A7:E100000",
     codeColumn: 0,
     descriptionColumn: 2,
-    stockColumn: 3,
+    stockColumn: 4,
     actor: email,
   });
   await attachSupplierToWaitingUpdates(mappingId, spreadsheetId, supplier.supplier_name, sheetName);
