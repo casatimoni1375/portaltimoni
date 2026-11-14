@@ -119,8 +119,8 @@ export async function POST(request: Request) {
     const body = await request.json() as Record<string, unknown>;
     const action = String(body.action || "");
     const spreadsheetId = String(body.spreadsheetId || "").trim();
-    const sheetName = String(body.sheetName || "").trim();
-    if (!spreadsheetId || !sheetName) throw new Error("Planilha e aba são obrigatórias.");
+    const sheetName = String(body.sheetName || "");
+    if (!spreadsheetId || !sheetName.trim()) throw new Error("Planilha e aba são obrigatórias.");
 
     if (action === "criar_backup") {
       await withStandardizationLock(spreadsheetId, () => createBackup(sheets, spreadsheetId, sheetName));

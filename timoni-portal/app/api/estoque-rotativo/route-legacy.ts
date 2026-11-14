@@ -1068,8 +1068,8 @@ export async function POST(request: Request) {
       requireRole(user, "manage", permissionAction);
       const snapshot = await listRotatingStockData();
       const requestedSpreadsheetId = String(body.spreadsheetId || "").trim();
-      const requestedSheetName = String(body.sheetName || "").trim();
-      if (!requestedSheetName) throw new Error("Selecione a aba da planilha.");
+      const requestedSheetName = String(body.sheetName || "");
+      if (!requestedSheetName.trim()) throw new Error("Selecione a aba da planilha.");
       const next = SUPPLIER_SPREADSHEETS.find((item) => item.id === requestedSpreadsheetId);
       if (!next) throw new Error("Fornecedor não identificado.");
       const existing = snapshot.supplierStandardizations.find(
@@ -1099,7 +1099,7 @@ export async function POST(request: Request) {
       if (!spreadsheetId) throw new Error("Planilha não identificada.");
       const snapshot = await listRotatingStockData();
       const prepared = snapshot.supplierStandardizations.find(
-        (item) => item.spreadsheet_id === spreadsheetId && item.sheet_name === String(body.sheetName || "").trim(),
+        (item) => item.spreadsheet_id === spreadsheetId && item.sheet_name === String(body.sheetName || ""),
       );
       if (!prepared) throw new Error("Esta planilha não está aguardando conferência.");
 
@@ -1140,7 +1140,7 @@ export async function POST(request: Request) {
       let supplierName = String(body.supplierName || "").trim();
       const spreadsheetReference = String(body.spreadsheetReference || "").trim();
       const note = String(body.note || "").trim();
-      const sourceSheetName = String(body.sourceSheetName || "").trim();
+      const sourceSheetName = String(body.sourceSheetName || "");
       const sourceCodeColumn = String(body.sourceCodeColumn || "").trim().toUpperCase();
       const sourcePurchaseCodeColumn = String(body.sourcePurchaseCodeColumn || "").trim().toUpperCase();
       const sourceDescriptionColumn = String(body.sourceDescriptionColumn || "").trim().toUpperCase();
@@ -1157,7 +1157,7 @@ export async function POST(request: Request) {
         });
         supplierName = String(sourceMetadata.data.properties?.title || "").trim() || "Planilha sem fornecedor";
       }
-      if (!sourceSheetName) throw new Error("Informe a aba da planilha.");
+      if (!sourceSheetName.trim()) throw new Error("Informe a aba da planilha.");
       for (const column of [sourceCodeColumn, sourceDescriptionColumn, sourceStockColumn]) {
         if (!/^[A-Z]+$/.test(column)) throw new Error("Informe colunas válidas para COD-VENDA, descrição e estoque.");
       }
@@ -1193,7 +1193,7 @@ export async function POST(request: Request) {
       requireRole(user, "manage", permissionAction);
       const name = String(body.name || "").trim();
       const spreadsheetId = extractSpreadsheetId(String(body.spreadsheetId || ""));
-      const sheetName = String(body.sheetName || "").trim();
+      const sheetName = String(body.sheetName || "");
       const codeLetter = String(body.codeColumn || "").trim().toUpperCase();
       const descriptionLetter = String(body.descriptionColumn || "").trim().toUpperCase();
       const stockLetter = String(body.stockColumn || "").trim().toUpperCase();
@@ -1225,7 +1225,7 @@ export async function POST(request: Request) {
       for (const pattern of patterns) {
         const name = String(pattern.name || "").trim();
         const spreadsheetId = extractSpreadsheetId(String(pattern.spreadsheetId || ""));
-        const sheetName = String(pattern.sheetName || "").trim();
+        const sheetName = String(pattern.sheetName || "");
         const codeLetter = String(pattern.codeColumn || "").trim().toUpperCase();
         const descriptionLetter = String(pattern.descriptionColumn || "").trim().toUpperCase();
         const stockLetter = String(pattern.stockColumn || "").trim().toUpperCase();
@@ -1254,7 +1254,7 @@ export async function POST(request: Request) {
       requireRole(user, "manage", permissionAction);
       const name = String(body.name || "").trim();
       const spreadsheetId = extractSpreadsheetId(String(body.spreadsheetId || ""));
-      const sheetName = String(body.sheetName || "").trim();
+      const sheetName = String(body.sheetName || "");
       const dataRange = String(body.dataRange || "").trim().toUpperCase();
       const columns = [body.codeColumn, body.descriptionColumn, body.stockColumn].map((value) => Number(value));
       if (!name || !spreadsheetId || !sheetName || !/^[A-Z]+\d+:[A-Z]+\d+$/.test(dataRange)) throw new Error("Revise fornecedor, planilha, aba e intervalo.");
@@ -1274,7 +1274,7 @@ export async function POST(request: Request) {
       const id = String(body.id || "");
       const supplierNameInput = String(body.supplierName || "").trim();
       const spreadsheetReference = String(body.spreadsheetReference || "").trim();
-      const sourceSheetName = String(body.sourceSheetName || "").trim();
+      const sourceSheetName = String(body.sourceSheetName || "");
       const sourceCodeColumn = String(body.sourceCodeColumn || "").trim().toUpperCase();
       const sourcePurchaseCodeColumn = String(body.sourcePurchaseCodeColumn || "").trim().toUpperCase();
       const sourceDescriptionColumn = String(body.sourceDescriptionColumn || "").trim().toUpperCase();
@@ -1282,7 +1282,7 @@ export async function POST(request: Request) {
       const sourceStartRow = Number(body.sourceStartRow);
       const note = String(body.note || "").trim();
       const trelloCardId = String(body.trelloCardId || "").trim();
-      if (!id || !extractSpreadsheetId(spreadsheetReference) || !sourceSheetName) throw new Error("Complete os campos obrigatórios.");
+      if (!id || !extractSpreadsheetId(spreadsheetReference) || !sourceSheetName.trim()) throw new Error("Complete os campos obrigatórios.");
       const currentUpdate = await getRotatingStockUpdate(id);
       if (!currentUpdate) throw new Error("Atualização não encontrada.");
       const supplierName = supplierNameInput || currentUpdate.supplier_name;

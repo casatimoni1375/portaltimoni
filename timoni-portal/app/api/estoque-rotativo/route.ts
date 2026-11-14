@@ -125,7 +125,7 @@ export async function POST(request: Request) {
 
   if (action === "confirmar_planilha_fornecedor") {
     const spreadsheetId = String(body.spreadsheetId || "").trim();
-    const sheetName = String(body.sheetName || "").trim();
+    const sheetName = String(body.sheetName || "");
     if (spreadsheetId && sheetName) await alignSupplierMapping(spreadsheetId, sheetName);
   }
 
