@@ -3,6 +3,7 @@ import { isFutureMeeting } from "@/lib/block-one-utils";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
+import { Carimbo } from "@/components/clean/carimbo";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
 
 type Meeting = {
@@ -27,6 +28,14 @@ const EMPTY: FormState = {
   secondTime: "", additionalDates: [], frequency: "Mensal", leaders: "",
   pautaUrl: "", ataUrl: "", slidesUrl: "",
 };
+
+// Paleta limpa do padrão aprovado (mesma das agendas).
+const INPUT = "mt-1 w-full rounded-lg border border-[#d7deeb] bg-white px-3 py-2 text-sm text-[#182443] outline-none focus:border-[#102a83]";
+const LABEL = "text-xs font-semibold text-[#182443]";
+const AJUDA = "mt-1 block text-[11px] font-normal text-[#65718a]";
+const BOTAO_PRIMARIO = "rounded-lg bg-[#102a83] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50";
+const BOTAO_SECUNDARIO = "rounded-lg border border-[#102a83] bg-white px-4 py-2 text-sm font-semibold text-[#102a83] disabled:opacity-50";
+const BOTAO_TEXTO = "text-sm font-semibold text-[#102a83] underline-offset-2 hover:underline";
 
 function formatDate(value: string) {
   if (!value) return "";
@@ -107,6 +116,16 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
   };
 }
 
+function DataDaReuniao({ rotulo, data, hora }: { rotulo: string; data: string; hora: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#65718a]">{rotulo}</p>
+      <p className="mt-1 text-base font-bold text-[#182443]">{data ? formatDate(data) : "A definir"}</p>
+      {data && hora && <p className="text-xs text-[#65718a]">{formatTime(hora)}</p>}
+    </div>
+  );
+}
+
 function MeetingCard({
   meeting, canManage, pendingOccurrences, onArchiveOccurrence,
 }: {
@@ -122,64 +141,44 @@ function MeetingCard({
   ];
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="text-xl font-semibold text-slate-900">{meeting.unit}</h3>
-          <p className="mt-1 text-sm text-slate-500">{meeting.frequency}</p>
-        </div>
+    <article className="rounded-xl border border-[#e1e6f0] bg-white p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h3 className="text-base font-bold text-[#182443]">{meeting.unit}</h3>
+        <span className="text-xs text-[#65718a]">{meeting.frequency}</span>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="min-w-0 rounded-xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Próxima</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{meeting.date ? formatDate(meeting.date) : "A definir"}</p>
-          {meeting.time && <p className="text-sm text-slate-500">{formatTime(meeting.time)}</p>}
-        </div>
-        <div className="min-w-0 rounded-xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seguinte</p>
-          {meeting.secondDate ? (
-            <>
-              <p className="mt-1 text-xl font-bold text-slate-900">{formatDate(meeting.secondDate)}</p>
-              {meeting.secondTime && <p className="text-sm text-slate-500">{formatTime(meeting.secondTime)}</p>}
-            </>
-          ) : (
-            <p className="mt-1 text-base text-slate-500">A definir</p>
-          )}
-        </div>
+      <div className="mt-4 grid grid-cols-2 gap-4">
+        <DataDaReuniao rotulo="Próxima" data={meeting.date} hora={meeting.time} />
+        <DataDaReuniao rotulo="Seguinte" data={meeting.secondDate} hora={meeting.secondTime} />
       </div>
 
       {(meeting.additionalDates || []).length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {meeting.additionalDates.map((item) => (
-            <span key={item.date} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700">
-              {formatDate(item.date)}{item.time ? ` · ${formatTime(item.time)}` : ""}
-            </span>
+        <p className="mt-3 text-xs text-[#65718a]">
+          Outras datas: {meeting.additionalDates.map((item) => `${formatDate(item.date)}${item.time ? ` · ${formatTime(item.time)}` : ""}`).join("  ·  ")}
+        </p>
+      )}
+
+      {pendingOccurrences.length > 0 && (
+        <div className="mt-4 space-y-2 border-t border-[#e1e6f0] pt-3">
+          {pendingOccurrences.map((occurrence) => (
+            <div key={occurrence.date} className="flex flex-wrap items-center justify-between gap-2 text-sm text-[#65718a]">
+              <span className="flex items-center gap-2">
+                <Carimbo tom="pendente">Pendente</Carimbo>
+                Anterior: {formatDate(occurrence.date)}{occurrence.time ? ` · ${formatTime(occurrence.time)}` : ""}
+              </span>
+              {canManage && (
+                <button onClick={() => onArchiveOccurrence(meeting.id, occurrence.date)} className={BOTAO_TEXTO}>Arquivar</button>
+              )}
+            </div>
           ))}
         </div>
       )}
 
-      {pendingOccurrences.length > 0 && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
-          <p className="text-xs font-semibold text-amber-900">Reunião anterior</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {pendingOccurrences.map((occurrence) => (
-              <div key={occurrence.date} className="flex flex-wrap items-center gap-2 rounded-lg bg-white px-3 py-2">
-                <span className="text-sm text-slate-700">{formatDate(occurrence.date)}{occurrence.time ? ` · ${formatTime(occurrence.time)}` : ""}</span>
-                {canManage && (
-                  <button onClick={() => onArchiveOccurrence(meeting.id, occurrence.date)} className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-800">Arquivar</button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="mt-4 grid gap-2 border-t border-slate-200 pt-4 sm:grid-cols-3">
+      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-[#e1e6f0] pt-4 text-sm font-semibold">
         {links.map((link) => link.url ? (
-          <a key={link.label} href={link.url} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 px-3 py-2 text-center text-sm font-semibold text-blue-800 hover:bg-slate-50">{link.label}</a>
+          <a key={link.label} href={link.url} target="_blank" rel="noreferrer" className="text-[#102a83] hover:underline">{link.label}</a>
         ) : (
-          <span key={link.label} className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-center text-sm text-slate-400">{link.label}</span>
+          <span key={link.label} className="text-[#9aa4b8]">{link.label}</span>
         ))}
       </div>
     </article>
@@ -344,85 +343,93 @@ export default function ReunioesClient({
   }
 
   return (
-    <>
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Pautas, atas, apresentações e datas futuras por loja.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {canCreate && <button onClick={startNew} className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white">+ Nova reunião</button>}
-            <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">Abrir pasta oficial</a>
-          </div>
+    <div className="mx-auto w-full max-w-6xl">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-[#182443]">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
+          <p className="mt-1 text-sm text-[#65718a]">Pautas, atas e apresentações.</p>
         </div>
-      </section>
+        <div className="flex flex-wrap gap-2">
+          <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className={BOTAO_SECUNDARIO}>Abrir pasta oficial</a>
+          {canCreate && <button onClick={startNew} className={BOTAO_PRIMARIO}>+ Nova reunião</button>}
+        </div>
+      </header>
 
       {(form.id ? canManage : canCreate) && showForm && (
         <form
           id="form-reuniao"
           ref={formRef}
           onSubmit={(event) => { event.preventDefault(); void salvar(false); }}
-          className="mt-5 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2"
+          className="mt-6 rounded-xl border border-[#e1e6f0] bg-white p-5"
         >
-          <h2 className="text-xl font-semibold text-slate-900 md:col-span-2">{form.id ? "Editar reunião" : "Nova reunião"}</h2>
-          <label className="text-sm font-medium text-slate-700">Loja
-            <select value={form.unit} onChange={(e) => trocarLoja(e.target.value as Meeting["unit"])} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5">
-              {allowedUnits.map(unit => <option key={unit}>{unit}</option>)}
-            </select>
-          </label>
-          <label className="text-sm font-medium text-slate-700">Periodicidade
-            <input value={form.frequency} onChange={(e) => setField("frequency", e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" required />
-          </label>
-          <label className="text-sm font-medium text-slate-700">Primeira data
-            <BrazilianDateInput value={form.date} onChange={(value) => setField("date", value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" required />
-            <span className="mt-1 block text-xs font-normal text-slate-500">Sugestão: mesmo dia da semana do mês seguinte à última reunião.</span>
-          </label>
-          <label className="text-sm font-medium text-slate-700">Primeiro horário
-            <input type="time" value={form.time} onChange={(e) => setField("time", e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" required />
-          </label>
-          <label className="text-sm font-medium text-slate-700">Segunda data (opcional)
-            <BrazilianDateInput value={form.secondDate} onChange={(value) => setField("secondDate", value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-          </label>
-          <label className="text-sm font-medium text-slate-700">Horário da data seguinte (opcional)
-            <input type="time" value={form.secondTime} onChange={(e) => setField("secondTime", e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-          </label>
-          {form.additionalDates.map((item, index) => (
-            <div key={index} className="grid gap-4 md:col-span-2 md:grid-cols-2">
-              <label className="text-sm font-medium text-slate-700">Outra data (opcional)
-                <BrazilianDateInput value={item.date} onChange={(value) => setField("additionalDates", form.additionalDates.map((date, i) => i === index ? { ...date, date: value } : date))} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-              </label>
-              <label className="text-sm font-medium text-slate-700">Horário (opcional)
-                <div className="flex gap-2">
-                  <input type="time" value={item.time} onChange={(e) => setField("additionalDates", form.additionalDates.map((date, i) => i === index ? { ...date, time: e.target.value } : date))} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-                  <button type="button" onClick={() => setField("additionalDates", form.additionalDates.filter((_, i) => i !== index))} className="mt-1 rounded-xl border border-red-200 bg-white px-3 text-sm font-semibold text-red-700">Remover</button>
-                </div>
-              </label>
-            </div>
-          ))}
-          <button type="button" onClick={() => setField("additionalDates", [...form.additionalDates, { date: "", time: "" }])} className="w-fit rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 md:col-span-2">+ Adicionar outra data</button>
-          <label className="text-sm font-medium text-slate-700 md:col-span-2">Link da pauta
-            <input type="url" value={form.pautaUrl} onChange={(e) => setField("pautaUrl", e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-          </label>
-          <label className="text-sm font-medium text-slate-700 md:col-span-2">Link da ata
-            <input type="url" value={form.ataUrl} onChange={(e) => setField("ataUrl", e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-          </label>
-          <label className="text-sm font-medium text-slate-700 md:col-span-2">Link da apresentação
-            <input type="url" value={form.slidesUrl} onChange={(e) => setField("slidesUrl", e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" />
-          </label>
-          <div className="flex flex-wrap gap-2 md:col-span-2">
-            <button type="submit" disabled={saving} className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? "Salvando..." : "Salvar reunião"}</button>
-            {!form.id && <button type="button" disabled={saving} onClick={() => void salvar(true)} className="rounded-xl border border-blue-200 bg-white px-5 py-2.5 text-sm font-semibold text-blue-800 disabled:opacity-50">Salvar e criar a próxima</button>}
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700">Cancelar</button>
+          <h2 className="text-base font-bold text-[#182443]">{form.id ? "Editar reunião" : "Nova reunião"}</h2>
+          <div className="mt-4 grid gap-4 md:grid-cols-4">
+            <label className={LABEL}>Loja
+              <select value={form.unit} onChange={(e) => trocarLoja(e.target.value as Meeting["unit"])} className={INPUT}>
+                {allowedUnits.map(unit => <option key={unit}>{unit}</option>)}
+              </select>
+            </label>
+            <label className={LABEL}>Periodicidade
+              <input value={form.frequency} onChange={(e) => setField("frequency", e.target.value)} className={INPUT} required />
+              <span className={AJUDA}>Padrão: mensal</span>
+            </label>
+            <label className={LABEL}>Horário
+              <input type="time" value={form.time} onChange={(e) => setField("time", e.target.value)} className={INPUT} required />
+              <span className={AJUDA}>Vem da última reunião da loja</span>
+            </label>
+            <label className={LABEL}>Próxima data
+              <BrazilianDateInput value={form.date} onChange={(value) => setField("date", value)} className={INPUT} required />
+              <span className={AJUDA}>Mesmo dia da semana no mês seguinte</span>
+            </label>
+
+            <label className={LABEL}>Data seguinte
+              <BrazilianDateInput value={form.secondDate} onChange={(value) => setField("secondDate", value)} className={INPUT} />
+              <span className={AJUDA}>Opcional. Pode ficar em &quot;A definir&quot;</span>
+            </label>
+            <label className={LABEL}>Horário da seguinte
+              <input type="time" value={form.secondTime} onChange={(e) => setField("secondTime", e.target.value)} className={INPUT} />
+            </label>
+            {form.additionalDates.map((item, index) => (
+              <div key={index} className="contents">
+                <label className={LABEL}>Outra data
+                  <BrazilianDateInput value={item.date} onChange={(value) => setField("additionalDates", form.additionalDates.map((date, i) => i === index ? { ...date, date: value } : date))} className={INPUT} />
+                </label>
+                <label className={LABEL}>Horário
+                  <div className="flex gap-2">
+                    <input type="time" value={item.time} onChange={(e) => setField("additionalDates", form.additionalDates.map((date, i) => i === index ? { ...date, time: e.target.value } : date))} className={INPUT} />
+                    <button type="button" onClick={() => setField("additionalDates", form.additionalDates.filter((_, i) => i !== index))} className="mt-1 rounded-lg border border-[#e1e6f0] bg-white px-3 text-sm font-semibold text-[#65718a] hover:text-[#182443]">Remover</button>
+                  </div>
+                </label>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => setField("additionalDates", [...form.additionalDates, { date: "", time: "" }])} className={`${BOTAO_TEXTO} mt-3`}>+ Adicionar outra data</button>
+
+          <div className="mt-5 grid gap-4 border-t border-[#e1e6f0] pt-5 md:grid-cols-3">
+            <label className={LABEL}>Link da pauta
+              <input type="url" value={form.pautaUrl} onChange={(e) => setField("pautaUrl", e.target.value)} className={INPUT} />
+            </label>
+            <label className={LABEL}>Link da ata
+              <input type="url" value={form.ataUrl} onChange={(e) => setField("ataUrl", e.target.value)} className={INPUT} />
+            </label>
+            <label className={LABEL}>Link da apresentação
+              <input type="url" value={form.slidesUrl} onChange={(e) => setField("slidesUrl", e.target.value)} className={INPUT} />
+            </label>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button type="submit" disabled={saving} className={BOTAO_PRIMARIO}>{saving ? "Salvando..." : "Salvar reunião"}</button>
+            {!form.id && <button type="button" disabled={saving} onClick={() => void salvar(true)} className={BOTAO_SECUNDARIO}>Salvar e criar a próxima</button>}
+            <button type="button" onClick={() => setShowForm(false)} className={BOTAO_TEXTO}>Cancelar</button>
           </div>
         </form>
       )}
 
-      {error && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p>}
+      {error && <p className="mt-4 rounded-lg border border-[#f3c4c4] bg-white px-3 py-2 text-sm text-[#b42318]">{error}</p>}
 
-      <section className="mt-5">
-        <h2 className="text-xl font-semibold text-slate-900">Reuniões agendadas</h2>
-        {loading ? <p className="mt-3 text-sm text-slate-500">Carregando...</p> :
+      <section className="mt-8">
+        <h2 className="text-xs font-bold uppercase tracking-[0.08em] text-[#65718a]">Reuniões agendadas</h2>
+        {loading ? <p className="mt-3 text-sm text-[#65718a]">Carregando...</p> :
           visible.length ? <div className={`mt-3 grid gap-4 ${allowedUnits.length > 1 ? "md:grid-cols-2" : ""}`}>
             {visible.map((meeting) => {
               const sourceMeeting = items.find((item) => item.id === meeting.id) || meeting;
@@ -437,42 +444,42 @@ export default function ReunioesClient({
                 />
               );
             })}
-          </div> : <p className="mt-3 text-sm text-slate-500">Nenhuma reunião agendada.</p>}
+          </div> : <p className="mt-3 text-sm text-[#65718a]">Nenhuma reunião agendada.</p>}
       </section>
 
-      <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-700">Editar ou excluir reuniões agendadas ({scheduled.length})</summary>
-        <div className="mt-4 grid gap-3">
+      <details className="mt-6 rounded-xl border border-[#e1e6f0] bg-white p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-[#182443]">Editar ou excluir reuniões agendadas ({scheduled.length})</summary>
+        <div className="mt-3 divide-y divide-[#e1e6f0]">
           {scheduled.length ? scheduled.map((meeting) => (
-            <div key={meeting.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-3">
-              <p className="text-sm text-slate-700"><strong>{meeting.unit}</strong> · {meeting.frequency} · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
+            <div key={meeting.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <p className="text-sm text-[#182443]"><strong>{meeting.unit}</strong> · {meeting.frequency} · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
               {canManage && (
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => edit(meeting)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-800">Editar</button>
-                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700">Excluir</button>}
+                <div className="flex flex-wrap gap-4">
+                  <button onClick={() => edit(meeting)} className={BOTAO_TEXTO}>Editar</button>
+                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="text-sm font-semibold text-[#b42318] hover:underline">Excluir</button>}
                 </div>
               )}
             </div>
-          )) : <p className="text-sm text-slate-500">Nenhuma reunião agendada.</p>}
+          )) : <p className="py-3 text-sm text-[#65718a]">Nenhuma reunião agendada.</p>}
         </div>
       </details>
 
-      <details className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-700">Reuniões arquivadas ({history.length})</summary>
-        <div className="mt-4 grid gap-3">
+      <details className="mt-4 rounded-xl border border-[#e1e6f0] bg-white p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-[#182443]">Reuniões arquivadas ({history.length})</summary>
+        <div className="mt-3 divide-y divide-[#e1e6f0]">
           {history.length ? history.map((meeting) => (
-            <div key={meeting.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-3">
-              <p className="text-sm text-slate-700"><strong>{meeting.unit}</strong> · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
+            <div key={meeting.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <p className="text-sm text-[#182443]"><strong>{meeting.unit}</strong> · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
               {canManage && (
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => void mutate(meeting.id, "reopen")} className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-800">Desarquivar</button>
-                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700">Excluir</button>}
+                <div className="flex flex-wrap gap-4">
+                  <button onClick={() => void mutate(meeting.id, "reopen")} className={BOTAO_TEXTO}>Desarquivar</button>
+                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="text-sm font-semibold text-[#b42318] hover:underline">Excluir</button>}
                 </div>
               )}
             </div>
-          )) : <p className="text-sm text-slate-500">Nenhuma reunião concluída.</p>}
+          )) : <p className="py-3 text-sm text-[#65718a]">Nenhuma reunião concluída.</p>}
         </div>
       </details>
-    </>
+    </div>
   );
 }
