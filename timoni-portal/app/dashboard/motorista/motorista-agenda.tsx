@@ -351,8 +351,26 @@ function classeLinhaPrincipal(_v: Viagem) {
   return "font-bold text-black";
 }
 
-function estiloLinhaPrincipal(_v: Viagem) {
-  return { fontFamily: "Calibri, Arial, sans-serif", fontWeight: 700, color: "#000000" };
+// Cor da faixa do card (mesma regra de estiloBoxViagem), usada também no marca-texto do título.
+function corFaixaViagem(v: Viagem) {
+  if (lerMetaMotorista(v.notasJson).tipo === "Retirada") return "#2E8B47";
+  const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
+  return loja === "araras" || loja === "casa timoni" ? "#ffd438" : "#2F5BD3";
+}
+
+// Marca-texto leve atrás do título, na cor do card (ocupa a metade de baixo da linha).
+function estiloLinhaPrincipal(v: Viagem) {
+  const cor = corFaixaViagem(v);
+  return {
+    fontFamily: "Calibri, Arial, sans-serif",
+    fontWeight: 700,
+    color: "#000000",
+    background: `linear-gradient(transparent 40%, ${cor}55 40%, ${cor}55 92%, transparent 92%)`,
+    padding: "0 4px",
+    borderRadius: 3,
+    boxDecorationBreak: "clone" as const,
+    WebkitBoxDecorationBreak: "clone" as const,
+  };
 }
 
 function pagamentoTexto(notasJson?: string) {
