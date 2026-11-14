@@ -942,7 +942,8 @@ async function ensurePendingStatuses(sheets: sheets_v4.Sheets) {
   });
   const rows = (response.data.values || []) as unknown[][];
   const data: Array<{ range: string; values: string[][] }> = [];
-  const validUpdated = /^atualizado em \d{2}\/\d{2}\/(?:\d{2}|\d{4})$/i;
+  // Aceita o formato gravado pelo próprio portal ("Atualizado 14/11/26") e o antigo ("Atualizado em 14/11/26").
+  const validUpdated = /^atualizado(?: em)? \d{2}\/\d{2}\/(?:\d{2}|\d{4})$/i;
 
   for (let index = 0; index < rows.length; index += 1) {
     const status = String(rows[index]?.[0] ?? "").trim();

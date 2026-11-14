@@ -118,6 +118,8 @@ export function can(
   if (profile === "administracao-marcelo") {
     // Agendamento de viagens liberado para todos os acessos com o módulo, exceto somente leitura (decisão da gestão, 13/11/2026).
     if (resource === "motorista") return context.operation === undefined && user.modules.includes("motorista") && user.readOnly !== true && ["visualizar", "editar", "criar", "excluir"].includes(action);
+    // Rotativo: acesso completo para Marcelo (decisão da gestão, 14/11/2026).
+    if (resource === "estoque-rotativo") return context.operation === undefined && user.modules.includes("estoque-rotativo");
     if (action !== "visualizar" && action !== "editar") return false;
     if (context.operation !== undefined) return false;
     if (resource === "agenda") return false; // Preserve the approved Agenda Ciça restriction.

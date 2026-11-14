@@ -403,9 +403,9 @@ test("Compras: Marcelo não finaliza pedido; usuário local não move cartão de
   assert.equal(calls.filter(c => c[1] !== "GET").length, 0);
 });
 
-test("Rotativo: padronização/restauração nega Marcelo antes de ler corpo ou acionar legado", async () => {
+test("Rotativo: padronização/restauração nega acesso sem papel antes de ler corpo ou acionar legado", async () => {
   let writes = 0;
-  const h = await harness({ actor: moduleActor("mrodini@gmail.com", { unit: "Geral" }), extraMocks: { "./route-legacy": { POST: async () => { writes++; return Response.json({ ok: true }); } } } });
+  const h = await harness({ actor: moduleActor("vendas@example.test", { unit: "Geral" }), extraMocks: { "./route-legacy": { POST: async () => { writes++; return Response.json({ ok: true }); } } } });
   const route = await h.evaluate("app/api/estoque-rotativo/padronizacao/route.ts");
   assert.equal((await route.POST(new Request("https://portal.test/api", { method: "POST", body: "inválido" }))).status, 403);
   assert.equal(writes, 0);
