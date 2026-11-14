@@ -27,6 +27,7 @@ import {
   listConferenceItems,
   listExpiredHighlights,
   listRotatingStockData,
+  markRotatingStockErpPosted,
   listSupplierCodeLinks,
   markHighlightsCleared,
   prepareSupplierStandardization,
@@ -1436,6 +1437,16 @@ export async function POST(request: Request) {
         `estoque-rotativo:done:${id}`,
       );
       return NextResponse.json({ ok: true, updated: selected.length, reviewed: matched.length, status: statusText });
+    }
+
+    if (action === "marcar_lancado_bessani") {
+      requireRole(user, "conference", permissionAction);
+      const id = String(body.id || "").trim();
+      if (!id) throw new Error("Atualização não identificada.");
+      const marked = await markRotatingStockErpPosted(id, email);
+      if (!marked) throw new Error("Esta atualização já foi marcada como lançada ou ainda não foi concluída.");
+      await recordModuleUpdateSafely("estoque-rotativo", email, "Itens do Rotativo lançados no Bessani.", `estoque-rotativo:bessani:${id}`);
+      return NextResponse.json({ ok: true });
     }
 
     if (action === "excluir_atualizacao") {

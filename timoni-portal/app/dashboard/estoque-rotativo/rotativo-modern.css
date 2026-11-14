@@ -6,7 +6,7 @@
 main .ct-rotativo .ct-rt-heading h1 { color: var(--ct-clean-ink); margin: 0; font-weight: 600 !important; }
 .ct-rt-heading > p { color: var(--ct-clean-muted); margin: 0; font-size: 16px; }
 
-.ct-rt-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.ct-rt-flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
 .ct-rt-flow > li { border: 1px solid var(--ct-clean-line); border-radius: 10px; background: #fff; color: var(--ct-clean-blue); font-size: 15px; padding: 10px 12px; }
 
 .ct-rotativo .ct-rt-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 0; }
@@ -33,3 +33,13 @@ main .ct-rotativo .ct-rt-title { color: var(--ct-clean-ink); font-weight: 600 !i
   .ct-rt-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ct-rotativo .ct-rt-card { padding: 16px; }
 }
+
+/* Lançar no Bessani */
+.ct-rt-help { color: var(--ct-clean-muted); font-size: 15px; margin: 4px 0 0; }
+.ct-rt-erp { border-top: 1px solid #edf0f6; padding-top: 14px; margin-top: 14px; display: grid; gap: 10px; }
+.ct-rt-erp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ct-rt-erp-head strong { display: block; color: var(--ct-clean-blue); font-size: 16px; }
+.ct-rt-erp-head small { color: var(--ct-clean-muted); font-size: 14px; }
+.ct-rt-erp-table { width: 100%; min-width: 520px; border-collapse: collapse; }
+.ct-rotativo .ct-rt-erp-table :is(th, td) { padding: 8px 10px !important; border-bottom: 1px solid #edf0f6; text-align: left; }
+.ct-rt-erp-actions { display: flex; flex-wrap: wrap; gap: 8px; }
