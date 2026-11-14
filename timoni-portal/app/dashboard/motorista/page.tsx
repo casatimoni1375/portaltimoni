@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 
 export default async function MotoristaPage() {
   const gate = await requireModuleAuthorization("motorista", "visualizar");
-  if (!gate.current) redirect("/dashboard");
+  if (!gate.current) {
+    // Diagnóstico: registra o motivo do redirecionamento para a Tela Hoje (sem e-mail nem dados pessoais).
+    console.warn("[motorista] acesso negado na página; redirecionando para /dashboard", { status: gate.errorResponse?.status ?? null });
+    redirect("/dashboard");
+  }
   const canCreate = canModuleOperation(gate.current.user, "motorista", "criar");
   const canEdit = canModuleOperation(gate.current.user, "motorista", "editar");
   const canDelete = canModuleOperation(gate.current.user, "motorista", "excluir");
