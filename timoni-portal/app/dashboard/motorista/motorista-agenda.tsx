@@ -6,6 +6,7 @@ import { createMotoristaReadLoader } from "@/lib/motorista-read-loader";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
+import { Carimbo } from "@/components/clean/carimbo";
 
 type Viagem = {
   id: string;
@@ -870,10 +871,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               const data = localDateString(d);
               const itens = ordenarViagens(viagens[data] || []);
               return (
-                <section key={data} className={`rounded-2xl border bg-white p-4 ${data === hoje ? "border-blue-300 bg-blue-50/40" : "border-slate-200"}`}>
+                <section key={data} className={`rounded-xl border bg-white p-4 ${data === hoje ? "border-[#102a83]" : "border-[#e1e6f0]"}`}>
                   <button type="button" onClick={() => selecionarDia(data)} className="w-full text-left">
                     <p className="text-xs font-semibold uppercase text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
-                    <p className="mt-1 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}</p>
+                    <p className="mt-1 flex items-center gap-2 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}{data === hoje && <Carimbo>Hoje</Carimbo>}</p>
                   </button>
                   <div className="mt-3 space-y-2">
                     {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
@@ -892,7 +893,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         {v.info && <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
                         <p className="mt-1 text-xs text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Concluir</button>}
+                          {lerConclusao(v.notasJson) ? <Carimbo>Concluído</Carimbo> : <><Carimbo tom="pendente">Pendente</Carimbo><button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg border border-[#102a83] bg-white px-3 py-1.5 text-xs font-semibold text-[#102a83] disabled:opacity-60">Concluir</button></>}
                           <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                           {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
@@ -925,7 +926,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
-                    {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">Concluir</button>}
+                    {lerConclusao(v.notasJson) ? <Carimbo>Concluído</Carimbo> : <><Carimbo tom="pendente">Pendente</Carimbo><button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg border border-[#102a83] bg-white px-3 py-2 text-sm font-semibold text-[#102a83] disabled:opacity-60">Concluir</button></>}
                     <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                     {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                   </div>}

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { CalendarEventDTO } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { Carimbo } from "@/components/clean/carimbo";
 
 type Urgency = "urgent" | "today" | "future";
 
@@ -12,15 +13,6 @@ const CALENDAR_COLOR_FALLBACKS: Record<CalendarEventDTO["calendarKey"], string> 
   principal: "#7986CB",
   timoni: "#F6BF26",
 };
-
-function colorWithAlpha(color: string, alpha: number) {
-  const value = color.replace("#", "");
-  if (!/^[0-9a-f]{6}$/i.test(value)) return `rgba(100, 116, 139, ${alpha})`;
-  const red = Number.parseInt(value.slice(0, 2), 16);
-  const green = Number.parseInt(value.slice(2, 4), 16);
-  const blue = Number.parseInt(value.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
 
 export function getUrgency(startIso: string, endIso: string, nowMs: number): Urgency {
   const startMs = new Date(startIso).getTime();
@@ -59,28 +51,22 @@ export function EventCard({
 
   return (
     <div
-      className="min-w-0 rounded-xl border p-3 sm:p-4"
-      style={{
-        backgroundColor: colorWithAlpha(calendarColor, 0.1),
-        borderColor: colorWithAlpha(calendarColor, 0.42),
-      }}
+      className={clsx("min-w-0 rounded-xl border border-[#e1e6f0] bg-white p-3 sm:p-4", concluido && "opacity-60")}
+      style={{ borderLeft: `4px solid ${calendarColor}` }}
     >
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: calendarColor }} />
             <span className="text-sm text-slate-500">{timeLabel}</span>
-            <span
-              className="inline-flex max-w-full items-center break-words rounded-full px-2 py-0.5 text-xs text-slate-600"
-              style={{ backgroundColor: colorWithAlpha(calendarColor, 0.16) }}
-            >
+            <span className="inline-flex max-w-full items-center break-words rounded-full border border-[#d7deeb] px-2 py-0.5 text-xs text-[#65718a]">
               {event.calendarLabel}
             </span>
           </div>
-          <p className={clsx("mt-2 break-words text-base font-medium", concluido && "text-slate-500 line-through")}>
+          <p className="mt-2 break-words text-base font-medium text-[#182443]">
             {event.summary}
           </p>
-          {concluido && <span className="mt-1 inline-flex text-xs font-semibold text-green-700">✓ Concluído</span>}
+          {concluido && <span className="mt-1 inline-flex"><Carimbo>Concluído</Carimbo></span>}
           {event.location && <p className="mt-1 break-words text-[15px] text-slate-500 sm:text-sm">{event.location}</p>}
         </div>
         <div className="grid w-full grid-cols-3 items-center gap-2 sm:flex sm:w-auto sm:shrink-0 sm:flex-wrap sm:items-center">
