@@ -335,14 +335,16 @@ function ordenarViagens(viagens: Viagem[]) {
 
 function estiloBoxViagem(v: Viagem) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
+  // Card branco com faixa lateral da cor da empresa (padrão ct-clean).
+  const base = { backgroundColor: "#ffffff", borderColor: "#e1e6f0", borderLeftWidth: 6 };
   if (tipo === "Retirada") {
-    return { backgroundColor: "#D3EFD9", borderColor: "#2E8B47", borderLeftWidth: 6 };
+    return { ...base, borderLeftColor: "#2E8B47" };
   }
   const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
   const entregaAraras = loja === "araras" || loja === "casa timoni";
   return entregaAraras
-    ? { backgroundColor: "#FFE680", borderColor: "#B88A00", borderLeftWidth: 6 }
-    : { backgroundColor: "#D3E1FF", borderColor: "#2F5BD3", borderLeftWidth: 6 };
+    ? { ...base, borderLeftColor: "#ffd438" }
+    : { ...base, borderLeftColor: "#2F5BD3" };
 }
 
 function classeLinhaPrincipal(_v: Viagem) {
@@ -875,7 +877,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                   </button>
                   <div className="mt-3 space-y-2">
                     {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
-                      <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl border p-3">
                         <p style={estiloLinhaPrincipal(v)} className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
                         <p className="mt-2 text-sm font-bold uppercase text-slate-900">
                           {documentoTexto(v.numeroPedido)}
@@ -905,7 +907,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
         ) : modo === "dia" ? (
           <div className="mt-4 space-y-3">
             {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itensDia.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-400">Sem viagens neste dia.</p> : itensDia.map((v, index) => (
-              <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="font-[Arial] text-[11pt] leading-[1.35]">
                     <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>

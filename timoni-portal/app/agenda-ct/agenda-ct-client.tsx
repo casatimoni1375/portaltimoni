@@ -31,16 +31,16 @@ export function AgendaCTClient() {
 
   return (
     <div className="mx-auto w-full max-w-7xl">
-      <section className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-sm sm:rounded-2xl sm:p-4">
+      <section className="min-w-0 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white p-2 sm:rounded-2xl sm:p-4">
         <div className="mb-3 flex flex-col gap-3 px-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-slate-950 sm:text-2xl">Agenda CT</h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <h1 className="text-xl font-semibold text-[#182443] sm:text-2xl">Agenda CT</h1>
+            <p className="mt-1 text-sm text-[#65718a]">
               Calendário compartilhado da Casa Timoni. A agenda pessoal da Ciça permanece separada.
             </p>
           </div>
 
-          <div className="inline-flex w-fit rounded-lg border border-slate-200 bg-slate-50 p-1" role="group" aria-label="Visualização da Agenda CT">
+          <div className="inline-flex w-fit rounded-lg border border-[#d7deeb] bg-white p-1" role="group" aria-label="Visualização da Agenda CT">
             {VIEW_OPTIONS.map((option) => {
               const active = viewMode === option.value;
               return (
@@ -49,8 +49,8 @@ export function AgendaCTClient() {
                   type="button"
                   onClick={() => setViewMode(option.value)}
                   className={active
-                    ? "rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-950 shadow-sm transition"
-                    : "rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-950"}
+                    ? "rounded-md bg-[#102a83] px-3 py-1.5 text-sm font-medium text-white transition"
+                    : "rounded-md px-3 py-1.5 text-sm font-medium text-[#102a83] transition hover:bg-[#f5f7fd]"}
                   aria-pressed={active}
                 >
                   {option.label}
