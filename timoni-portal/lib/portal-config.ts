@@ -452,6 +452,7 @@ export async function ensurePortalConfiguration(accessToken: string) {
         method: "POST",
         body: JSON.stringify({ valueInputOption: "RAW", data }),
       });
+      revalidateTag(PORTAL_CONFIG_CACHE_TAG);
       users = await readUsers(accessToken);
     }
   }
@@ -496,9 +497,13 @@ export async function loadPortalConfiguration(accessToken: string): Promise<Port
 export const getPortalUserSessionState = cache(async (accessToken: string | undefined, email: string | null | undefined) => {
   if (!accessToken) return { user: null, unavailable: true };
   let unavailable = false;
+  // Cadastro lido do cache de 30 s (unstable_cache). Toda gravação no cadastro chama
+  // revalidateTag(PORTAL_CONFIG_CACHE_TAG), então uma revogação feita pelo portal vale na hora.
+  // Edição direta na planilha leva até 30 s para valer.
   const user = await resolveOfficialPortalUser(email, async () => {
-    try { return await fetchUsers(accessToken); }
+    try { return await readUsers(accessToken); }
     catch {
+      // Nova tentativa direta na planilha: a leitura em cache da requisição já falhou.
       try { return await fetchUsers(accessToken); }
       catch { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
     }
