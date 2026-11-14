@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import clsx from "clsx";
@@ -122,11 +122,14 @@ export function CalendarView({
   initialError,
   title = "Agenda",
   fixedCalendarKey,
+  abas,
 }: {
   initialEvents: CalendarEventDTO[];
   initialError: string | null;
   title?: string;
   fixedCalendarKey?: CalendarKey;
+  // Abas do módulo (Minha / Loja / Reuniões), mostradas na mesma linha do cabeçalho.
+  abas?: ReactNode;
 }) {
   const [events, setEvents] = useState(initialEvents);
   const [view, setView] = useState<ViewMode>("week");
@@ -393,33 +396,34 @@ export function CalendarView({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
-        <div>
+      {/* Cabeçalho em uma linha: abas, título e período, visões e novo evento. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        {abas}
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           <h1 className="text-lg font-semibold">{title}</h1>
           <p className="capitalize text-sm text-slate-400">{rangeLabel}</p>
         </div>
-        <Button
-          className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-[15px] sm:text-sm"
-          onClick={() => {
-            setEditingEvent(null);
-            setFormOpen(true);
-          }}
-        >
-          + Novo evento
-        </Button>
-      </div>
-
-      <div className="mt-4 grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.7fr)_minmax(0,0.7fr)] items-center gap-2 sm:flex sm:flex-wrap">
-        {(["week", "month", "year"] as ViewMode[]).map((mode) => (
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+          {(["week", "month", "year"] as ViewMode[]).map((mode) => (
+            <Button
+              key={mode}
+              className="inline-flex items-center justify-center whitespace-nowrap px-3 text-[15px] sm:text-sm"
+              variant={view === mode ? "primary" : "secondary"}
+              onClick={() => changeView(mode)}
+            >
+              {mode === "week" ? "Próximos 7 eventos" : mode === "month" ? "Mês" : "Ano"}
+            </Button>
+          ))}
           <Button
-            key={mode}
-            className="inline-flex min-w-0 items-center justify-center whitespace-nowrap px-2 text-[15px] sm:text-sm"
-            variant={view === mode ? "primary" : "secondary"}
-            onClick={() => changeView(mode)}
+            className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-[15px] sm:text-sm"
+            onClick={() => {
+              setEditingEvent(null);
+              setFormOpen(true);
+            }}
           >
-            {mode === "week" ? "Próximos 7 eventos" : mode === "month" ? "Mês" : "Ano"}
+            + Novo evento
           </Button>
-        ))}
+        </div>
       </div>
 
       <div className="relative mt-4">
