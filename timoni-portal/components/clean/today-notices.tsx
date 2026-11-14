@@ -83,7 +83,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
    </div>}
   </li>;};
 
- return <section className="ct-clean-card ct-today-notices" aria-label="Comunicados">
+ return <section className="ct-clean-card ct-today-notices ct-tone-card ct-tone-red ct-m-order-2" aria-label="Comunicados">
   <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<Link href="/colaboradores#comunicados">+ Novo</Link>}</div>
   {error&&<p className="ct-notice-error">{error}</p>}
   {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}

@@ -132,19 +132,17 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
   {/* Tela Hoje v2: esquerda = Agenda + Aniversários/Férias; direita = Comunicados + Pedidos pendentes. */}
   <div className="ct-today-layout ct-today-v2">
    <aside className="ct-today-side">
-   {capabilities.agenda&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
+   {capabilities.agenda&&<section className={`ct-clean-card ct-tone-card ${agendaTitle==="Agenda CT"?"ct-tone-blue":"ct-tone-purple"} ct-m-order-1`}><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
     {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
     {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
     {agendaEvents.map(event=><Link className="ct-clean-calendar-row" key={event.id} href={agendaHref}><b>{event.allDay?"Dia":formatTime(event.start)}</b><span>{event.summary||"(sem título)"}{event.completed?" · concluído":""}</span></Link>)}
     {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
-   {events.length>0&&<section className="ct-clean-card">
-    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
-   </section>}
+   {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<section key={kind} className={`ct-clean-card ct-tone-card ${kind==="birthday"?"ct-tone-green ct-m-order-3":"ct-tone-yellow ct-m-order-4"}`}><div className="ct-clean-people-group"><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div></section>:null;})}
    </aside>
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
-   {pending.length>0&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Pedidos pendentes</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
+   {pending.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos pendentes</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
     {pending.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
    </div>
