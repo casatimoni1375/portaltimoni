@@ -69,6 +69,11 @@ const DIRECT_PAINEL_TIMONI_EMAILS = new Set([
   "marketplacerc.mcr@gmail.com",
   ESTOQUE_TIMONI_EMAIL,
 ]);
+/** Contas que leem em Compras apenas os pedidos enviados (sem pendências nem urgências). */
+export const COMPRAS_ENVIADOS_SOMENTE_EMAILS = new Set([
+  "estoqueararascasatimoni@gmail.com",
+]);
+
 const COLLABORATOR_MOTORISTA_CONTROL_EMAILS = new Set([
   "estoqueararascasatimoni@gmail.com",
   "caixarctimoni@gmail.com",
