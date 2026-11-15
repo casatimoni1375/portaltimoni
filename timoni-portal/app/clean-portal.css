@@ -279,3 +279,13 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   .text-sm { font-size: 11px !important; }
   .text-xs, .text-\[10px\], .text-\[9px\] { font-size: 10px !important; }
 }
+
+/* Celular: auditoria final de fontes no padrão do Fluxo (tamanhos e pesos; cores não mudam) */
+@media (max-width: 767px) {
+  .text-4xl, .text-5xl, .text-\[26px\], .text-\[28px\], .text-\[32px\], .text-\[24px\] { font-size: 20px !important; line-height: 1.2 !important; }
+  .text-\[8px\], .text-\[9px\] { font-size: 10px !important; }
+  .text-\[12px\] { font-size: 11px !important; }
+  .text-\[14px\] { font-size: 13px !important; }
+  .text-\[16px\], .text-\[17px\], .text-\[18px\] { font-size: 12.5px !important; }
+  .font-bold, .font-extrabold, .font-black, .font-semibold { font-weight: 600 !important; }
+}
