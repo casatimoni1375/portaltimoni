@@ -15,8 +15,8 @@ const SEARCH_WINDOW_DAYS = 365;
 
 const WEEK_DAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const CALENDAR_COLOR_FALLBACKS: Record<CalendarEventDTO["calendarKey"], string> = {
-  principal: "#7986CB",
-  timoni: "#F6BF26",
+  principal: "#444441",
+  timoni: "#185FA5",
 };
 
 // Dia, Semana e Mês. Ano saiu: não era usado no dia a dia e pesava na tela.
@@ -117,7 +117,7 @@ function AgendaRow({
   onDelete: (event: CalendarEventDTO) => void;
 }) {
   const isAllDay = !event.start.includes("T");
-  const color = event.calendarColor || CALENDAR_COLOR_FALLBACKS[event.calendarKey];
+  const color = CALENDAR_COLOR_FALLBACKS[event.calendarKey];
   // Mesma regra do cartão antigo: passado e não editado conta como concluído, mas continua visível.
   const passou = new Date(event.end).getTime() < now;
   const concluido = Boolean(event.completed) || (passou && !event.edited);
@@ -148,7 +148,7 @@ function AgendaRow({
         <Button className="min-h-11 px-3 text-base lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
           Editar
         </Button>
-        <Button className="min-h-11 px-3 text-base lg:min-h-9 lg:text-sm" variant="danger" disabled={deleting} onClick={() => onDelete(event)}>
+        <Button className="min-h-11 px-3 text-base text-red-700 lg:min-h-9 lg:text-sm" variant="secondary" disabled={deleting} onClick={() => onDelete(event)}>
           Cancelar
         </Button>
       </div>
@@ -334,7 +334,7 @@ export function CalendarView({
   function renderDots(key: string) {
     const dayEvents = eventsByDate.get(key) ?? [];
     if (dayEvents.length === 0) return null;
-    const colors = Array.from(new Set(dayEvents.map((event) => event.calendarColor || CALENDAR_COLOR_FALLBACKS[event.calendarKey])));
+    const colors = Array.from(new Set(dayEvents.map((event) => CALENDAR_COLOR_FALLBACKS[event.calendarKey])));
     return (
       <span className="mt-1 flex items-center justify-center gap-1" aria-label={`${dayEvents.length} evento(s)`}>
         {colors.slice(0, 3).map((color) => (

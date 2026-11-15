@@ -10,8 +10,8 @@ import { Carimbo } from "@/components/clean/carimbo";
 type Urgency = "urgent" | "today" | "future";
 
 const CALENDAR_COLOR_FALLBACKS: Record<CalendarEventDTO["calendarKey"], string> = {
-  principal: "#7986CB",
-  timoni: "#F6BF26",
+  principal: "#444441",
+  timoni: "#185FA5",
 };
 
 export function getUrgency(startIso: string, endIso: string, nowMs: number): Urgency {
@@ -37,7 +37,7 @@ export function EventCard({
   onDelete: (event: CalendarEventDTO) => void;
 }) {
   const isAllDay = !event.start.includes("T");
-  const calendarColor = event.calendarColor || CALENDAR_COLOR_FALLBACKS[event.calendarKey];
+  const calendarColor = CALENDAR_COLOR_FALLBACKS[event.calendarKey];
   // Evento que já passou conta como concluído, a menos que tenha sido editado.
   // Editado não ganha o carimbo sozinho: fica sem marcação até alguém decidir.
   const passou = new Date(event.end).getTime() < Date.now();
@@ -75,7 +75,7 @@ export function EventCard({
           <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="secondary" onClick={() => onEdit(event)}>
             Editar
           </Button>
-          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="danger" onClick={() => onDelete(event)}>
+          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] text-red-700 sm:px-3 sm:text-sm" variant="secondary" onClick={() => onDelete(event)}>
             Cancelar
           </Button>
         </div>
