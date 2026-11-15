@@ -1,8 +1,8 @@
 # Identidade visual do Portal Timoni — parâmetros
 
-Atualizado em 15/11/2026. Fonte única para tamanhos, cores, colunas e blocos. Desktop e celular têm colunas separadas. Quando um valor mudar, muda aqui primeiro.
+Atualizado em 15/11/2026 com as decisões finais da responsável. Fonte única para tamanhos, cores, colunas e blocos. Desktop e celular têm colunas separadas. Quando um valor mudar, muda aqui primeiro.
 
-Celular: valor que o código aplica hoje no celular (iPhone 17: 402 × 874 pontos; abaixo de 768 pontos de largura vale a coluna Celular).
+Celular: abaixo de 768 pontos de largura vale a coluna Celular (breakpoint único de 767 px). Referência de teste: iPhone 17, 402 × 874 pontos.
 
 ## 1. Tipografia (px)
 
@@ -14,25 +14,26 @@ Celular: valor que o código aplica hoje no celular (iPhone 17: 402 × 874 ponto
 | Título de seção | cabeçalho de cartão (Enviados, Recebidos…) | 26 | `--ct-font-section-title` |
 | Subtítulo | títulos internos, versão compacta | 22 | `--ct-font-subtitle` |
 | Texto | nome do pedido, título de evento, corpo | 20 | `--ct-font-body` |
-| Texto informativo | datas, enviado em, local, legendas | 16 | `--ct-font-caption` |
-| Etiqueta | carimbos, badges, rótulos de grupo | 14 | valor fixo |
-| Número de contador | caixas Enviados / Atrasados | 34 | `text-3xl` |
+| Texto informativo | datas, enviado em, local, legendas | 18 | `--ct-font-caption` |
+| Etiqueta | carimbos, badges, rótulos de grupo | 16 | `--ct-font-label` |
+| Número de contador | caixas Enviados / Atrasados | 34 | classe `ct-clean-counter` |
 | Número de métrica | cartões de contagem em Hoje | 36 | `.ct-clean-metric strong` |
+| E-mail no cabeçalho de Hoje | | 14 | valor fixo |
 
-### 1.2 Celular
+### 1.2 Celular (até 767 px)
 
 | Nível | Celular |
 |---|---|
-| Título de página | 34 |
-| Título de seção | 26 |
-| Subtítulo | 22 |
-| Texto | 20 |
-| Texto informativo | 16 |
+| Título de página | 26 |
+| Título de seção | 22 |
+| Subtítulo | 18 |
+| Texto | 16 |
+| Texto informativo | 14 |
 | Etiqueta (inclui navegação inferior) | 14 |
-| Número de contador | 34 |
+| Número de contador | 26 |
 | Número de métrica | 32 |
 
-**Piso absoluto: 14 px, no desktop e no celular normal.** Exceção: a versão compacta do celular (contas da Ciça e da mcrodini), que usa tamanhos menores, como está abaixo.
+**Piso de 14 px: vale só no desktop** (decisão 15/11). No celular não há piso adicional.
 
 ### 1.3 Versão compacta (contas da Ciça e da mcrodini)
 
@@ -50,9 +51,9 @@ Regra geral: azul é o normal; vermelho pede atenção. Valem nos dois.
 
 | Cor | Hex | Uso |
 |---|---|---|
-| Azul | #102a83 | normal, títulos, ação principal, Enviado no prazo, Minha agenda |
+| Azul | #102a83 | normal, títulos, ação principal, Enviado no prazo |
 | Vermelho | #b12532 | atenção: Atrasado, Cancelar (ação destrutiva) |
-| Amarelo | #ffd438 | Araras em Recebidos; Sem data em Enviados |
+| Amarelo | #ffd438 | Araras em Recebidos; Sem data em Enviados (risco de sobreposição aceito, com legenda na planilha) |
 | Âmbar (texto) | #854f0b / #996000 | texto de alerta sobre fundo claro |
 | Verde | #15803d (texto #166534) | Rio Claro em Recebidos |
 | Dourado | #f6bf26 | Agenda CT (cor do calendário) |
@@ -63,6 +64,8 @@ Regra geral: azul é o normal; vermelho pede atenção. Valem nos dois.
 | Separador | #edf0f6 | linhas entre itens |
 | Fundo da página | #f5f6fb | |
 | Destaque suave | #eef1fa | dia de hoje, cabeçalho de tabela |
+
+Concluído: mesma cor do item, com 60% de opacidade. Não é cor nova.
 
 Amarelo e verde identificam unidade, não status. Não usar essas cores para indicar atraso ou sucesso.
 
@@ -95,14 +98,15 @@ Amarelo e verde identificam unidade, não status. Não usar essas cores para ind
 ## 5. Telas e blocos
 
 - **Hoje:** blocos escolhidos em Configurações. Comunicados sempre aparecem.
+- **Hoje, pedidos:** dois blocos separados. Pedidos atrasados (urgentes) e Pedidos a fazer. Cada bloco some quando vazio (PR #416).
 - **Compras:** abas 1 Fazer pedido, 2 Conferir, 3 Pedidos enviados, 4 Recebidos, 5 Estoque rotativo.
 - **Agenda:** Dia, Semana e Mês. Ano foi removido. Busca de compromissos com janela de ±1 ano, sem limite de quantidade.
 - **Reuniões:** item próprio no menu.
 - **Estoque:** cabeçalho e cartões no padrão limpo.
 
-## 6. Pendências (ainda não migradas)
+## 6. Pendências (migração autorizada, ainda não feita)
 
-Estas telas ainda usam classes Tailwind com texto abaixo de 14 px (`text-xs`, `text-[10px]`, `text-[11px]`). Entram na próxima rodada de migração:
+Estas telas ainda usam classes Tailwind com texto abaixo de 14 px (`text-xs`, `text-[10px]`, `text-[11px]`). A migração foi autorizada em 15/11 e será feita arquivo por arquivo:
 
 | Arquivo | Ocorrências |
 |---|---|
