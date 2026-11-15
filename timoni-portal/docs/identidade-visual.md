@@ -2,7 +2,7 @@
 
 Atualizado em 15/11/2026. Fonte única para tamanhos, cores, colunas e blocos. Desktop e celular têm colunas separadas. Quando um valor mudar, muda aqui primeiro.
 
-Legenda da coluna Celular: "em vigor" é o valor que o código aplica hoje no celular. "A definir" fica para a rodada de mudança do celular.
+Celular: valor que o código aplica hoje no celular (iPhone 17: 402 × 874 pontos; abaixo de 768 pontos de largura vale a coluna Celular).
 
 ## 1. Tipografia (px)
 
@@ -21,26 +21,26 @@ Legenda da coluna Celular: "em vigor" é o valor que o código aplica hoje no ce
 
 ### 1.2 Celular
 
-| Nível | Em vigor | A definir |
-|---|---|---|
-| Título de página | 34 | |
-| Título de seção | 26 | |
-| Subtítulo | 22 | |
-| Texto | 20 | |
-| Texto informativo | 16 | |
-| Etiqueta (inclui navegação inferior) | 14 | |
-| Número de contador | 34 | |
-| Número de métrica | 32 | |
+| Nível | Celular |
+|---|---|
+| Título de página | 34 |
+| Título de seção | 26 |
+| Subtítulo | 22 |
+| Texto | 20 |
+| Texto informativo | 16 |
+| Etiqueta (inclui navegação inferior) | 14 |
+| Número de contador | 34 |
+| Número de métrica | 32 |
 
-**Piso absoluto: 14 px, nos dois.** Nenhum texto do portal fica abaixo disso.
+**Piso absoluto: 14 px, no desktop e no celular normal.** Exceção: a versão compacta do celular (contas da Ciça e da mcrodini), que usa tamanhos menores, como está abaixo.
 
-### 1.3 Celular, versão compacta (contas da Ciça e da mcrodini)
+### 1.3 Versão compacta (contas da Ciça e da mcrodini)
 
 | Item | Desktop | Celular |
 |---|---|---|
-| Linha da agenda | 20 (texto) | 16 |
-| Título de seção | 26 | 22 |
-| Links de cabeçalho | 16 | 14 |
+| Linha da agenda | 16 | 14 |
+| Título de seção | 22 | 15 |
+| Link de cabeçalho | 14 | 12 |
 | Navegação inferior | 14 | 14 |
 | Avisos e rótulos | 14 | 14 |
 

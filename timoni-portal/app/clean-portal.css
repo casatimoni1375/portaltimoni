@@ -216,6 +216,7 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 .ct-user-compact .ct-today-layout.ct-today-v2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start;}
 .ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-side,.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-main{display:flex;flex-direction:column;gap:8px;min-width:0;}
 .ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:22px!important;}
+@media(max-width:767px){.ct-user-compact .ct-clean-calendar-row{font-size:14px;}.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:15px!important;}.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:12px!important;}}
 .ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:14px!important;}
 }
 
