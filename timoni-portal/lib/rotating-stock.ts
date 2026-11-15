@@ -178,7 +178,9 @@ export async function ensureRotatingStockSchema() {
           ADD COLUMN IF NOT EXISTS source_stock_column TEXT NOT NULL DEFAULT '',
           ADD COLUMN IF NOT EXISTS source_start_row INTEGER NOT NULL DEFAULT 1,
           ADD COLUMN IF NOT EXISTS trello_card_id TEXT NOT NULL DEFAULT '',
-          ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ
+          ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS erp_posted_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS erp_posted_by TEXT
       `;
       await sql`
         ALTER TABLE portal_rotating_stock_items
@@ -323,7 +325,7 @@ export async function getRotatingStockPendingUpdateCount() {
 export async function listRotatingStockData() {
   await ensureRotatingStockSchema();
   const sql = getDatabase();
-  const [updates, suppliers, pendingRows, notFoundItems, history, supplierStandardizations] = await Promise.all([
+  const [updates, suppliers, pendingRows, notFoundItems, history, supplierStandardizations, erpPending] = await Promise.all([
     sql`SELECT updates.*, updates.id::TEXT, updates.supplier_id::TEXT,
       COALESCE((SELECT ARRAY_AGG(items.target_row ORDER BY items.target_row) FILTER (WHERE items.target_row IS NOT NULL)
         FROM portal_rotating_stock_items items
@@ -360,6 +362,20 @@ export async function listRotatingStockData() {
       FROM portal_rotating_stock_supplier_standardizations
       ORDER BY LOWER(supplier_name), supplier_name
     `,
+    // Itens que mudaram e ainda não foram lançados no Bessani (Rodini = contagem; MCR = 0).
+    sql`
+      SELECT history.update_id::TEXT, history.code, COALESCE(items.description, '') AS description,
+        history.old_stock, history.current_stock, history.difference
+      FROM portal_rotating_stock_history history
+      INNER JOIN portal_rotating_stock_updates updates ON updates.id = history.update_id
+      INNER JOIN portal_rotating_stock_items items
+        ON items.update_id = history.update_id AND items.source_row = history.source_row
+      WHERE updates.deleted_at IS NULL AND updates.status = 'atualizado' AND updates.erp_posted_at IS NULL
+        AND updates.reviewed_at >= NOW() - INTERVAL '30 days'
+        AND items.applied = TRUE AND (history.difference IS NULL OR history.difference <> 0)
+      ORDER BY updates.reported_at, history.code
+      LIMIT 5000
+    `,
   ]);
   return {
     updates: (updates as unknown as RotatingStockUpdate[]).map(normalizeDate),
@@ -368,7 +384,19 @@ export async function listRotatingStockData() {
     notFoundItems: (notFoundItems as unknown as Array<Record<string, unknown>>).map(normalizeDate),
     history: (history as unknown as RotatingStockHistory[]).map(normalizeDate),
     supplierStandardizations: (supplierStandardizations as unknown as RotatingStockSupplierStandardization[]).map(normalizeDate),
+    erpPending: (erpPending as unknown as Array<{ update_id: string; code: string; description: string; old_stock: number | null; current_stock: number; difference: number | null }>),
   };
+}
+
+/** Carolina confirma que os itens da atualização foram lançados no Bessani. */
+export async function markRotatingStockErpPosted(id: string, actor: string) {
+  const sql = getDatabase();
+  const rows = await sql`
+    UPDATE portal_rotating_stock_updates SET erp_posted_at = NOW(), erp_posted_by = ${actor}
+    WHERE id = ${id}::UUID AND status = 'atualizado' AND erp_posted_at IS NULL AND deleted_at IS NULL
+    RETURNING id
+  `;
+  return (rows as unknown[]).length > 0;
 }
 
 export async function getRotatingStockUpdate(id: string) {

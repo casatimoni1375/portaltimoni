@@ -108,7 +108,7 @@ export function canRotativoOperation(user: PortalUser, _role: RotativoRole, acti
 export function rotativoAction(operation: string): AuthorizationAction | null {
   if (operation === "registrar") return "criar";
   if (["excluir_fornecedor_padronizado", "excluir_atualizacao"].includes(operation)) return "excluir";
-  if (["editar_registro", "resolver_nao_encontrado", "conferir", "corrigir_item_conferencia", "atualizar"].includes(operation)) return "editar";
+  if (["editar_registro", "resolver_nao_encontrado", "conferir", "corrigir_item_conferencia", "atualizar", "marcar_lancado_bessani"].includes(operation)) return "editar";
   if (["padronizar_proxima_planilha", "confirmar_planilha_fornecedor", "salvar_padrao_fornecedor", "salvar_padroes_fornecedores", "salvar_mapeamento"].includes(operation)) return "administrar";
   return null;
 }

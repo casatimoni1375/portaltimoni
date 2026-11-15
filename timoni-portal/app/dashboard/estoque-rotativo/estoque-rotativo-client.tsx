@@ -45,10 +45,40 @@ type HistoryItem = {
   old_stock: number | null; current_stock: number; difference: number | null;
 };
 
+type ErpPendingItem = {
+  update_id: string; code: string; description: string;
+  old_stock: number | null; current_stock: number; difference: number | null;
+};
+
+/** Prazo combinado: lançar no Bessani em até 24h depois do aviso do Lucas. */
+const ERP_DEADLINE_HOURS = 24;
+
+function erpDeadline(reportedAt: string) {
+  const deadline = new Date(new Date(reportedAt).getTime() + ERP_DEADLINE_HOURS * 3600 * 1000);
+  const late = Date.now() > deadline.getTime();
+  const label = deadline.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return { late, label };
+}
+
+function erpRows(items: ErpPendingItem[]) {
+  return items.map((item) => [item.code, String(item.current_stock), "0"]);
+}
+
+function downloadErpCsv(supplier: string, items: ErpPendingItem[]) {
+  const lines = [["CODIGO", "RODINI", "MCR"], ...erpRows(items)].map((row) => row.join(";")).join("\r\n");
+  const blob = new Blob([lines], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `bessani-${supplier.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
 type ResponseData = {
   updates: Update[]; suppliers: Supplier[]; notFoundPending: number; items: Item[]; currentUpdate: Update | null;
   notFoundItems: Array<{ id: string; update_id: string; code: string; description: string; new_stock: number; supplier_name: string; reported_at: string }>;
   history: HistoryItem[];
+  erpPending?: ErpPendingItem[];
   supplierFiles: SupplierFile[];
   supplierStandardizations: SupplierStandardization[];
   permissions: { canReport: boolean; canConference: boolean; canManage: boolean };
@@ -561,6 +591,10 @@ export default function EstoqueRotativoClient() {
   }
 
   const visibleItems = data?.items || [];
+  const erpGroups = (data?.updates || [])
+    .map((update) => ({ update, items: (data?.erpPending || []).filter((item) => item.update_id === update.id) }))
+    .filter((group) => group.items.length)
+    .sort((a, b) => a.update.reported_at.localeCompare(b.update.reported_at));
 
   return (
     <div className="ct-modern-workspace ct-rotativo space-y-5 pb-10">
@@ -575,6 +609,7 @@ export default function EstoqueRotativoClient() {
         <li>2. Planilha do fornecedor</li>
         <li>3. Conferência</li>
         <li>4. Atualizar Rotativo</li>
+        <li>5. Lançar no Bessani (até 24h)</li>
       </ol>
 
       <section className="ct-clean-metrics ct-rt-metrics" aria-label="Situação do Rotativo">
@@ -592,6 +627,56 @@ export default function EstoqueRotativoClient() {
       {feedback ? <p role="status" className="ct-rt-alert ct-rt-ok">{feedback}</p> : null}
 
       {error ? <p role="alert" className="ct-rt-alert ct-rt-error">{error}</p> : null}
+
+      {erpGroups.length ? (
+        <section className="ct-rt-card" aria-label="Lançar no Bessani">
+          <p className="ct-rt-step">5. Lançar no Bessani</p>
+          <h2 className="ct-rt-title">Itens que mudaram e ainda não foram lançados</h2>
+          <p className="ct-rt-help">Rodini recebe a quantidade contada; MCR fica zerada. Prazo: {ERP_DEADLINE_HOURS}h depois do aviso do Lucas.</p>
+          {erpGroups.map(({ update, items }) => {
+            const deadline = erpDeadline(update.reported_at);
+            return (
+              <article key={update.id} className="ct-rt-erp">
+                <div className="ct-rt-erp-head">
+                  <div>
+                    <strong>{update.supplier_name}</strong>
+                    <small>{items.length} item(ns) · aviso em {new Date(update.reported_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</small>
+                  </div>
+                  <span className={`ct-clean-badge ${deadline.late ? "ct-clean-late" : "ct-clean-urgent"}`}>{deadline.late ? "Prazo vencido" : `Até ${deadline.label}`}</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="ct-rt-erp-table">
+                    <thead><tr><th>Código</th><th>Descrição</th><th>Antes</th><th>Rodini</th><th>MCR</th></tr></thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr key={item.code}>
+                          <td>{item.code}</td><td>{item.description}</td><td>{item.old_stock ?? "—"}</td>
+                          <td><strong>{item.current_stock}</strong></td><td>0</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="ct-rt-erp-actions">
+                  <button type="button" className="ct-clean-action" onClick={() => {
+                    void navigator.clipboard?.writeText(erpRows(items).map((row) => row.join("\t")).join("\n"))
+                      .then(() => setFeedback(`${items.length} item(ns) de ${update.supplier_name} copiados.`))
+                      .catch(() => setError("Não foi possível copiar. Use Baixar planilha."));
+                  }}>Copiar</button>
+                  <button type="button" className="ct-clean-action" onClick={() => downloadErpCsv(update.supplier_name, items)}>Baixar planilha</button>
+                  {data?.permissions.canConference ? (
+                    <button type="button" className="ct-rt-primary" disabled={busy} onClick={async () => {
+                      if (!window.confirm(`Confirmar que os ${items.length} item(ns) de ${update.supplier_name} foram lançados no Bessani?`)) return;
+                      const result = await post({ action: "marcar_lancado_bessani", id: update.id });
+                      if (result) { setFeedback(`${update.supplier_name}: lançado no Bessani.`); await load(activeId); }
+                    }}>Marcar como lançado</button>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      ) : null}
 
 
 
