@@ -593,7 +593,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
   return (
     <div ref={stockRoot} className="ct-modern-workspace pb-10">
       {isManager && (
-        <section className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+        <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Módulo Estoque</p>

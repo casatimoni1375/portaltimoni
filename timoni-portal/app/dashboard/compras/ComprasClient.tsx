@@ -295,7 +295,7 @@ export default function ComprasClient() {
       )}
 
       <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article className="ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">1. Fornecedor</p>
