@@ -258,3 +258,14 @@ main .ct-clean-card .text-lg,main .ct-clean-card .text-\[17px\],main .ct-clean-c
 main .ct-clean-card .text-xl{font-size:20px!important;line-height:1.35!important;}
 main .ct-clean-card .text-2xl{font-size:22px!important;line-height:1.3!important;}
 main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important;}
+
+/* Celular: tamanhos Tailwind no padrão do Fluxo (cores preservadas) */
+@media (max-width: 767px) {
+  .text-3xl, .text-2xl { font-size: 20px !important; line-height: 1.2 !important; }
+  .text-xl { font-size: 15px !important; line-height: 1.3 !important; }
+  .text-lg { font-size: 14px !important; line-height: 1.35 !important; }
+  .text-base, .text-\[17px\], .text-\[16px\], .text-\[15px\] { font-size: 12.5px !important; }
+  .text-sm { font-size: 12px !important; }
+  .text-xs, .text-\[11px\], .text-\[10px\], .text-\[9px\] { font-size: 11px !important; }
+  .text-\[26px\], .text-\[28px\], .text-\[32px\] { font-size: 20px !important; }
+}
