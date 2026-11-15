@@ -27,6 +27,8 @@ export interface CalendarEventDTO {
   calendarLabel: string;
   calendarColor?: string;
   completed: boolean;
+  // Evento alterado depois de criado. Quando passa o dia, um evento editado não é marcado como concluído sozinho.
+  edited?: boolean;
   recurringEventId?: string;
   originalStartTime?: string;
   allDay: boolean;

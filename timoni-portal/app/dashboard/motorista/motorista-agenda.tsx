@@ -6,6 +6,7 @@ import { createMotoristaReadLoader } from "@/lib/motorista-read-loader";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
+import { Carimbo } from "@/components/clean/carimbo";
 
 type Viagem = {
   id: string;
@@ -617,6 +618,12 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setModal(true);
   }
 
+  // Erro junto do campo obrigatório, mostrado depois de tentar salvar.
+  function mensagemCampo(name: keyof FormState) {
+    if (!invalidos.has(name)) return null;
+    return <span className="mt-1 block text-xs font-normal text-red-600">Preencha este campo.</span>;
+  }
+
   function fieldClass(name: keyof FormState) {
     return `mt-1 w-full min-w-0 rounded-xl border bg-white px-3 py-2.5 text-base md:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${invalidos.has(name) ? "border-red-500" : "border-slate-300"}`;
   }
@@ -868,10 +875,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               const data = localDateString(d);
               const itens = ordenarViagens(viagens[data] || []);
               return (
-                <section key={data} className={`rounded-2xl border bg-white p-4 ${data === hoje ? "border-blue-300 bg-blue-50/40" : "border-slate-200"}`}>
+                <section key={data} className={`rounded-xl border bg-white p-4 ${data === hoje ? "border-[#102a83]" : "border-[#e1e6f0]"}`}>
                   <button type="button" onClick={() => selecionarDia(data)} className="w-full text-left">
                     <p className="text-xs font-semibold uppercase text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
-                    <p className="mt-1 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}</p>
+                    <p className="mt-1 flex items-center gap-2 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}{data === hoje && <Carimbo>Hoje</Carimbo>}</p>
                   </button>
                   <div className="mt-3 space-y-2">
                     {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
@@ -890,7 +897,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         {v.info && <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
                         <p className="mt-1 text-xs text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">Concluir</button>}
+                          {lerConclusao(v.notasJson) ? <Carimbo>Concluído</Carimbo> : <><Carimbo tom="pendente">Pendente</Carimbo><button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg border border-[#102a83] bg-white px-3 py-1.5 text-xs font-semibold text-[#102a83] disabled:opacity-60">Concluir</button></>}
                           <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                           {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
@@ -923,7 +930,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
-                    {lerConclusao(v.notasJson) ? <span className="rounded-lg bg-emerald-100 px-3 py-2 text-sm font-semibold text-emerald-800">Concluído</span> : <button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60">Concluir</button>}
+                    {lerConclusao(v.notasJson) ? <Carimbo>Concluído</Carimbo> : <><Carimbo tom="pendente">Pendente</Carimbo><button type="button" disabled={saving} onClick={() => void concluirViagem(v)} className="rounded-lg border border-[#102a83] bg-white px-3 py-2 text-sm font-semibold text-[#102a83] disabled:opacity-60">Concluir</button></>}
                     <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                     {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                   </div>}
@@ -963,10 +970,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(4, minmax(0, 1fr))")} className="mt-5 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{vendedoresIndisponiveis && vendedoresDisponiveis.length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">Lista de vendedores indisponível no momento. Avise a gestão.</span>}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select>{mensagemCampo("tipo")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("loja")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required />{mensagemCampo("data")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{vendedoresIndisponiveis && vendedoresDisponiveis.length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">Lista de vendedores indisponível no momento. Avise a gestão.</span>}{mensagemCampo("vendedor")}</label>
             </div>
 
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -975,8 +982,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Nota Fiscal/Pedido<input value={form.numeroPedido} onChange={(e) => set("numeroPedido", e.target.value)} className={fieldClass("numeroPedido")} /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Cliente/Fornecedor<input value={form.clienteFornecedor} onChange={(e) => set("clienteFornecedor", e.target.value.toUpperCase())} className={fieldClass("clienteFornecedor")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Nota Fiscal/Pedido<input value={form.numeroPedido} onChange={(e) => set("numeroPedido", e.target.value)} className={fieldClass("numeroPedido")} />{mensagemCampo("numeroPedido")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Cliente/Fornecedor<input value={form.clienteFornecedor} onChange={(e) => set("clienteFornecedor", e.target.value.toUpperCase())} className={fieldClass("clienteFornecedor")} />{mensagemCampo("clienteFornecedor")}</label>
               <label className="min-w-0 text-sm font-medium text-slate-700">A/C<input value={form.contatoNome} onChange={(e) => set("contatoNome", e.target.value)} className={fieldClass("contatoNome")} /></label>
             </div>
 
@@ -987,8 +994,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("minmax(0, 1fr) 180px")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} /></label>
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} />{mensagemCampo("endereco")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} />{mensagemCampo("numeroEndereco")}</label>
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
@@ -998,7 +1005,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("180px minmax(0, 1fr)")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} />{mensagemCampo("volumes")}</label>
               <div className="min-w-0"><label className="min-w-0 text-sm font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-xs font-semibold text-blue-800 underline underline-offset-2">Repetir última discriminação</button></div>
             </div>
 
