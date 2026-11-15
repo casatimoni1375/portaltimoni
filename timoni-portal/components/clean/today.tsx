@@ -136,7 +136,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
   <div className="ct-today-layout ct-today-v2">
    <aside className="ct-today-side">
    {capabilities.trips&&<div className="ct-trips-v2">{tripsList}</div>}
-   {capabilities.agenda&&<section className={`ct-clean-card ct-tone-card ${agendaTitle==="Agenda CT"?"ct-tone-blue":"ct-tone-purple"} ct-m-order-1`}><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
+   {capabilities.agenda&&<section className={`ct-clean-card ct-tone-card ${agendaTitle==="Agenda CT"?"ct-tone-blue":"ct-tone-neutral"} ct-m-order-1`}><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
     {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
     {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
     {agendaEvents.map(event=><Link className="ct-clean-calendar-row" key={event.id} href={agendaHref}><b>{event.allDay?"Dia":formatTime(event.start)}</b><span>{event.summary||"(sem título)"}{event.completed?" · concluído":""}</span></Link>)}
