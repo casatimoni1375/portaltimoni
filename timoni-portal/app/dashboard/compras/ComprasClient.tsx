@@ -299,7 +299,7 @@ export default function ComprasClient() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-blue-700">1. Fornecedor</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">Pedidos pendentes</h2>
+              <h2 className="mt-2 text-base font-semibold text-slate-950">Pedidos pendentes</h2>
               <p className="mt-1 text-sm text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
             </div>
             <button
@@ -359,6 +359,7 @@ export default function ComprasClient() {
               target="_blank"
               rel="noreferrer"
               className="inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm font-semibold text-white"
+              style={{color:"#fff",textDecoration:"none"}}
             >
               Abrir pasta de fornecedores
             </a>

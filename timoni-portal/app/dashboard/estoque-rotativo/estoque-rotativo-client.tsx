@@ -753,6 +753,7 @@ export default function EstoqueRotativoClient() {
                 target="_blank"
                 rel="noreferrer"
                 className="ct-rt-primary"
+                style={{color:"#fff",textDecoration:"none"}}
               >
                 Abrir pasta de fornecedores
               </a>
