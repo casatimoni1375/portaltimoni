@@ -334,15 +334,33 @@ function ordenarViagens(viagens: Viagem[]) {
   });
 }
 
-function estiloBoxViagem(v: Viagem) {
+function estiloBoxViagem(_v: Viagem) {
+  // Card com contorno leve, sem faixa de cor (padrão ct-clean).
+  return { backgroundColor: "#ffffff", borderColor: "#e1e6f0" };
+}
+
+// Etiquetas com contorno: tipo (Entrega, Retirada) e unidade (Rio Claro, Araras).
+const ESTILO_ETIQUETA_TIPO: Record<string, { borderColor: string; color: string }> = {
+  Entrega: { borderColor: "#85B7EB", color: "#185FA5" },
+  Retirada: { borderColor: "#AFA9EC", color: "#534AB7" },
+};
+const ESTILO_ETIQUETA_UNIDADE: Record<string, { borderColor: string; color: string }> = {
+  "Rio Claro": { borderColor: "#B4B2A9", color: "#444441" },
+  Araras: { borderColor: "#5DCAA5", color: "#0F6E56" },
+};
+
+function EtiquetasViagem({ v }: { v: Viagem }) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
-  // Card branco com faixa lateral da cor da empresa (padrão ct-clean).
-  // Faixa colorida no topo do card (leitura mais fácil que a lateral).
-  const base = { backgroundColor: "#ffffff", borderColor: "#e1e6f0", borderTopWidth: 6 };
-  if (tipo === "Retirada") return { ...base, borderTopColor: "#2E8B47" };
-  const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
-  const entregaAraras = loja === "araras" || loja === "casa timoni";
-  return entregaAraras ? { ...base, borderTopColor: "#ffd438" } : { ...base, borderTopColor: "#2F5BD3" };
+  const unidade = lojaLabel(v.loja);
+  const estiloTipo = ESTILO_ETIQUETA_TIPO[tipo] ?? ESTILO_ETIQUETA_TIPO.Entrega;
+  const estiloUnidade = ESTILO_ETIQUETA_UNIDADE[unidade];
+  const base = "rounded-full border px-2.5 py-0.5 text-xs font-medium";
+  return (
+    <div className="mb-2 flex flex-wrap gap-1.5">
+      <span className={base} style={{ ...estiloTipo, backgroundColor: "transparent" }}>{tipo === "Retirada" ? "Retirada" : "Entrega"}</span>
+      {estiloUnidade && unidade && <span className={base} style={{ ...estiloUnidade, backgroundColor: "transparent" }}>{unidade}</span>}
+    </div>
+  );
 }
 
 function classeLinhaPrincipal(_v: Viagem) {
@@ -856,6 +874,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                   <div className="mt-3 space-y-2">
                     {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
                       <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl border p-3">
+                        <EtiquetasViagem v={v} />
                         <p style={estiloLinhaPrincipal(v)} className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
                         <p className="mt-2 text-sm font-bold uppercase text-slate-900">
                           {documentoTexto(v.numeroPedido)}
@@ -886,6 +905,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           <div className="mt-4 space-y-3">
             {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itensDia.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-400">Sem viagens neste dia.</p> : itensDia.map((v, index) => (
               <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
+                <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="font-[Arial] text-[11pt] leading-[1.35]">
                     <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>
