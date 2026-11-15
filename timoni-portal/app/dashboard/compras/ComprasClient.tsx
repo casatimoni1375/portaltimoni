@@ -6,7 +6,6 @@ import { signIn } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
 
-const TRELLO_URL = "https://trello.com/b/UfPrTr1H/compras";
 const DRIVE_URL = "https://drive.google.com/drive/u/0/folders/1P7Nb1FwfSQ6e7TA9Wkgizyy53tGGQajk";
 const STORAGE_KEY = "timoni_compras_portal_v4";
 
@@ -251,7 +250,7 @@ export default function ComprasClient() {
 
   return (
     <div className="ct-clean-purchases space-y-5">
-      <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+      <section className="ct-clean-card ct-tone-card ct-tone-blue">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Módulo operacional</p>
@@ -281,7 +280,7 @@ export default function ComprasClient() {
       </section>
 
       {!trello.configured && !loadingTrello && (
-        <section className="rounded-3xl border border-blue-200 bg-blue-50 p-6">
+        <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <h2 className="text-xl font-semibold text-slate-950">Conectar o Trello</h2>
           <p className="mt-2 text-sm leading-6 text-slate-700">
             A conexão será mantida pelo Portal e usada para ler, atualizar e mover os cartões.
@@ -355,14 +354,6 @@ export default function ComprasClient() {
           )}
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <a
-              href={TRELLO_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 items-center rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-800"
-            >
-              Abrir Trello
-            </a>
             <a
               href={DRIVE_URL}
               target="_blank"
@@ -451,7 +442,7 @@ export default function ComprasClient() {
       </section>
 
       {items.length > 0 && (
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Itens filtrados</p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">
@@ -510,7 +501,7 @@ export default function ComprasClient() {
         </section>
       )}
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="ct-clean-card ct-tone-card ct-tone-blue">
         <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">3. Finalizar</p>
         <h2 className="mt-2 text-xl font-semibold text-slate-950">Atualizar Trello</h2>
         <p className="mt-2 text-sm text-slate-600">
