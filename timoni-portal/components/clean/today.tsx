@@ -81,6 +81,9 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",hour:"2-digit",hour12:false}).format(new Date()));
  // Tela Hoje v2 (acessos com Compras/Pedidos): contadores = cards do Trello por coluna.
  const pending=(data.purchases?.suppliers||[]).filter(item=>allowed(item.unit));
+ // Dois blocos: atrasados (urgentes) e a fazer (demais).
+ const pedidosAtrasados=pending.filter(item=>item.urgent);
+ const pedidosAFazer=pending.filter(item=>!item.urgent);
  const summary=data.purchases?.summary;
  const pendingCount=unit==="todas"?(summary?.pedidosParaFazer??pending.length):pending.length;
  useEffect(()=>{window.dispatchEvent(new CustomEvent("ct-pending-counts",{detail:{compras:pendingCount,motorista:trips.length,agenda:agendaEvents.length+meetings.length}}));},[pendingCount,trips.length,agendaEvents.length,meetings.length]);
@@ -143,8 +146,11 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
    </aside>
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
-   {pending.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos pendentes</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
-    {pending.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
+   {pedidosAtrasados.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAtrasados.length})</Link></div>
+    {pedidosAtrasados.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
+   </section>}
+   {pedidosAFazer.length>0&&<section className="ct-clean-card ct-m-order-6"><div className="ct-clean-card-heading"><h2>Pedidos a fazer</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAFazer.length})</Link></div>
+    {pedidosAFazer.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
    </div>
   </div>
