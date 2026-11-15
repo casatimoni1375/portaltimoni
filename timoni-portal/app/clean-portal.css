@@ -204,3 +204,16 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 .ct-compras-module h2{font-size:var(--ct-font-section-title)!important;}
 .ct-compras-module h3{font-size:var(--ct-font-subtitle)!important;}
 .ct-compras-module small,.ct-compras-module label{font-size:var(--ct-font-caption)!important;}
+
+/* Acesso da Ciça (mcrodini@gmail.com): no celular, fontes menores e Hoje em duas colunas lado a lado. */
+@media(max-width:767px){
+.ct-user-compact{--ct-font-body:14px;--ct-font-caption:12px;--ct-font-page-title:22px;--ct-font-section-title:17px;--ct-font-subtitle:15px;}
+.ct-user-compact main section.ct-clean-card{padding:12px!important;}
+.ct-user-compact .ct-clean-calendar-row{font-size:14px;padding:6px 0;gap:8px;}
+.ct-user-compact .ct-clean-action-row{min-height:0;padding:8px 0;}
+.ct-user-compact main .ct-clean-today-heading h1{font-size:22px!important;}
+.ct-user-compact .ct-today-layout.ct-today-v2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start;}
+.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-side,.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-main{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:15px!important;}
+.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:12px!important;}
+}
