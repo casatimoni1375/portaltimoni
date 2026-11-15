@@ -74,7 +74,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  // Estoque: total = soma das quatro colunas (Em aberto, Relação de compra, A caminho, Chegou nos últimos 7 dias).
  const stockSeven=Date.now()-7*24*60*60*1000;
  const stockCount=(data.estoque?.necessidades||[]).filter(need=>allowed(need.unidade)&&(["pendente","observacao","consulta","em_compra","pedido_existente"].includes(need.status)||(need.status==="chegou"&&Date.parse(need.chegouEm)>=stockSeven))).length;
- const agendaTitle=capabilities.agenda==="principal"?"Minha agenda":"Agenda CT";
+ const agendaTitle=capabilities.agenda==="principal"?"Agenda Ciça":"Agenda CT";
  const agendaHref=capabilities.agenda==="principal"?"/agenda?view=minha":"/agenda?view=loja";
 
 
