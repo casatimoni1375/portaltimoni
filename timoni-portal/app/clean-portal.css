@@ -333,3 +333,13 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   main, main * { letter-spacing: 0 !important; }
   main p, main small { line-height: 1.5 !important; }
 }
+
+/* Celular: papéis copiados do Fluxo (título 20/500, seção 15/500, corpo 12.5, legenda 11, valores 12.5/600) */
+@media (max-width: 767px) {
+  h1 { font-size: 20px !important; font-weight: 500 !important; }
+  h2, h3 { font-size: 15px !important; font-weight: 500 !important; }
+  p { font-size: 12.5px !important; }
+  a { font-size: 12.5px !important; }
+  strong, b { font-size: 12.5px !important; font-weight: 600 !important; }
+  small { font-size: 11px !important; }
+}
