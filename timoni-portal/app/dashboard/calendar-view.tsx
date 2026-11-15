@@ -128,10 +128,10 @@ function AgendaRow({
   return (
     <div
       className={clsx(
-        "flex min-w-0 items-center gap-3 border-l-4 bg-white px-3 py-2",
+        "flex min-w-0 items-center gap-3 rounded-xl border bg-white px-3 py-2",
         concluido && "opacity-60"
       )}
-      style={{ borderLeftColor: color }}
+      style={{ borderColor: color }}
     >
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">

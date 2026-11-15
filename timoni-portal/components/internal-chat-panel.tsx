@@ -446,7 +446,7 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
           <div data-chat-footer className="shrink-0 border-t border-slate-200 bg-white p-2 pb-[max(0.45rem,env(safe-area-inset-bottom))] sm:p-3">
             {error ? <p className="mb-2 text-xs font-medium text-red-600">{error}</p> : null}
             {editingMessage ? (
-              <div className="mb-2 flex items-center justify-between rounded-xl border-l-4 border-[#2296E8] bg-blue-50 px-3 py-2">
+              <div className="mb-2 flex items-center justify-between rounded-xl border border-[#85B7EB] bg-white px-3 py-2">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-[#0F2D8F]">Editando mensagem</p>
                   <p className="truncate text-xs text-slate-600">{editingMessage.body}</p>
