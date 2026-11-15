@@ -79,7 +79,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const visibleOrders=sentOrders.filter(order=>(!query.get("unidade")||query.get("unidade")==="todas"||order.unidade===query.get("unidade"))&&(query.get("filtro")!=="atrasados"||(order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())))).sort((a,b)=>(a.previsaoEntrega||"9999").localeCompare(b.previsaoEntrega||"9999"));
   const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const isLate = (order: SentOrder) => Boolean(order.previsaoEntrega) && order.previsaoEntrega.slice(0, 10) < todayKey;
-  const orderTone = (order: SentOrder) => isLate(order) ? "border-[#b12532]" : !order.previsaoEntrega ? "border-[#ffd438]" : "border-[#102a83]";
+  const orderTone = (_order: SentOrder) => "border-[#e1e6f0]";
   const lateCount = visibleOrders.filter(isLate).length;
   // Araras à esquerda, Rio Claro à direita (desktop); no celular, uma coluna depois da outra.
   const columnUnits = (["araras", "rio_claro"] as const).filter((unit) => visibleUnits.includes(unit));
@@ -119,7 +119,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
               <h3 className="ct-notice-scope text-lg">{unitLabel(currentUnit)} · {orders.length}</h3>
               <div className="mt-2 grid gap-2">
                 {orders.map((order) => (
-                  <div key={order.id} className={`flex items-start justify-between gap-3 rounded-lg border-l-4 bg-white px-3 py-3 ${orderTone(order)}`}>
+                  <div key={order.id} className={`flex items-start justify-between gap-3 rounded-xl border bg-white px-3 py-3 ${orderTone(order)}`}>
                     <div className="min-w-0">
                       <strong className="block break-words text-lg text-[#182443]">{order.nome}</strong>
                       <small className="block text-base text-slate-500">Enviado: {dateOnly(order.enviadoEm)}</small>
