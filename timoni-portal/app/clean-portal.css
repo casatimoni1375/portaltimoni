@@ -194,7 +194,7 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 .ct-tone-yellow{--tone:#ffd438;--tone-ink:#854f0b;}
 .ct-tone-purple{--tone:#6b3fa0;--tone-ink:#6b3fa0;}
 main .ct-tone-card{border:1px solid color-mix(in srgb,var(--tone) 40%,#e1e6f0);}
-main .ct-tone-card h2{color:var(--tone-ink)!important;}
+main .ct-tone-card h2{color:var(--ct-clean-blue)!important;}
 @media(max-width:767px){.ct-today-layout.ct-today-v2{display:flex;flex-direction:column;gap:16px;}.ct-today-layout.ct-today-v2>.ct-today-side,.ct-today-layout.ct-today-v2>.ct-today-main{display:contents;}.ct-m-order-1{order:1}.ct-m-order-2{order:2}.ct-m-order-3{order:3}.ct-m-order-4{order:4}.ct-m-order-5{order:5}}
 
 /* Ajuste Compras (14/11): faixa colorida por status, etiquetas e fontes padronizadas */
@@ -247,3 +247,6 @@ main .ct-clean-card h2{font-size:var(--ct-font-section-title)!important;font-wei
 main .ct-clean-card p,main .ct-clean-card li{line-height:1.5;}
 main .ct-clean-card-heading{margin-bottom:12px;}
 main .ct-clean-action-row{min-height:0;padding:12px 0;}
+/* Sem caixa alta e sem kicker azul: títulos e rótulos no padrão (sentence case, cinza de apoio). */
+.uppercase{text-transform:none!important;letter-spacing:normal!important;}
+main p.text-blue-700{color:var(--ct-clean-muted)!important;}
