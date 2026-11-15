@@ -250,3 +250,10 @@ main .ct-clean-action-row{min-height:0;padding:12px 0;}
 /* Sem caixa alta e sem kicker azul: títulos e rótulos no padrão (sentence case, cinza de apoio). */
 .uppercase{text-transform:none!important;letter-spacing:normal!important;}
 main p.text-blue-700{color:var(--ct-clean-muted)!important;}
+/* Escala única dentro dos cards (todas as telas, celular e desktop): 14 / 16 / 18 / 20 / 22 / 28 px. Nada abaixo de 14. */
+main .ct-clean-card .text-xs,main .ct-clean-card .text-sm,main .ct-clean-card .text-\[9px\],main .ct-clean-card .text-\[10px\],main .ct-clean-card .text-\[11px\],main .ct-clean-card .text-\[12px\],main .ct-clean-card .text-\[13px\]{font-size:14px!important;line-height:1.45!important;}
+main .ct-clean-card .text-base,main .ct-clean-card .text-\[15px\],main .ct-clean-card .text-\[16px\]{font-size:16px!important;line-height:1.5!important;}
+main .ct-clean-card .text-lg,main .ct-clean-card .text-\[17px\],main .ct-clean-card .text-\[18px\]{font-size:18px!important;line-height:1.4!important;}
+main .ct-clean-card .text-xl{font-size:20px!important;line-height:1.35!important;}
+main .ct-clean-card .text-2xl{font-size:22px!important;line-height:1.3!important;}
+main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important;}
