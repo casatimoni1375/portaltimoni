@@ -119,7 +119,7 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
 function DataDaReuniao({ rotulo, data, hora }: { rotulo: string; data: string; hora: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#65718a]">{rotulo}</p>
+      <p className="text-[13px] font-semibold text-[#65718a]">{rotulo}</p>
       <p className="mt-1 text-base font-bold text-[#182443]">{data ? formatDate(data) : "A definir"}</p>
       {data && hora && <p className="text-xs text-[#65718a]">{formatTime(hora)}</p>}
     </div>
@@ -428,7 +428,7 @@ export default function ReunioesClient({
       {error && <p className="mt-4 rounded-lg border border-[#f3c4c4] bg-white px-3 py-2 text-sm text-[#b42318]">{error}</p>}
 
       <section className="mt-8">
-        <h2 className="text-xs font-bold uppercase tracking-[0.08em] text-[#65718a]">Reuniões agendadas</h2>
+        <h2 className="text-base font-semibold text-[#65718a]">Reuniões agendadas</h2>
         {loading ? <p className="mt-3 text-sm text-[#65718a]">Carregando...</p> :
           visible.length ? <div className={`mt-3 grid gap-4 ${allowedUnits.length > 1 ? "md:grid-cols-2" : ""}`}>
             {visible.map((meeting) => {
