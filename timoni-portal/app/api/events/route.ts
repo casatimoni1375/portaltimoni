@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
       {
         timeMin,
         timeMax,
-        maxResults: 500,
       },
       keys
     );

@@ -18,7 +18,7 @@ export async function GET() {
   const end = now + 2 * 60 * 60 * 1000;
   try {
     const events = await listEventsInRange(session!.accessToken!, {
-      timeMin: new Date(now).toISOString(), timeMax: new Date(end).toISOString(), maxResults: 500,
+      timeMin: new Date(now).toISOString(), timeMax: new Date(end).toISOString(),
     }, keys);
     return NextResponse.json({ events: events.filter(event => {
       const start = new Date(event.start).getTime();

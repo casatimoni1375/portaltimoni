@@ -4,11 +4,12 @@
 
 /* Escala tipográfica padronizada — Roboto em todos os módulos. */
 :root {
-  --ct-font-body: 18px;
-  --ct-font-page-title: 32px;
-  --ct-font-section-title: 24px;
-  --ct-font-subtitle: 20px;
-  --ct-font-caption: 14px;
+  --ct-font-body: 20px;
+  --ct-font-page-title: 34px;
+  --ct-font-section-title: 26px;
+  --ct-font-subtitle: 22px;
+  --ct-font-caption: 18px;
+  --ct-font-label: 16px;
   --ct-font-weight-regular: 400;
   --ct-font-weight-medium: 500;
   --ct-font-weight-strong: 600;
@@ -112,9 +113,11 @@ main table { line-height: 1.35; }
 @media (max-width: 640px) {
   :root {
     --ct-font-body: 16px;
-    --ct-font-page-title: 28px;
+    --ct-font-page-title: 26px;
     --ct-font-section-title: 22px;
     --ct-font-subtitle: 18px;
+    --ct-font-caption: 14px;
+    --ct-font-label: 14px;
   }
 
   html {

@@ -1,2 +1,2 @@
-import {redirect} from "next/navigation";
-export default function ReunioesPage(){redirect("/agenda?view=reunioes");}
+// Reuniões tem menu próprio: a tela fica em /dashboard/reunioes.
+export { default } from "./reunioes-view";

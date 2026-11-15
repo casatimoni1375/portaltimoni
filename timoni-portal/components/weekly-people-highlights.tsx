@@ -56,7 +56,7 @@ export function selectUpcomingPeople(events: CalendarEventDTO[], now: Date) {
 const load = cache(async (accessToken?: string) => {
   const window = getExistingPeopleWindow(new Date());
   const token = accessToken || await getAccessTokenFromRefreshToken();
-  return listEventsInRange(token, { timeMin: window.timeMin, timeMax: window.timeMax, maxResults: 500 }, ["timoni"]);
+  return listEventsInRange(token, { timeMin: window.timeMin, timeMax: window.timeMax }, ["timoni"]);
 });
 
 export function WeeklyPeopleCards({ events, now = new Date(), unavailable = false, loading = false }: { events: CalendarEventDTO[]; now?: Date; unavailable?: boolean; loading?: boolean }) {

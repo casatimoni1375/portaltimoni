@@ -8,7 +8,7 @@ import PortalIcon, {type PortalIconName} from "@/components/portal-icon";
 import {activeNavigation,type CleanNavItem} from "@/lib/clean-navigation";
 import UpdateButton from "@/components/update-button";
 const Search = dynamic(()=>import("./portal-search"),{ssr:false});
-const icons:Record<string,PortalIconName>={hoje:"home",estoque:"stock",compras:"cart",motorista:"truck",agenda:"calendar",comercial:"leads",equipe:"team"};
+const icons:Record<string,PortalIconName>={hoje:"home",estoque:"stock",compras:"cart",motorista:"truck",agenda:"calendar",reunioes:"calendar",comercial:"leads",equipe:"team"};
 export default function PortalNavigation({items,name,initials,units,settings,actions,identity,searchModules}:{items:CleanNavItem[];name:string;initials:string;units:string[];settings:boolean;actions:React.ReactNode;identity:string;searchModules:string[]}) {
  const pathname=usePathname(),router=useRouter(),params=useSearchParams();
  const [search,setSearch]=useState(false),[profile,setProfile]=useState(false);

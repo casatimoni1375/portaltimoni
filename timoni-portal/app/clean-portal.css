@@ -23,7 +23,7 @@ main .ct-clean-today-heading h1{color:var(--ct-clean-blue);font-size:var(--ct-fo
 main section.ct-clean-card{padding:18px 20px!important;border:1px solid var(--ct-clean-line);border-radius:12px!important;background:#fff;box-shadow:none;min-width:0;}.ct-clean-card-heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:6px;}
 main .ct-clean-card-heading h2{color:var(--ct-clean-ink);font-size:var(--ct-font-section-title)!important;line-height:1.4!important;font-weight:600!important;margin:0;}.ct-clean-card-heading>a{color:var(--ct-clean-blue);font-size:var(--ct-font-caption)!important;text-decoration:underline;text-underline-offset:3px;min-height:44px;display:flex;align-items:center;text-align:right;}
 .ct-clean-action-row{display:flex;align-items:center;gap:12px;min-height:76px;border-top:1px solid #edf0f6;padding:10px 0;}.ct-clean-action-row>div:first-child,.ct-clean-action-row>strong:first-child{flex:1;min-width:0;}.ct-clean-action-row strong{display:block;font-size:var(--ct-font-body);line-height:1.4;color:var(--ct-clean-blue);overflow-wrap:anywhere;}.ct-clean-action-row small{display:block;color:var(--ct-clean-muted);font-size:var(--ct-font-caption);margin-top:3px;}
-.ct-clean-badge{display:inline-flex;align-items:center;flex-shrink:0;font-size:var(--ct-font-caption);padding:3px 7px;border-radius:5px;}.ct-clean-badge.ct-clean-late{background:#fff0f0;color:#b12532;}.ct-clean-badge.ct-clean-urgent{background:#fff4e1;color:#996000;}
+.ct-clean-badge{display:inline-flex;align-items:center;flex-shrink:0;font-size:var(--ct-font-label);padding:3px 7px;border-radius:5px;}.ct-clean-badge.ct-clean-late{background:#fff0f0;color:#b12532;}.ct-clean-badge.ct-clean-urgent{background:#fff4e1;color:#996000;}
 .ct-clean-action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #d7deeb;border-radius:7px;color:var(--ct-clean-blue);font-size:16px;padding:8px 12px;white-space:nowrap;}.ct-clean-action:hover{border-color:var(--ct-clean-blue);background:#f5f7fd;}
 .ct-clean-calendar-row{display:flex;align-items:start;gap:12px;padding:9px 0;font-size:16px;color:var(--ct-clean-ink);}.ct-clean-calendar-row>b{flex-shrink:0;color:var(--ct-clean-blue);font-size:var(--ct-font-caption);min-width:34px;}.ct-clean-calendar-row>span{overflow-wrap:anywhere;}.ct-clean-people-group+div{border-top:1px solid #edf0f6;margin-top:8px;padding-top:8px;}main .ct-clean-people-group h3{color:var(--ct-clean-muted);font-size:var(--ct-font-caption)!important;font-weight:500!important;margin:14px 0 3px;}
 .ct-clean-source{display:block;color:#7b8498;font-size:var(--ct-font-caption);margin-top:10px;}.ct-clean-muted,.ct-clean-empty{font-size:16px!important;color:var(--ct-clean-muted);padding:10px 0;}.ct-clean-source-notice{display:flex;align-items:center;gap:12px;justify-content:space-between;border:1px solid #e6d7a5;background:#fffbea;border-radius:9px;padding:10px 14px;font-size:var(--ct-font-caption);margin-bottom:18px;}.ct-clean-source-notice button{min-height:44px;text-decoration:underline;white-space:nowrap;}
@@ -44,7 +44,7 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
 @media(max-width:767px){
   .ct-clean-metrics { grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr)); }
   .ct-clean-metric>span { font-size:16px; }
-  .ct-clean-bottom .ct-clean-nav-link { font-size:12px; }
+  .ct-clean-bottom .ct-clean-nav-link { font-size:14px; }
   .ct-clean-top button { padding:0 !important; }
 }
 @media(max-width:359px){
@@ -94,9 +94,9 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 .ct-notice-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 0;border:0;background:transparent;text-align:left;cursor:pointer;color:var(--ct-clean-ink);font-size:15px;}
 .ct-notice-date{flex:none;font-size:var(--ct-font-caption);color:var(--ct-clean-muted);min-width:38px;}
 .ct-notice-title{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600;}
-.ct-notice-stamp{flex:none;align-self:center;display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;}
+.ct-notice-stamp{flex:none;align-self:center;display:inline-flex;align-items:center;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;}
 .ct-notice-stamp.is-pending{color:#b91c1c;}
-.ct-notice-scope{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ct-clean-blue);margin-bottom:2px;}
+.ct-notice-scope{display:block;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ct-clean-blue);margin-bottom:2px;}
 .ct-notice-body{padding:4px 0 12px;display:grid;gap:10px;font-size:15px;}
 .ct-notice-body>p{margin:0;white-space:pre-wrap;line-height:1.5;}
 .ct-notice-image{border:0;padding:0;background:none;cursor:zoom-in;}
@@ -146,7 +146,7 @@ main .ct-notice-column h3{margin:0 0 6px;font-size:var(--ct-font-caption)!import
 @media(max-width:767px){.ct-today-op-top{gap:16px;margin-bottom:16px;}.ct-today-op-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}}
 /* Atalhos da tela Hoje (escolhidos por acesso em Configurações). */
 .ct-today-shortcuts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;}
-.ct-today-shortcuts a{border:1px solid #d7dce8;border-radius:999px;padding:6px 14px;font-size:.85rem;font-weight:600;color:#102A83;background:#fff;text-decoration:none;}
+.ct-today-shortcuts a{border:1px solid #d7dce8;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;color:#102A83;background:#fff;text-decoration:none;}
 .ct-today-shortcuts a:hover{border-color:#102A83;}
 
 /* Botão "Atualizar" do topo: recarrega o portal e fica em destaque quando há versão nova. */
@@ -160,13 +160,13 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 .ct-today-layout.ct-today-v2{grid-template-columns:minmax(280px,1fr) minmax(0,2fr);}
 @media(max-width:1000px){.ct-today-layout.ct-today-v2{grid-template-columns:minmax(0,1fr);}}
 
-.ct-clean-today-email{display:block;font-size:11px;color:var(--ct-clean-muted);margin-top:4px;}
+.ct-clean-today-email{display:block;font-size:14px;color:var(--ct-clean-muted);margin-top:4px;}
 
 /* Pedidos em andamento: link de pedido como botão de texto (mesmo visual de Recebidos). */
 .ct-link-button{min-height:44px;text-align:left;font-weight:600;color:#14038D;text-decoration:underline;text-underline-offset:4px;background:transparent;border:0;cursor:pointer;}
 
 /* Estoque no cabeçalho (entre Todas e Atualizar): atalho compacto. */
-.ct-clean-stock-link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d7deea;border-radius:8px;font-size:13px;font-weight:600;color:var(--ct-clean-blue);text-decoration:none;background:#fff;white-space:nowrap;}
+.ct-clean-stock-link{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d7deea;border-radius:8px;font-size:14px;font-weight:600;color:var(--ct-clean-blue);text-decoration:none;background:#fff;white-space:nowrap;}
 @media(max-width:767px){.ct-clean-stock-link span{display:none;}.ct-clean-stock-link{padding:6px;}}
 .ct-clean-exceptions{display:grid;gap:8px;border-top:1px solid #edf0f6;padding:10px 0;min-width:0;}
 .ct-clean-exceptions>strong{display:block;font-size:var(--ct-font-body);line-height:1.4;color:var(--ct-clean-blue);}
@@ -177,7 +177,7 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 /* Menu inferior do celular mais baixo e ícones menores (alvo de toque de 44 px mantido). */
 @media(max-width:767px){
   .ct-clean-bottom{padding:2px 2px max(2px,env(safe-area-inset-bottom))!important;}
-  .ct-clean-bottom .ct-clean-nav-link{min-height:44px!important;padding:2px 4px!important;gap:2px!important;flex-direction:column!important;font-size:11px!important;}
+  .ct-clean-bottom .ct-clean-nav-link{min-height:44px!important;padding:2px 4px!important;gap:2px!important;flex-direction:column!important;font-size:14px!important;}
   .ct-clean-bottom svg{width:20px!important;height:20px!important;}
 }
 
@@ -210,13 +210,14 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 @media(max-width:767px){
 .ct-user-compact{--ct-font-body:14px;--ct-font-caption:12px;--ct-font-page-title:22px;--ct-font-section-title:17px;--ct-font-subtitle:15px;}
 .ct-user-compact main section.ct-clean-card{padding:12px!important;}
-.ct-user-compact .ct-clean-calendar-row{font-size:14px;padding:6px 0;gap:8px;}
+.ct-user-compact .ct-clean-calendar-row{font-size:16px;padding:6px 0;gap:8px;}
 .ct-user-compact .ct-clean-action-row{min-height:0;padding:8px 0;}
 .ct-user-compact main .ct-clean-today-heading h1{font-size:22px!important;}
 .ct-user-compact .ct-today-layout.ct-today-v2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start;}
 .ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-side,.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-main{display:flex;flex-direction:column;gap:8px;min-width:0;}
-.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:15px!important;}
-.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:12px!important;}
+.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:22px!important;}
+@media(max-width:767px){.ct-user-compact .ct-clean-calendar-row{font-size:14px;}.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:15px!important;}.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:12px!important;}}
+.ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:14px!important;}
 }
 
 /* Acesso da Ciça no celular: Agenda CT | Viagens; Aniversários | Férias; Comunicados e Pedidos ocupam as duas colunas. */
@@ -227,3 +228,7 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 .ct-user-compact .ct-today-v2 .ct-today-notices{order:5;grid-column:1/-1;}
 .ct-user-compact .ct-today-v2 section.ct-m-order-5:not(.ct-today-notices){order:6;grid-column:1/-1;}
 }
+
+/* Contadores de pedidos (Enviados / Atrasados): desktop 34 px; celular 26 px (proposta aprovada). */
+.ct-clean-counter{font-size:34px;line-height:1.2;font-weight:600;}
+@media(max-width:640px){.ct-clean-counter{font-size:26px;}}
