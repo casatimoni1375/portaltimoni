@@ -75,7 +75,8 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
     while (end && !occupied(row[end - 1])) end--;
     return end;
   }));
-  const excluded = names.map((n, i) => ["item", "numero", "min", "minimo", "max", "maximo", "estoque minimo", "estoque maximo", "est min", "est max"].includes(n) ? i : -1).filter(i => i >= 0 && !columns.includes(i));
+  // ITEM, MÍN/MÁX e coluna sem título antes do código de venda (numeração de item) saem.
+  const excluded = names.map((n, i) => ["item", "numero", "min", "minimo", "max", "maximo", "estoque minimo", "estoque maximo", "est min", "est max"].includes(n) || (n === "" && i < columns[0]) || (n === "0" && i < columns[0]) ? i : -1).filter(i => i >= 0 && !columns.includes(i));
   const histories = Array.from({ length: sourceWidth }, (_, i) => i).filter(i => !columns.includes(i) && !excluded.includes(i));
   const lastRow = lastSourceRow + rowShift + 1, lastColumn = FIXED + histories.length;
   // Empresa da compra (ROD/MCR) acima dos meses: preservada na linha 4.
@@ -130,6 +131,8 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   fmt(2, 3, 0, 1, { textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: black } }, "userEnteredFormat.textFormat");
   fmt(3, 5, 0, 1, { textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: red } }, "userEnteredFormat.textFormat");
   fmt(COMPANY_ROW, COUNT_ROW + 1, FIXED, lastColumn, { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE", textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: black } }, "userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)");
+  // Contadores sempre como número (linhas antigas tinham formato de data e mostravam "jan./00").
+  fmt(COUNT_ROW, COUNT_ROW + 1, FIXED, lastColumn, { numberFormat: { type: "NUMBER", pattern: "0" } }, "userEnteredFormat.numberFormat");
   fmt(ROTATIVO_HEADER_ROW, lastRow, 0, lastColumn, { horizontalAlignment: "CENTER", verticalAlignment: "MIDDLE" }, "userEnteredFormat(horizontalAlignment,verticalAlignment)");
   fmt(DATA_ROW, lastRow, 2, 3, { horizontalAlignment: "LEFT" }, "userEnteredFormat.horizontalAlignment");
   fmt(ROTATIVO_HEADER_ROW, DATA_ROW, 0, lastColumn, { backgroundColor: blue, textFormat: { fontFamily: "Calibri", fontSize: 11, bold: true, foregroundColor: white } }, "userEnteredFormat(backgroundColor,textFormat)");
@@ -158,11 +161,13 @@ export function planOfficialRotativoModel(sheet: sheets_v4.Schema$Sheet, title: 
   if (!official) for (const row of rows.slice(0, headerIndex)) {
     const emp = row.findIndex(c => ["funcionario", "responsavel", "nome"].some(k => norm(label(c)).startsWith(k)));
     const dt = row.findIndex(c => norm(label(c)) === "data");
-    if (emp >= 0) responsible = row.slice(emp + 1, dt > emp ? dt : undefined).find(occupied) || responsible;
-    if (dt >= 0) date = row.slice(dt + 1).find(occupied) || date;
+    const isName = (c: Cell) => occupied(c) && !c.userEnteredValue?.formulaValue && !COMPANY.test(String(label(c)).trim()) && !/^[\d\s/.,:-]+$/.test(String(label(c)));
+    if (emp >= 0) responsible = row.slice(emp + 1, dt > emp ? dt : undefined).find(isName) || responsible;
+    if (dt >= 0) date = row.slice(dt + 1).find(c => occupied(c) && !c.userEnteredValue?.formulaValue) || date;
   }
-  responsible ||= top.find(c => /^(lucas|jonatan|jonathan)$/i.test(String(label(c)).trim()));
-  date ||= top.find(c => /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(String(label(c)).trim()));
+  responsible ||= top.find(c => /^(lucas|luc[aã]o|jonatan|jonathan|edson|kauan)(\s*\/\s*[a-zãç]+)?$/i.test(String(label(c)).trim()));
+  // Contador antigo formatado como data (ex.: 02/02/00) não é a data da contagem.
+  date ||= top.find(c => !c.userEnteredValue?.formulaValue && /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(String(label(c)).trim()));
   const stamp = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(now);
   requests.push({ repeatCell: { range: range(0, ROTATIVO_HEADER_ROW, 0, columnCount), cell: {}, fields: "userEnteredValue" } });
   write(0, 0, { stringValue: official ? String(label(rows[0]?.[0])) : title.trim().toLocaleUpperCase("pt-BR") });
