@@ -297,3 +297,11 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   main p, main a, main strong { font-size: 12.5px !important; }
   main small, main .ct-notice-stamp, main .ct-notice-scope { font-size: 11px !important; }
 }
+
+/* Celular: restos fora do padrão Fluxo (título, data, Comunicados) */
+@media (max-width: 767px) {
+  main h1, main h1 * { font-size: 20px !important; }
+  main p { font-size: 12.5px !important; }
+  main .ct-notice-stamp, main .ct-notice-scope, main .ct-notice-admin-actions a, main [class*="ct-notice"] small { font-size: 11px !important; }
+  main section a, main [role="region"] a { font-size: 12.5px !important; }
+}
