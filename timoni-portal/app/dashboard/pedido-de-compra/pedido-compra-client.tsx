@@ -93,11 +93,11 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
       <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-md">
         <div className="rounded-xl border-l-4 border-[#102a83] bg-white px-4 py-3">
           <p className="text-base text-slate-600">Enviados</p>
-          <strong className="text-3xl font-semibold text-[#102a83]">{visibleOrders.length}</strong>
+          <strong className="ct-clean-counter text-[#102a83]">{visibleOrders.length}</strong>
         </div>
         <div className="rounded-xl border-l-4 border-[#b12532] bg-white px-4 py-3">
           <p className="text-base text-slate-600">Atrasados</p>
-          <strong className="text-3xl font-semibold text-[#b12532]">{lateCount}</strong>
+          <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>
       </div>
       {!loading && exceptions.length > 0 && (

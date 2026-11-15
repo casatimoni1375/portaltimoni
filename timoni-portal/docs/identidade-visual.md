@@ -56,7 +56,7 @@ Regra geral: azul é o normal; vermelho pede atenção. Valem nos dois.
 | Âmbar (texto) | #854f0b / #996000 | texto de alerta sobre fundo claro |
 | Verde | #15803d (texto #166534) | Rio Claro em Recebidos |
 | Dourado | #f6bf26 | Agenda CT (cor do calendário) |
-| Lilás | #7986CB | Minha agenda (cor de reserva) |
+| Roxo | #7986CB | Minha agenda |
 | Texto principal | #182443 | |
 | Texto secundário | #65718a | datas, legendas |
 | Linha | #e1e6f0 | bordas de cartão |
