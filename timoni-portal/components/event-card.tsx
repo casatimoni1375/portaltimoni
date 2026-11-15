@@ -10,7 +10,7 @@ import { Carimbo } from "@/components/clean/carimbo";
 type Urgency = "urgent" | "today" | "future";
 
 const CALENDAR_COLOR_FALLBACKS: Record<CalendarEventDTO["calendarKey"], string> = {
-  principal: "#444441",
+  principal: "#7986CB",
   timoni: "#185FA5",
 };
 
@@ -75,7 +75,7 @@ export function EventCard({
           <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="secondary" onClick={() => onEdit(event)}>
             Editar
           </Button>
-          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] text-red-700 sm:px-3 sm:text-sm" variant="secondary" onClick={() => onDelete(event)}>
+          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="danger" onClick={() => onDelete(event)}>
             Cancelar
           </Button>
         </div>
