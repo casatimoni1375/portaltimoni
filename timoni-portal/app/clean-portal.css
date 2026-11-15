@@ -266,7 +266,7 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   .text-lg { font-size: 14px !important; line-height: 1.35 !important; }
   .text-base, .text-\[17px\], .text-\[16px\], .text-\[15px\] { font-size: 12.5px !important; }
   .text-sm { font-size: 12px !important; }
-  .text-xs, .text-\[11px\], .text-\[10px\], .text-\[9px\] { font-size: 11px !important; }
+  .text-sm, .text-\[12px\], .text-\[11px\] { font-size: 11px !important; }
   .text-\[26px\], .text-\[28px\], .text-\[32px\] { font-size: 20px !important; }
 }
 
@@ -277,6 +277,5 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   .text-lg { font-size: 13px !important; line-height: 1.35 !important; }
   .text-base, .text-\[16px\], .text-\[17px\] { font-size: 12.5px !important; }
   .text-sm { font-size: 11px !important; }
-  .text-xs, .text-\[11px\], .text-\[10px\] { font-size: 9.5px !important; }
-  .text-\[9px\] { font-size: 9px !important; }
+  .text-xs, .text-\[10px\], .text-\[9px\] { font-size: 10px !important; }
 }
