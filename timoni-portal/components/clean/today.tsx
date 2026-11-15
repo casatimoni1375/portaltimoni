@@ -132,6 +132,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
   {/* Tela Hoje v2: esquerda = Agenda + Aniversários/Férias; direita = Comunicados + Pedidos pendentes. */}
   <div className="ct-today-layout ct-today-v2">
    <aside className="ct-today-side">
+   {capabilities.trips&&<div className="ct-trips-v2">{tripsList}</div>}
    {capabilities.agenda&&<section className={`ct-clean-card ct-tone-card ${agendaTitle==="Agenda CT"?"ct-tone-blue":"ct-tone-purple"} ct-m-order-1`}><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>
     {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
     {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
