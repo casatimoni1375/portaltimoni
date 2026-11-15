@@ -114,8 +114,8 @@ main table { line-height: 1.35; }
   :root {
     --ct-font-body: 12.5px;
     --ct-font-page-title: 20px;
-    --ct-font-section-title: 16px;
-    --ct-font-subtitle: 14px;
+    --ct-font-section-title: 15px;
+    --ct-font-subtitle: 13px;
     --ct-font-caption: 11px;
     --ct-font-label: 10px;
   }
