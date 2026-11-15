@@ -205,6 +205,7 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 .ct-compras-module h3{font-size:var(--ct-font-subtitle)!important;}
 .ct-compras-module small,.ct-compras-module label{font-size:var(--ct-font-caption)!important;}
 
+.ct-trips-v2{display:none;}
 /* Acesso da Ciça (mcrodini@gmail.com): no celular, fontes menores e Hoje em duas colunas lado a lado. */
 @media(max-width:767px){
 .ct-user-compact{--ct-font-body:14px;--ct-font-caption:12px;--ct-font-page-title:22px;--ct-font-section-title:17px;--ct-font-subtitle:15px;}
@@ -216,4 +217,13 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 .ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-side,.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-main{display:flex;flex-direction:column;gap:8px;min-width:0;}
 .ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:15px!important;}
 .ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading>a{font-size:12px!important;}
+}
+
+/* Acesso da Ciça no celular: Agenda CT | Viagens; Aniversários | Férias; Comunicados e Pedidos ocupam as duas colunas. */
+@media(max-width:767px){
+.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-side,.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-main{display:contents;}
+.ct-user-compact .ct-trips-v2{display:contents;}
+.ct-user-compact .ct-trips-v2 section{order:2;}
+.ct-user-compact .ct-today-v2 .ct-today-notices{order:5;grid-column:1/-1;}
+.ct-user-compact .ct-today-v2 section.ct-m-order-5:not(.ct-today-notices){order:6;grid-column:1/-1;}
 }
