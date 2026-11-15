@@ -318,3 +318,11 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   .font-medium { font-weight: 500 !important; }
   main strong { font-weight: 600 !important; font-size: 12.5px !important; }
 }
+
+/* Celular: mais leve e sutil, com menos negrito (pedido da Ciça) */
+@media (max-width: 767px) {
+  .font-bold, .font-extrabold, .font-black, .font-semibold { font-weight: 500 !important; }
+  main strong, main b { font-weight: 500 !important; }
+  main h1, main h2, main h3 { font-weight: 500 !important; }
+  .ct-clean-metric strong { font-weight: 500 !important; }
+}
