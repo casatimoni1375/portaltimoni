@@ -193,7 +193,7 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 .ct-tone-green{--tone:#15803d;--tone-ink:#166534;}
 .ct-tone-yellow{--tone:#ffd438;--tone-ink:#854f0b;}
 .ct-tone-purple{--tone:#6b3fa0;--tone-ink:#6b3fa0;}
-main section.ct-tone-card{border-top:3px solid var(--tone);}
+main .ct-tone-card{border:1px solid color-mix(in srgb,var(--tone) 40%,#e1e6f0);}
 main .ct-tone-card h2{color:var(--tone-ink)!important;}
 @media(max-width:767px){.ct-today-layout.ct-today-v2{display:flex;flex-direction:column;gap:16px;}.ct-today-layout.ct-today-v2>.ct-today-side,.ct-today-layout.ct-today-v2>.ct-today-main{display:contents;}.ct-m-order-1{order:1}.ct-m-order-2{order:2}.ct-m-order-3{order:3}.ct-m-order-4{order:4}.ct-m-order-5{order:5}}
 
