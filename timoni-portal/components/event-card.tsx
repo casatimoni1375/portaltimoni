@@ -54,7 +54,7 @@ export function EventCard({
   return (
     <div
       className={clsx("min-w-0 rounded-xl border border-[#e1e6f0] bg-white p-3 sm:p-4", concluido && "opacity-60")}
-      style={{ borderLeft: `4px solid ${calendarColor}` }}
+      style={{ borderColor: calendarColor }}
     >
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">

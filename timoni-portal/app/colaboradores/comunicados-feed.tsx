@@ -181,7 +181,7 @@ export default function ComunicadosFeed({ store, isAdmin = false, canConfirmRead
           const isReadByEveryone = completedAvisoIds.includes(item.id);
           const readers = readersByAviso[item.id] || [];
           return (
-            <article key={item.id} className="border-l-4 border-l-amber-400 border-t border-t-blue-200 pl-3 pt-3 first:border-t-0 first:pt-0">
+            <article key={item.id} className="border-t border-t-[#dfe6f2] pt-3 first:border-t-0 first:pt-0">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   {isReadByEveryone && <span className="mb-1 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">Lido</span>}
