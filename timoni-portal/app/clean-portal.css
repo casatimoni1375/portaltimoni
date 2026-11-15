@@ -326,3 +326,10 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   main h1, main h2, main h3 { font-weight: 500 !important; }
   .ct-clean-metric strong { font-weight: 500 !important; }
 }
+
+/* Celular: sem seletor de unidade (visão geral) e mais calmo (pedido da Ciça) */
+@media (max-width: 767px) {
+  [role="group"][aria-label="Unidade"], .ct-clean-unit { display: none !important; }
+  main, main * { letter-spacing: 0 !important; }
+  main p, main small { line-height: 1.5 !important; }
+}
