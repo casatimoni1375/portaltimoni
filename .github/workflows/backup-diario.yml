@@ -1,0 +1,32 @@
+name: Backup diário
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositório com histórico completo
+        run: git clone --mirror "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" repo.git
+
+      - name: Compactar e criptografar
+        env:
+          BACKUP_SENHA: ${{ secrets.BACKUP_SENHA }}
+        run: |
+          data=$(date -u +%Y-%m-%d)
+          tar -czf "backup-portaltimoni-$data.tar.gz" repo.git
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in "backup-portaltimoni-$data.tar.gz" -out "backup-portaltimoni-$data.tar.gz.enc" -pass env:BACKUP_SENHA
+          rm "backup-portaltimoni-$data.tar.gz"
+
+      - name: Guardar backup (30 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-portaltimoni-${{ github.run_id }}
+          path: backup-portaltimoni-*.enc
+          retention-days: 30
