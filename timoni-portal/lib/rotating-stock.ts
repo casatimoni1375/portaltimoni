@@ -362,7 +362,7 @@ export async function listRotatingStockData() {
       FROM portal_rotating_stock_supplier_standardizations
       ORDER BY LOWER(supplier_name), supplier_name
     `,
-    // Itens que mudaram e ainda não foram lançados no Bessani (Rodini = contagem; MCR = 0).
+    // Itens aplicados em atualizações ainda não lançadas no Bessani (Rodini = contagem; MCR = 0), sem limite de tempo.
     sql`
       SELECT history.update_id::TEXT, history.code, COALESCE(items.description, '') AS description,
         history.old_stock, history.current_stock, history.difference
@@ -371,8 +371,7 @@ export async function listRotatingStockData() {
       INNER JOIN portal_rotating_stock_items items
         ON items.update_id = history.update_id AND items.source_row = history.source_row
       WHERE updates.deleted_at IS NULL AND updates.status = 'atualizado' AND updates.erp_posted_at IS NULL
-        AND updates.reviewed_at >= NOW() - INTERVAL '30 days'
-        AND items.applied = TRUE AND (history.difference IS NULL OR history.difference <> 0)
+        AND items.applied = TRUE
       ORDER BY updates.reported_at, history.code
       LIMIT 5000
     `,

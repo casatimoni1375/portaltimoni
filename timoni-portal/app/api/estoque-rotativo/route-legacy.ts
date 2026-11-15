@@ -1441,6 +1441,7 @@ export async function POST(request: Request) {
 
     if (action === "marcar_lancado_bessani") {
       requireRole(user, "conference", permissionAction);
+      if (email.toLowerCase() !== "carolina@casatimoni.com.br") throw new Error("Só a Carolina marca itens como lançados no Bessani.");
       const id = String(body.id || "").trim();
       if (!id) throw new Error("Atualização não identificada.");
       const marked = await markRotatingStockErpPosted(id, email);
