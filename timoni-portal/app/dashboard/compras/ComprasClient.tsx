@@ -253,7 +253,7 @@ export default function ComprasClient() {
       <section className="ct-clean-card ct-tone-card ct-tone-blue">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Módulo operacional</p>
+            <p className="text-sm font-semibold text-blue-700">Módulo operacional</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Compras</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
               Selecione um fornecedor quando houver cartão pendente ou atualize diretamente criando um novo cartão no Trello.
@@ -298,7 +298,7 @@ export default function ComprasClient() {
         <article className="ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">1. Fornecedor</p>
+              <p className="text-sm font-semibold text-blue-700">1. Fornecedor</p>
               <h2 className="mt-2 text-xl font-semibold text-slate-950">Pedidos pendentes</h2>
               <p className="mt-1 text-sm text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
             </div>
@@ -366,7 +366,7 @@ export default function ComprasClient() {
         </article>
 
         <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">2. Itens do pedido · opcional</p>
+          <p className="text-sm font-semibold text-blue-700">2. Itens do pedido · opcional</p>
           <h2 className="mt-2 text-xl font-semibold text-slate-950">Planilha do pedido</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Funciona de forma independente. Preencha as colunas conforme a planilha do fornecedor.
@@ -444,7 +444,7 @@ export default function ComprasClient() {
       {items.length > 0 && (
         <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Itens filtrados</p>
+            <p className="text-sm font-semibold text-blue-700">Itens filtrados</p>
             <h2 className="mt-2 text-xl font-semibold text-slate-950">
               Total: {items.length} itens
             </h2>
@@ -502,7 +502,7 @@ export default function ComprasClient() {
       )}
 
       <section className="ct-clean-card ct-tone-card ct-tone-blue">
-        <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">3. Finalizar</p>
+        <p className="text-sm font-semibold text-blue-700">3. Finalizar</p>
         <h2 className="mt-2 text-xl font-semibold text-slate-950">Atualizar Trello</h2>
         <p className="mt-2 text-sm text-slate-600">
           Fornecedor e número do pedido são opcionais. Informe os dados disponíveis para atualizar o Trello.

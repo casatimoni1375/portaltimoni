@@ -503,9 +503,21 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
     );
   }
 
-  function RequestForm() {
+  function ConsultCard() {
     return (
       <section className="ct-clean-card">
+        <h2 className="text-lg font-semibold text-[#102a83]">Consultar</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <a href="#estoque-solicitar" className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold text-white">Produto</a>
+          <a href="/dashboard/compras?aba=acompanhar" className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold text-white">Pedido enviado</a>
+        </div>
+      </section>
+    );
+  }
+
+  function RequestForm() {
+    return (
+      <section id="estoque-solicitar" className="ct-clean-card">
         <h2 className="text-xl font-semibold">Consultar e solicitar produto</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <select value={newUnit} onChange={(event) => { setNewUnit(event.target.value as RequestUnit); setSeller(""); }} disabled={safeAllowedUnits.length === 1} className={input}>
@@ -647,11 +659,13 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
 
       {!isManager ? (
         <div className="space-y-5">
+          {ConsultCard()}
           {showRequestForm && RequestForm()}
           {NeedsSection()}
         </div>
       ) : (
         <div className="mt-5 space-y-5">
+          {ConsultCard()}
           {showRequestForm && RequestForm()}
           {NeedsSection()}
         </div>
