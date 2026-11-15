@@ -357,7 +357,7 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
   const base = "rounded-full border px-2.5 py-0.5 text-xs font-medium";
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
-      <span className={base} style={{ ...estiloTipo, backgroundColor: "transparent" }}>{tipo === "Retirada" ? "Retirada" : "Entrega"}</span>
+      <span className={base} style={{ ...estiloTipo, backgroundColor: "transparent" }}>{tipo === "Retirada" ? "Coleta" : "Entrega"}</span>
       {estiloUnidade && unidade && <span className={base} style={{ ...estiloUnidade, backgroundColor: "transparent" }}>{unidade}</span>}
     </div>
   );
