@@ -4,11 +4,11 @@
 
 /* Escala tipográfica padronizada — Roboto em todos os módulos. */
 :root {
-  --ct-font-body: 18px;
-  --ct-font-page-title: 32px;
-  --ct-font-section-title: 24px;
-  --ct-font-subtitle: 20px;
-  --ct-font-caption: 14px;
+  --ct-font-body: 20px;
+  --ct-font-page-title: 34px;
+  --ct-font-section-title: 26px;
+  --ct-font-subtitle: 22px;
+  --ct-font-caption: 16px;
   --ct-font-weight-regular: 400;
   --ct-font-weight-medium: 500;
   --ct-font-weight-strong: 600;

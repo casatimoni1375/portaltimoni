@@ -22,7 +22,6 @@ export default async function CalendarContent({company=false, abas}:{company?:bo
       initialEvents = await listEventsInRange(company ? await getAccessTokenFromRefreshToken() : session.accessToken, {
         timeMin: start.toISOString(),
         timeMax: end.toISOString(),
-        maxResults: 100,
       },company?["timoni"]:["principal"]);
     } catch {
       loadError = "Não foi possível carregar os eventos agora.";

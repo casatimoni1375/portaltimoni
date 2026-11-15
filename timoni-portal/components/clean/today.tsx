@@ -72,8 +72,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const agendaIds=new Set(agendaEvents.map(event=>event.id));
  const meetings=(data.people?.meetings||[]).filter(meeting=>!agendaIds.has(meeting.id));
  // Estoque: total = soma das quatro colunas (Em aberto, Relação de compra, A caminho, Chegou nos últimos 7 dias).
- const stockFive=Date.now()-5*24*60*60*1000;
- const stockCount=(data.estoque?.necessidades||[]).filter(need=>allowed(need.unidade)&&(["pendente","observacao","consulta","em_compra","pedido_existente"].includes(need.status)||(need.status==="chegou"&&Date.parse(need.chegouEm)>=stockFive))).length;
+ const stockSeven=Date.now()-7*24*60*60*1000;
+ const stockCount=(data.estoque?.necessidades||[]).filter(need=>allowed(need.unidade)&&(["pendente","observacao","consulta","em_compra","pedido_existente"].includes(need.status)||(need.status==="chegou"&&Date.parse(need.chegouEm)>=stockSeven))).length;
  const agendaTitle=capabilities.agenda==="principal"?"Minha agenda":"Agenda CT";
  const agendaHref=capabilities.agenda==="principal"?"/agenda?view=minha":"/agenda?view=loja";
 
@@ -137,7 +137,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
     {waiting("agenda")&&<p className="ct-clean-muted">Carregando…</p>}
     {!waiting("agenda")&&!agendaEvents.length&&!meetings.length&&<p className="ct-clean-muted">Nenhum compromisso hoje.</p>}
     {agendaEvents.map(event=><Link className="ct-clean-calendar-row" key={event.id} href={agendaHref}><b>{event.allDay?"Dia":formatTime(event.start)}</b><span>{event.summary||"(sem título)"}{event.completed?" · concluído":""}</span></Link>)}
-    {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/agenda?view=reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
+    {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/dashboard/reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<section key={kind} className={`ct-clean-card ct-tone-card ${kind==="birthday"?"ct-tone-green ct-m-order-3":"ct-tone-yellow ct-m-order-4"}`}><div className="ct-clean-people-group"><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div></section>:null;})}
    </aside>

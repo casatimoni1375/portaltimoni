@@ -88,9 +88,37 @@ function toDTO(
   };
 }
 
+// Google devolve no máximo 2500 por página; sem paginar, o corte de 500 escondia os eventos mais recentes e futuros.
+const CALENDAR_PAGE_SIZE = 250;
+const CALENDAR_MAX_EVENTS_PER_AGENDA = 5000;
+
+async function listAllCalendarEvents(
+  calendar: ReturnType<typeof getCalendarClient>,
+  calendarId: string,
+  timeMin: string,
+  timeMax?: string
+) {
+  const items: calendar_v3.Schema$Event[] = [];
+  let pageToken: string | undefined;
+  do {
+    const res = await calendar.events.list({
+      calendarId,
+      timeMin,
+      timeMax,
+      maxResults: CALENDAR_PAGE_SIZE,
+      singleEvents: true,
+      orderBy: "startTime",
+      pageToken,
+    });
+    items.push(...(res.data.items ?? []));
+    pageToken = res.data.nextPageToken ?? undefined;
+  } while (pageToken && items.length < CALENDAR_MAX_EVENTS_PER_AGENDA);
+  return items;
+}
+
 export async function listEventsInRange(
   accessToken: string,
-  opts: { timeMin: string; timeMax?: string; maxResults?: number },
+  opts: { timeMin: string; timeMax?: string },
   onlyCalendarKeys?: CalendarKey[]
 ): Promise<CalendarEventDTO[]> {
   const calendar = getCalendarClient(accessToken);
@@ -99,16 +127,7 @@ export async function listEventsInRange(
     : (Object.keys(CALENDARS) as CalendarKey[]);
   const [results, calendarColors] = await Promise.all([
     Promise.all(
-      calendarKeys.map((key) =>
-        calendar.events.list({
-          calendarId: CALENDARS[key].id,
-          timeMin: opts.timeMin,
-          timeMax: opts.timeMax,
-          maxResults: opts.maxResults ?? 50,
-          singleEvents: true,
-          orderBy: "startTime",
-        })
-      )
+      calendarKeys.map((key) => listAllCalendarEvents(calendar, CALENDARS[key].id, opts.timeMin, opts.timeMax))
     ),
     Promise.all(
       calendarKeys.map(async (key) => {
@@ -124,7 +143,7 @@ export async function listEventsInRange(
     ),
   ]);
   const events = calendarKeys.flatMap((key, i) =>
-    (results[i].data.items ?? [])
+    results[i]
       .map((event) => toDTO(event, key, calendarColors[i]))
       .filter((event): event is CalendarEventDTO => event !== null)
   );

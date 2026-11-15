@@ -505,7 +505,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
 
   function RequestForm() {
     return (
-      <section className="rounded-3xl border bg-white p-5 shadow-sm">
+      <section className="ct-clean-card">
         <h2 className="text-xl font-semibold">Consultar e solicitar produto</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <select value={newUnit} onChange={(event) => { setNewUnit(event.target.value as RequestUnit); setSeller(""); }} disabled={safeAllowedUnits.length === 1} className={input}>
@@ -570,7 +570,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
     return (
       <>
         {statusSections.map(({ title, items, empty }, index) => (
-          <section key={title} id={`estoque-etapa-${index}`} className="scroll-mt-24 rounded-3xl border bg-white p-5 shadow-sm">
+          <section key={title} id={`estoque-etapa-${index}`} className="scroll-mt-24 ct-clean-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold">{title}</h2>
               {isManager && index === 0 && (

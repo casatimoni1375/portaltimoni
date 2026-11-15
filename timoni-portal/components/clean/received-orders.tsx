@@ -1,7 +1,42 @@
 "use client";
-import {useSearchParams} from "next/navigation";
 import {useEffect,useState} from "react";
-export default function ReceivedOrders(){const query=useSearchParams();const unit=query.get("unidade")||"todas";const[orders,setOrders]=useState<Array<{id:string;nome:string;unidade:string|null;data:string|null}>|null>(null),[error,setError]=useState("");
- useEffect(()=>{const controller=new AbortController();void fetch(`/api/compras/recebidos?unidade=${unit}`,{signal:controller.signal}).then(async response=>{const data=await response.json();if(!response.ok)throw Error(data.error);setOrders(data.orders);}).catch(error=>{if(!controller.signal.aborted)setError(error.message);});return()=>controller.abort();},[unit]);
- return <section className="ct-clean-card ct-tone-card ct-tone-green"><h2>Pedidos recebidos</h2>{error&&<p role="status">{error}</p>}{!orders&&!error&&<p role="status">Carregando recebidos…</p>}{orders?.length===0&&<p className="ct-clean-muted">Nenhum pedido recebido para seu acesso.</p>}{orders?.map(order=><div key={order.id} className="ct-clean-action-row"><strong>{order.nome}</strong><small>{order.unidade==="araras"?"Araras":order.unidade==="rio_claro"?"Rio Claro":"Unidade não informada"}</small><small>Última atualização: {order.data?new Date(order.data).toLocaleDateString("pt-BR"):"Não informada"}</small></div>)}</section>;
+
+type ReceivedOrder={id:string;nome:string;unidade:string|null;data:string|null};
+
+// Araras à esquerda (amarelo), Rio Claro à direita (verde). Mesma ordem das colunas de Enviados.
+const COLUMNS=[
+ {key:"araras",label:"Araras",band:"border-[#ffd438]",ink:"text-[#854f0b]"},
+ {key:"rio_claro",label:"Rio Claro",band:"border-[#15803d]",ink:"text-[#166534]"},
+] as const;
+
+export default function ReceivedOrders(){
+ const[orders,setOrders]=useState<ReceivedOrder[]|null>(null);
+ const[error,setError]=useState("");
+ useEffect(()=>{
+  const controller=new AbortController();
+  void fetch("/api/compras/recebidos?unidade=todas",{signal:controller.signal})
+   .then(async response=>{const data=await response.json();if(!response.ok)throw Error(data.error);setOrders(data.orders);})
+   .catch(caught=>{if(!controller.signal.aborted)setError(caught.message);});
+  return()=>controller.abort();
+ },[]);
+ return <section className="ct-clean-card">
+  <div className="ct-clean-card-heading"><h2>Pedidos recebidos</h2><span className="text-base text-slate-500">Últimos 7 dias</span></div>
+  {error&&<p role="status" className="ct-notice-error">{error}</p>}
+  {!orders&&!error&&<p role="status" className="text-base text-slate-500">Carregando recebidos…</p>}
+  {orders&&<div className="mt-4 grid gap-5 lg:grid-cols-2">
+   {COLUMNS.map(column=>{
+    const list=orders.filter(order=>order.unidade===column.key);
+    return <div key={column.key} className="min-w-0">
+     <h3 className={`text-lg font-semibold ${column.ink}`}>{column.label} · {list.length}</h3>
+     <div className="mt-2 grid gap-2">
+      {list.map(order=><div key={order.id} className={`rounded-lg border-l-4 bg-white px-3 py-3 ${column.band}`}>
+       <strong className="block break-words text-lg text-[#182443]">{order.nome}</strong>
+       <small className="block text-base text-slate-500">Concluído em {order.data?new Date(order.data).toLocaleDateString("pt-BR"):"data não informada"}</small>
+      </div>)}
+     </div>
+     {list.length===0&&<p className="mt-2 text-base text-slate-500">Nenhum pedido recebido nos últimos 7 dias.</p>}
+    </div>;
+   })}
+  </div>}
+ </section>;
 }

@@ -344,10 +344,10 @@ export default function ReunioesClient({
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="ct-clean-today-heading flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-[#182443]">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
-          <p className="mt-1 text-sm text-[#65718a]">Pautas, atas e apresentações.</p>
+          <h1 className="text-[length:var(--ct-font-page-title)] font-semibold text-[#102a83]">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
+          <p className="mt-1 text-base text-[#65718a]">Pautas, atas e apresentações.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className={BOTAO_SECUNDARIO}>Abrir pasta oficial</a>
@@ -447,7 +447,7 @@ export default function ReunioesClient({
           </div> : <p className="mt-3 text-sm text-[#65718a]">Nenhuma reunião agendada.</p>}
       </section>
 
-      <details className="mt-6 rounded-xl border border-[#e1e6f0] bg-white p-4">
+      <details className="ct-clean-card mt-6">
         <summary className="cursor-pointer text-sm font-semibold text-[#182443]">Editar ou excluir reuniões agendadas ({scheduled.length})</summary>
         <div className="mt-3 divide-y divide-[#e1e6f0]">
           {scheduled.length ? scheduled.map((meeting) => (
@@ -464,7 +464,7 @@ export default function ReunioesClient({
         </div>
       </details>
 
-      <details className="mt-4 rounded-xl border border-[#e1e6f0] bg-white p-4">
+      <details className="ct-clean-card mt-4">
         <summary className="cursor-pointer text-sm font-semibold text-[#182443]">Reuniões arquivadas ({history.length})</summary>
         <div className="mt-3 divide-y divide-[#e1e6f0]">
           {history.length ? history.map((meeting) => (
