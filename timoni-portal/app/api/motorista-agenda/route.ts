@@ -97,16 +97,8 @@ export async function GET(request: NextRequest) {
   }
 
   const webAppUrl = process.env.MOTORISTA_WEBAPP_URL?.trim() || DEFAULT_WEBAPP_URL;
-  const resultados: PromiseSettledResult<Awaited<ReturnType<typeof buscarDia>>>[] = [];
-  const started = Date.now();
-  for (const data of datas) {
-    if (Date.now() - started > 12_000) {
-      resultados.push({ status: "rejected", reason: new Error("Consulta parcial. Atualize novamente para consultar os dias restantes.") });
-      continue;
-    }
-    try { resultados.push({ status: "fulfilled", value: await buscarDia(webAppUrl, data) }); }
-    catch (reason) { resultados.push({ status: "rejected", reason }); }
-  }
+  // Dias em paralelo: antes eram sequenciais e o total passava do limite, deixando dias sem viagens.
+  const resultados = await Promise.allSettled(datas.map((data) => buscarDia(webAppUrl, data)));
 
   const dias = resultados.map((resultado, indice) => {
     if (resultado.status === "fulfilled") {
