@@ -335,30 +335,26 @@ function ordenarViagens(viagens: Viagem[]) {
 }
 
 function estiloBoxViagem(_v: Viagem) {
-  // Card com contorno leve, sem faixa de cor (padrão ct-clean).
-  return { backgroundColor: "#ffffff", borderColor: "#e1e6f0" };
+  // Card sem contorno, em cinza bem claro (aprovado).
+  return { backgroundColor: "#f5f6fb", borderWidth: 0 };
 }
 
-// Etiquetas com contorno: tipo (Entrega, Retirada) e unidade (Rio Claro, Araras).
-const ESTILO_ETIQUETA_TIPO: Record<string, { borderColor: string; color: string }> = {
-  Entrega: { borderColor: "#85B7EB", color: "#185FA5" },
-  Retirada: { borderColor: "#AFA9EC", color: "#534AB7" },
-};
-const ESTILO_ETIQUETA_UNIDADE: Record<string, { borderColor: string; color: string }> = {
-  "Rio Claro": { borderColor: "#B4B2A9", color: "#444441" },
-  Araras: { borderColor: "#5DCAA5", color: "#0F6E56" },
-};
-
+// Etiquetas preenchidas: tipo (Entrega, Coleta) e empresa (Rodini e MCR = mesma cor; Casa Timoni = outra).
 function EtiquetasViagem({ v }: { v: Viagem }) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
-  const unidade = lojaLabel(v.loja);
-  const estiloTipo = ESTILO_ETIQUETA_TIPO[tipo] ?? ESTILO_ETIQUETA_TIPO.Entrega;
-  const estiloUnidade = ESTILO_ETIQUETA_UNIDADE[unidade];
-  const base = "rounded-full border px-2.5 py-0.5 text-xs font-medium";
+  const loja = String(v.loja || "").trim();
+  const lojaMin = loja.toLocaleLowerCase("pt-BR");
+  const ehCasaTimoni = lojaMin === "casa timoni" || lojaMin === "araras";
+  const rotuloEmpresa = ehCasaTimoni ? "Casa Timoni" : lojaMin === "rio_claro" ? "Rio Claro" : loja;
+  const base = "rounded-full px-2.5 py-0.5 text-sm";
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
-      <span className={base} style={{ ...estiloTipo, backgroundColor: "transparent" }}>{tipo === "Retirada" ? "Coleta" : "Entrega"}</span>
-      {estiloUnidade && unidade && <span className={base} style={{ ...estiloUnidade, backgroundColor: "transparent" }}>{unidade}</span>}
+      {tipo === "Retirada"
+        ? <span className={base} style={{ background: "#ECE8F7", color: "#534AB7" }}>Coleta</span>
+        : <span className={base} style={{ background: "#E3EEFB", color: "#185FA5" }}>Entrega</span>}
+      {rotuloEmpresa && (ehCasaTimoni
+        ? <span className={base} style={{ background: "#DDF1EE", color: "#0F6E56" }}>{rotuloEmpresa}</span>
+        : <span className={base} style={{ background: "#EDEDEA", color: "#444441" }}>{rotuloEmpresa}</span>)}
     </div>
   );
 }
