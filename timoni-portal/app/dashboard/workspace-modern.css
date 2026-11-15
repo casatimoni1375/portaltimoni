@@ -45,7 +45,7 @@ main .ct-modern-workspace h3 { font-size: 17px !important; line-height: 1.4 !imp
   outline: 3px solid #a898ff;
   outline-offset: 3px;
 }
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .ct-modern-calendar h1 { font-size: 28px !important; }
   main .ct-modern-workspace h1 { font-size: 28px !important; }
   main .ct-modern-workspace h2 { font-size: 20px !important; }
