@@ -16,7 +16,7 @@ const SEARCH_WINDOW_DAYS = 365;
 
 const WEEK_DAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const CALENDAR_COLOR_FALLBACKS: Record<CalendarEventDTO["calendarKey"], string> = {
-  principal: "#444441",
+  principal: "#7986CB",
   timoni: "#185FA5",
 };
 
@@ -149,7 +149,7 @@ function AgendaRow({
         <Button className="min-h-11 px-3 text-base lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
           Editar
         </Button>
-        <Button className="min-h-11 px-3 text-base text-red-700 lg:min-h-9 lg:text-sm" variant="secondary" disabled={deleting} onClick={() => onDelete(event)}>
+        <Button className="min-h-11 px-3 text-base lg:min-h-9 lg:text-sm" variant="danger" disabled={deleting} onClick={() => onDelete(event)}>
           Cancelar
         </Button>
       </div>
