@@ -112,12 +112,12 @@ main table { line-height: 1.35; }
 /* Regras mobile consolidadas: preservam o padrão visual aprovado sem sobrescritas duplicadas. */
 @media (max-width: 767px) {
   :root {
-    --ct-font-body: 16px;
-    --ct-font-page-title: 26px;
-    --ct-font-section-title: 22px;
-    --ct-font-subtitle: 18px;
-    --ct-font-caption: 14px;
-    --ct-font-label: 14px;
+    --ct-font-body: 12.5px;
+    --ct-font-page-title: 20px;
+    --ct-font-section-title: 15px;
+    --ct-font-subtitle: 13px;
+    --ct-font-caption: 11px;
+    --ct-font-label: 10px;
   }
 
   html {

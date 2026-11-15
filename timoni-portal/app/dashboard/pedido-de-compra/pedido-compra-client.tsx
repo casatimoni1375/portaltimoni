@@ -105,7 +105,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           <strong>Pedidos que exigem atenção</strong>
           {exceptions.map((item) => (
             <div key={`${item.id}-${item.tipo}`}>
-              <button type="button" onClick={() => setSelected(item)} className="ct-link-button">{item.nome} · {unitLabel(item.unidade)}</button>
+              <button type="button" onClick={() => setSelected(item)} className="ct-link-button" style={{textDecoration:"none",color:"#182443",fontWeight:600}}>{item.nome} · {unitLabel(item.unidade)}</button>
               <small className="text-red-700">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</small>
             </div>
           ))}
