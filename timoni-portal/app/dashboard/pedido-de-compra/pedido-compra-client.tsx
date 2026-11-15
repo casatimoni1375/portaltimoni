@@ -91,11 +91,11 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
       </div>
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
       <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-md">
-        <div className="rounded-xl border-l-4 border-[#102a83] bg-white px-4 py-3">
+        <div className="rounded-xl border border-[#102a83]/40 bg-white px-4 py-3">
           <p className="text-base text-slate-600">Enviados</p>
           <strong className="ct-clean-counter text-[#102a83]">{visibleOrders.length}</strong>
         </div>
-        <div className="rounded-xl border-l-4 border-[#b12532] bg-white px-4 py-3">
+        <div className="rounded-xl border border-[#b12532]/40 bg-white px-4 py-3">
           <p className="text-base text-slate-600">Atrasados</p>
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>

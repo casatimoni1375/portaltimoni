@@ -29,7 +29,7 @@ export default function ReceivedOrders(){
     return <div key={column.key} className="min-w-0">
      <h3 className={`text-lg font-semibold ${column.ink}`}>{column.label} · {list.length}</h3>
      <div className="mt-2 grid gap-2">
-      {list.map(order=><div key={order.id} className={`rounded-lg border-l-4 bg-white px-3 py-3 ${column.band}`}>
+      {list.map(order=><div key={order.id} className={`rounded-xl border bg-white px-3 py-3 ${column.band}`}>
        <strong className="block break-words text-lg text-[#182443]">{order.nome}</strong>
        <small className="block text-base text-slate-500">Concluído em {order.data?new Date(order.data).toLocaleDateString("pt-BR"):"data não informada"}</small>
       </div>)}
