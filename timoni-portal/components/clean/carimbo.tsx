@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
-// Carimbo de estado: texto curto em caixa alta com contorno, sem fundo colorido.
-// "pendente" usa contorno tracejado para se diferenciar dos demais.
+// Status no padrão do portal: preenchido, texto curto, sem caixa alta.
+// Concluído usa verde; pendente usa âmbar.
 export function Carimbo({ children, tom = "normal" }: { children: ReactNode; tom?: "normal" | "pendente" }) {
-  const contorno = tom === "pendente"
-    ? "border-dashed border-[#65718a] text-[#65718a]"
-    : "border-[#102a83] text-[#102a83]";
+  const cor = tom === "pendente"
+    ? "bg-[#FAEEDA] text-[#633806]"
+    : "bg-[#EAF3DE] text-[#27500A]";
   return (
-    <span className={`inline-flex items-center whitespace-nowrap rounded-[3px] border px-1.5 py-px text-[10px] font-bold uppercase tracking-[0.08em] ${contorno}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${cor}`}>
       {children}
     </span>
   );

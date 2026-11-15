@@ -1,5 +1,6 @@
 "use client";
 
+import { Carimbo } from "@/components/clean/carimbo";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -137,11 +138,11 @@ function AgendaRow({
       <div className="min-w-0 flex-1">
         <p className="truncate text-[17px] font-medium text-[#182443]">
           {event.summary}
-          {concluido && <span className="ml-2 align-middle text-xs font-semibold uppercase tracking-wide text-slate-500">Concluído</span>}
+          {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        <p className="truncate text-sm text-slate-500">
-          {event.calendarLabel}
-          {event.location ? ` · ${event.location}` : ""}
+        <p className="flex min-w-0 items-center gap-2 text-sm text-slate-500">
+          <span className="shrink-0 rounded-full border px-2 py-px text-xs" style={{ borderColor: color, color }}>{event.calendarLabel}</span>
+          {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
       <div className={clsx("flex shrink-0 gap-2", compact && "flex-col")}>
