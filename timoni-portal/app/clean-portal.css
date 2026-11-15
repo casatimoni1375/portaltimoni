@@ -305,3 +305,16 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   main .ct-notice-stamp, main .ct-notice-scope, main .ct-notice-admin-actions a, main [class*="ct-notice"] small { font-size: 11px !important; }
   main section a, main [role="region"] a { font-size: 12.5px !important; }
 }
+
+/* Celular: papéis e pesos iguais ao Fluxo (título 20/500, seção 15/500, corpo 12.5, legenda 11, rótulo 10/700, valores 12.5/600, subtítulo 14) */
+@media (max-width: 767px) {
+  main h1 { font-size: 20px !important; font-weight: 500 !important; }
+  main h2 { font-size: 15px !important; font-weight: 500 !important; }
+  .text-lg { font-size: 14px !important; }
+  .text-xs { font-size: 10px !important; }
+  .font-bold { font-weight: 700 !important; }
+  .font-extrabold, .font-black { font-weight: 800 !important; }
+  .font-semibold { font-weight: 600 !important; }
+  .font-medium { font-weight: 500 !important; }
+  main strong { font-weight: 600 !important; font-size: 12.5px !important; }
+}
