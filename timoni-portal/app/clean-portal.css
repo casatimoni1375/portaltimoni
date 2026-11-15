@@ -233,3 +233,4 @@ main .ct-tone-card h2{color:var(--tone-ink)!important;}
 .ct-clean-counter{font-size:34px;line-height:1.2;font-weight:600;}
 @media(max-width:767px){.ct-clean-counter{font-size:26px;}}
 @media(max-width:767px){.ct-user-compact .ct-today-layout.ct-today-v2{display:flex;flex-direction:column;grid-template-columns:none;}.ct-clean-action-row{flex-wrap:wrap;}.ct-clean-action-row>div:first-child,.ct-clean-action-row>strong:first-child{flex-basis:100%;}}
+@media(max-width:767px){.ct-user-compact .ct-today-layout.ct-today-v2>section,.ct-user-compact .ct-today-layout.ct-today-v2 section{width:100%!important;max-width:100%!important;min-width:0;box-sizing:border-box;justify-self:stretch;}}
