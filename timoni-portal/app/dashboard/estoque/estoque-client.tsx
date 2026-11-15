@@ -508,8 +508,8 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
       <section className="ct-clean-card">
         <h2 className="text-lg font-semibold text-[#102a83]">Consultar</h2>
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <a href="#estoque-solicitar" className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold text-white">Produto</a>
-          <a href="/dashboard/compras?aba=acompanhar" className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold text-white">Pedido enviado</a>
+          <a href="#estoque-solicitar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold">Produto</a>
+          <a href="/dashboard/compras?aba=acompanhar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold">Pedido enviado</a>
         </div>
       </section>
     );
