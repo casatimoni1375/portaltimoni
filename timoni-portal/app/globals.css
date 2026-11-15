@@ -109,6 +109,16 @@ main table { line-height: 1.35; }
   main a.inline-flex { min-height: 2.6rem; }
 }
 
+/* Piso de 14 px no desktop: classes Tailwind menores (text-xs, text-[10px], text-[11px]) sobem para 14 px. */
+@media (min-width: 641px) {
+  main [class~="text-xs"],
+  main [class~="text-[9px]"],
+  main [class~="text-[10px]"],
+  main [class~="text-[11px]"] {
+    font-size: 14px !important;
+  }
+}
+
 /* Regras mobile consolidadas: preservam o padrão visual aprovado sem sobrescritas duplicadas. */
 @media (max-width: 640px) {
   :root {
