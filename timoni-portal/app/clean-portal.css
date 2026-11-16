@@ -213,7 +213,7 @@ main .ct-tone-card h2{color:var(--ct-clean-blue)!important;}
 .ct-user-compact main section.ct-clean-card{padding:12px!important;}
 .ct-user-compact .ct-clean-calendar-row{font-size:16px;padding:6px 0;gap:8px;}
 .ct-user-compact .ct-clean-action-row{min-height:0;padding:8px 0;}
-.ct-user-compact main .ct-clean-today-heading h1{font-size:22px!important;}
+.ct-user-compact main .ct-clean-today-heading h1{font-size:20px!important;font-weight:500!important;}
 .ct-user-compact .ct-today-layout.ct-today-v2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start;}
 .ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-side,.ct-user-compact .ct-today-layout.ct-today-v2>.ct-today-main{display:flex;flex-direction:column;gap:8px;min-width:0;}
 .ct-user-compact .ct-today-layout.ct-today-v2 .ct-clean-card-heading h2{font-size:22px!important;}
