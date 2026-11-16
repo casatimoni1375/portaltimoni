@@ -191,8 +191,41 @@ test("Somente leitura por módulo: só o módulo marcado bloqueia criar/editar/e
   assert.equal(modulePolicy.canModuleOperation(actor, "estoque", "visualizar"), true);
   assert.equal(modulePolicy.canModuleOperation(actor, "estoque", "editar"), false);
   assert.equal(modulePolicy.canModuleOperation(actor, "motorista", "criar"), true);
-  const admin = user("mcrodini@gmail.com", { modules: ["motorista", "estoque"], readOnlyModules: ["motorista"] });
-  assert.equal(modulePolicy.canModuleOperation(admin, "motorista", "visualizar"), true);
-  assert.equal(modulePolicy.canModuleOperation(admin, "motorista", "criar"), false);
-  assert.equal(modulePolicy.canModuleOperation(admin, "estoque", "editar"), true);
+  // As contas de AGENDAMENTO_MOTORISTA_FIXO tem controle completo do motorista (decisao da gestao,
+  // 16/11/2026): a marcacao de somente leitura nao vale para elas nesse modulo. Por isso a cobertura
+  // de "inclusive administracao" usa estoque, que nao tem excecao.
+  const admin = user("mcrodini@gmail.com", { modules: ["motorista", "estoque"], readOnlyModules: ["estoque"] });
+  assert.equal(modulePolicy.canModuleOperation(admin, "estoque", "visualizar"), true);
+  assert.equal(modulePolicy.canModuleOperation(admin, "estoque", "editar"), false);
+  assert.equal(modulePolicy.canModuleOperation(admin, "motorista", "criar"), true);
+});
+
+// Guarda do agendamento do motorista. Decisao da gestao (16/11/2026), aprovada e definitiva:
+// estas 9 contas tem controle completo do modulo motorista. Se alguma sair da lista de
+// AGENDAMENTO_MOTORISTA_FIXO em lib/authorization.ts, este teste falha e o PR nao passa.
+const AGENDAMENTO_LIBERADO = [
+  "estoqueararascasatimoni@gmail.com",
+  "caixarctimoni@gmail.com",
+  "marketplacerc.mcr@gmail.com",
+  "comercialrc@casatimoni.com.br",
+  "comercialara@casatimoni.com.br",
+  "motoristacasatimoni@gmail.com",
+  "mrodini@gmail.com",
+  "mcrodini@gmail.com",
+  "cecilia@casatimoni.com.br",
+];
+
+test("Agendamento do motorista: as 9 contas liberadas continuam na lista", () => {
+  for (const email of AGENDAMENTO_LIBERADO) {
+    assert.ok(source.includes(email), `${email} foi removido de AGENDAMENTO_MOTORISTA_FIXO`);
+  }
+});
+
+test("Agendamento do motorista: as 9 contas tem controle completo, mesmo marcadas como somente leitura", () => {
+  for (const email of AGENDAMENTO_LIBERADO) {
+    const conta = user(email, { modules: ["motorista"], readOnlyModules: ["motorista"], readOnly: true });
+    for (const action of ["criar", "editar", "excluir"]) {
+      assert.equal(can(conta, "motorista", action), true, `${email} deveria poder ${action} viagem`);
+    }
+  }
 });
