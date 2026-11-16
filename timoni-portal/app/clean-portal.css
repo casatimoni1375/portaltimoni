@@ -561,3 +561,10 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main section label, html body main article label { font-size: 12px !important; }
   html body main section strong, html body main article strong { font-size: 13.5px !important; }
 }
+
+/* Celular (todo o site): logotipo da Casa Timoni +10% */
+@media (max-width: 767px) {
+  html body .ct-clean-brand img, html body .portal-mobile-header img, html body .ct-portal-header img[alt*="Casa Timoni"] {
+    transform: scale(1.1) !important; transform-origin: left center !important;
+  }
+}
