@@ -494,3 +494,21 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   }
   html body main .ct-tone-blue a[href], html body main .ct-tone-blue button { font-size: 11px !important; padding: 5px 10px !important; min-height: 30px !important; }
 }
+
+/* Celular (todo o site): boxes, contornos, títulos, subtítulos e campos iguais ao Fluxo */
+@media (max-width: 767px) {
+  html body main section, html body main article, html body main .ct-clean-card, html body main [class*="rounded-2xl"], html body main [class*="rounded-xl"] {
+    border: 1px solid #dfe9e3 !important; border-radius: 13px !important; box-shadow: none !important;
+  }
+  html body main section.ct-clean-card, html body main section.rounded-2xl, html body main article.rounded-2xl { padding: 12px !important; }
+  html body main h2, html body main h3 { font-size: 15px !important; font-weight: 500 !important; line-height: 1.3 !important; }
+  html body main section p.text-sm, html body main section p.text-xs, html body main article p.text-sm, html body main article p.text-xs,
+  html body main .ct-clean-card-heading + p, html body main p.text-slate-500, html body main p.text-slate-600, html body main p.text-slate-400 {
+    font-size: 11px !important; color: #6b7280 !important; font-weight: 400 !important; line-height: 1.4 !important;
+  }
+  html body main label, html body main label span, html body main label b { font-size: 11px !important; font-weight: 500 !important; color: #334155 !important; }
+  html body main input:not([type="checkbox"]):not([type="radio"]), html body main select, html body main textarea {
+    border: 1px solid #cfddd5 !important; border-radius: 10px !important; font-size: 14px !important; padding: 6px 8px !important; min-height: 34px !important;
+  }
+  html body main span.font-medium, html body main strong, html body main [class*="font-medium"] { font-size: 14px !important; font-weight: 500 !important; }
+}
