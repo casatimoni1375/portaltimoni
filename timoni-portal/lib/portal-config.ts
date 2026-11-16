@@ -502,7 +502,9 @@ export const getPortalUserSessionState = cache(async (accessToken: string | unde
   // Edição direta na planilha leva até 30 s para valer.
   const user = await resolveOfficialPortalUser(email, async () => {
     try { return await readUsers(accessToken); }
-    catch {
+    catch (error) {
+      // Cota do Google Sheets estourada (429): repetir a leitura só aumenta o consumo da cota.
+      if (error instanceof Error && error.message.includes("respondeu 429")) { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
       // Nova tentativa direta na planilha: a leitura em cache da requisição já falhou.
       try { return await fetchUsers(accessToken); }
       catch { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
