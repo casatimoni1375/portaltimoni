@@ -489,7 +489,8 @@ export async function ensurePortalConfiguration(accessToken: string) {
 
 export async function loadPortalConfiguration(accessToken: string): Promise<PortalConfiguration> {
   // Administrative reads must not seed or migrate users as a side effect.
-  const [users, collaborators, history] = await Promise.all([fetchUsers(accessToken), fetchCollaborators(accessToken), readHistory(accessToken)]);
+  // Usa o cache curto (30 s, zerado a cada gravação) para não estourar a cota de leituras do Google Sheets.
+  const [users, collaborators, history] = await Promise.all([readUsers(accessToken), readCollaborators(accessToken), readHistory(accessToken)]);
   return { users, collaborators, history };
 }
 
