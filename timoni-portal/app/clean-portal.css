@@ -552,3 +552,12 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
     border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 0 0 4px !important;
   }
 }
+
+/* Celular (todo o site): textos dentro dos cards +1px. Botão Abrir agenda aprovado segue igual. */
+@media (max-width: 767px) {
+  html body main section p, html body main article p { font-size: 13.5px !important; }
+  html body main section small, html body main article small,
+  html body main section span:not(a span), html body main article span:not(a span),
+  html body main section label, html body main article label { font-size: 12px !important; }
+  html body main section strong, html body main article strong { font-size: 13.5px !important; }
+}
