@@ -55,6 +55,10 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
 
 /* Compras: sem barra inferior e lista de itens rolando dentro da própria tela,
    com o cabeçalho da tabela fixo, para ver todos os itens sem cobertura. */
+/* Compras: rótulos e textos auxiliares com o mesmo tamanho em toda a página (vence a regra geral de .ct-compras-module). */
+.ct-compras-module .ct-clean-purchases label{font-size:18px!important;line-height:1.5;}
+.ct-compras-module .ct-clean-purchases small:not(.text-xs){font-size:18px!important;line-height:1.5;}
+
 .ct-clean-navigation.ct-no-bottom-nav .ct-clean-bottom{display:none!important;}
 body:has(.ct-clean-navigation.ct-no-bottom-nav){padding-bottom:0!important;}
 .ct-pedidos-lista{max-height:calc(100dvh - 230px);min-height:200px;}
