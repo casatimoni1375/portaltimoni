@@ -1,3 +1,4 @@
+function splitNoticeTitle(raw:string):string[]{const parts=raw.split(/\s+-\s+/).map(p=>p.trim()).filter(Boolean);return parts.map((p,i)=>i===0?p.toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):p.replace(/\.$/,"").toLowerCase());}
 "use client";
 import Link from "next/link";
 import {useCallback,useEffect,useMemo,useState} from "react";
@@ -59,7 +60,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   return <li key={item.id} className={`ct-notice${isOpen?" is-open":""}`}>
    <button type="button" className="ct-notice-row" aria-expanded={isOpen} onClick={()=>toggle(key)}>
     <span className="ct-notice-date">{fmtDate(item.createdAt)}</span>
-    <span className="ct-notice-title"><small className="ct-notice-scope">{SCOPE_LABEL[item.unit]}</small>{item.title}</span>
+    <span className="ct-notice-title"><small className="ct-notice-scope">{SCOPE_LABEL[item.unit]}</small>{splitNoticeTitle(item.title).map((part,i)=><span key={i} className={i===0?"ct-notice-headline":"ct-notice-subline"}>{part}</span>)}</span>
     {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}
    </button>
    {isOpen&&<div className="ct-notice-body">
