@@ -361,3 +361,7 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main h1 { font-size: 20px !important; font-weight: 500 !important; }
   html body main h2 { font-size: 15px !important; font-weight: 500 !important; }
 }
+
+/* Comunicados: título em duas linhas, sem caixa-alta */
+.ct-notice-headline{display:block;font-weight:500;}
+.ct-notice-subline{display:block;font-weight:400;color:#5b6478;}
