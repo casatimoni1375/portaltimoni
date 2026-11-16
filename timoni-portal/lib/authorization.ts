@@ -26,6 +26,19 @@ export type AuthorizationContext = {
 
 // Existing identity adapters are not an alternative user registry.
 // They never make an absent/inactive official user eligible for authorization.
+/** Contas com agendamento de viagens liberado de forma fixa (sem depender da planilha). */
+const AGENDAMENTO_MOTORISTA_FIXO: ReadonlySet<string> = new Set([
+  "estoqueararascasatimoni@gmail.com",
+  "caixarctimoni@gmail.com",
+  "marketplacerc.mcr@gmail.com",
+  "comercialrc@casatimoni.com.br",
+  "comercialara@casatimoni.com.br",
+  "motoristacasatimoni@gmail.com",
+  "mrodini@gmail.com",
+  "mcrodini@gmail.com",
+  "cecilia@casatimoni.com.br",
+]);
+
 const EXISTING_PROFILES: Readonly<Record<string, AuthorizationProfile>> = {
   [ADMIN_IDENTITIES.cica]: "administracao-cica",
   [ADMIN_IDENTITIES.marcelo]: "administracao-marcelo",
@@ -97,6 +110,9 @@ export function can(
 ): boolean {
   const user = resolveConfiguredUser(configured?.email, configured);
   if (!user || !ACTIONS.includes(action) || !RESOURCES.includes(resource)) return false;
+  // Agendamento de viagens fixado para estas contas (pedido da gestão, 16/11/2026): não muda com atualizações da planilha.
+  if (resource === "motorista" && (action === "criar" || action === "editar" || action === "excluir")
+    && AGENDAMENTO_MOTORISTA_FIXO.has(normalizeIdentity(user.email))) return true;
   // Somente leitura por módulo: vale para qualquer perfil, inclusive administração.
   if (action !== "visualizar" && user.readOnlyModules?.includes(resource as PortalModule)) return false;
   if (context.canal !== undefined && context.canal !== "portal" && context.canal !== "mobile") return false;
