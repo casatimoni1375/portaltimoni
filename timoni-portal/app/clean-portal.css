@@ -445,3 +445,18 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body .ct-clean-bottom .ct-clean-nav-link > small { font-size: 9px !important; }
   html body .ct-clean-spacer, html body body:has(.ct-clean-navigation) { padding-bottom: 60px !important; }
 }
+
+/* Estrutura do Fluxo em todas as páginas (celular): boxes, campos, botões e menu inferior */
+@media (max-width: 767px) {
+  html body main section.ct-clean-card, html body main section.rounded-2xl, html body main article.rounded-2xl, html body main .ct-clean-card {
+    padding: 12px !important; border-radius: 13px !important;
+  }
+  html body main input:not([type="checkbox"]):not([type="radio"]), html body main select {
+    font-size: 16px !important; padding: 6px 8px !important; border-radius: 10px !important; min-height: 38px !important;
+  }
+  html body main textarea { font-size: 16px !important; padding: 6px 8px !important; border-radius: 10px !important; }
+  html body main button, html body main a[role="button"], html body main .ct-clean-action {
+    padding: 6px 9px !important; border-radius: 11px !important; font-size: 12px !important; font-weight: 800 !important;
+  }
+  html body .ct-clean-bottom .ct-clean-nav-link { min-height: 43px !important; font-size: 11px !important; }
+}
