@@ -20,7 +20,7 @@ export default async function IndividualAccessPage() {
   return <main className="mx-auto max-w-4xl space-y-5 px-4 py-8">
     <header className="rounded-2xl border border-slate-200 bg-white p-6">
       <p className="text-sm max-md:text-[11px] font-medium text-[#14038D]">Portal Timoni · Prévia do acesso individual</p>
-      <h1 className="mt-2 text-[28px] max-md:text-[20px] font-semibold">Olá, {access.name}</h1>
+      <h1 className="mt-2 text-2xl md:text-[28px] max-md:text-[20px] font-semibold">Olá, {access.name}</h1>
       <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">Usuário: {access.username} · Unidade: {access.unit}</p>
     </header>
     <section className="rounded-2xl border border-slate-200 bg-white p-6">

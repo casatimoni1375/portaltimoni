@@ -71,7 +71,7 @@ export default function ConfigurarTrelloClient() {
     <div className="mx-auto max-w-2xl">
       <section className="rounded-3xl border border-blue-200 bg-white p-6 shadow-sm">
         <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Configuração única</p>
-        <h1 className="mt-2 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">
+        <h1 className="mt-2 text-3xl md:text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">
           Trello — Módulo Compras
         </h1>
         <p className="mt-3 text-sm max-md:text-[11px] leading-6 text-slate-600">

@@ -184,7 +184,7 @@ export default function ComunicadosFeed({ store, isAdmin = false, canConfirmRead
             <article key={item.id} className="border-t border-t-[#dfe6f2] pt-3 first:border-t-0 first:pt-0">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  {isReadByEveryone && <span className="mb-1 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">Lido</span>}
+                  {isReadByEveryone && <span className="mb-1 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] md:text-xs font-semibold text-emerald-800">Lido</span>}
                   <h3 className="text-base max-md:text-[12.5px] font-bold text-slate-950 sm:text-lg">{item.title}</h3>
                 </div>
                 <span className="rounded-full bg-white px-3 py-1 text-xs max-md:text-[10px] font-semibold text-slate-700 shadow-sm">{formatDate(item.createdAt)}</span>

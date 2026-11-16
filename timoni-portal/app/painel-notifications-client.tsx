@@ -176,7 +176,7 @@ export default function PainelNotificationsClient({ email }: { email: string }) 
             <header className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
               <div>
                 <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Central de novidades</p>
-                <h2 id="notification-title" className="mt-1 text-[28px] max-md:text-[20px] font-semibold text-slate-950">
+                <h2 id="notification-title" className="mt-1 text-2xl md:text-[28px] max-md:text-[20px] font-semibold text-slate-950">
                   {unreadCount
                     ? unreadCount + (unreadCount === 1 ? " aviso não lido" : " avisos não lidos")
                     : "Nenhum aviso novo"}

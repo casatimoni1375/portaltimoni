@@ -134,15 +134,15 @@ function AgendaRow({
       )}
       style={{ borderColor: color }}
     >
-      {!compact && <span className="w-[92px] shrink-0 text-base font-medium tabular-nums text-slate-600">{time}</span>}
+      {!compact && <span className="w-[92px] shrink-0 text-[15px] md:text-base font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
-        <p className={clsx("truncate text-lg font-medium text-[#182443]", !compact && "pr-24")}>
+        <p className={clsx("truncate text-[17px] md:text-lg font-medium text-[#182443]", !compact && "pr-24")}>
           {event.summary}
           {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        {!compact && <span className="absolute right-3 top-2 text-xs font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
+        {!compact && <span className="absolute right-3 top-2 text-[10px] md:text-xs font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {compact && <span className="shrink-0 text-xs font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
+          {compact && <span className="shrink-0 text-[10px] md:text-xs font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
@@ -482,7 +482,7 @@ export function CalendarView({
               >
                 <div className="flex items-baseline gap-2 px-3 py-3 lg:flex-col lg:items-start lg:gap-0 lg:border-b lg:border-[#edf0f6]">
                   <p className="text-sm max-md:text-[11px] font-semibold uppercase text-slate-500">{WEEK_DAY_LABELS[index]}</p>
-                  <p className={clsx("text-[28px] max-md:text-[20px] font-semibold", isToday ? "text-[#102a83]" : "text-[#182443]")}>{format(dateFromKey(dayKey), "d")}</p>
+                  <p className={clsx("text-2xl md:text-[28px] max-md:text-[20px] font-semibold", isToday ? "text-[#102a83]" : "text-[#182443]")}>{format(dateFromKey(dayKey), "d")}</p>
                   {isToday && <p className="ml-auto text-xs max-md:text-[10px] font-semibold text-[#102a83] lg:ml-0">Hoje</p>}
                 </div>
                 <div className="min-w-0 divide-y divide-[#edf0f6]">

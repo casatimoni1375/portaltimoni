@@ -193,16 +193,16 @@ export default function ComunicadosAdmin() {
       <div className="flex flex-wrap items-start justify-between gap-3 lg:items-center">
         <div>
           <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Gerenciar avisos</p>
-          <h2 className="mt-2 text-[28px] max-md:text-[20px] font-semibold text-slate-950">Avisos do Painel</h2>
+          <h2 className="mt-2 text-2xl md:text-[28px] max-md:text-[20px] font-semibold text-slate-950">Avisos do Painel</h2>
           <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">Somente no seu acesso. Escolha Geral, Rio Claro, Araras ou acessos específicos.</p>
         </div>
         <div className="hidden items-center gap-3 lg:flex">
           <div className="min-w-28 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-center">
-            <p className="text-[28px] max-md:text-[20px] font-bold text-blue-900">{active.length}</p>
+            <p className="text-2xl md:text-[28px] max-md:text-[20px] font-bold text-blue-900">{active.length}</p>
             <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wide text-blue-700">Ativos</p>
           </div>
           <div className="min-w-28 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center">
-            <p className="text-[28px] max-md:text-[20px] font-bold text-slate-700">{archived.length}</p>
+            <p className="text-2xl md:text-[28px] max-md:text-[20px] font-bold text-slate-700">{archived.length}</p>
             <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wide text-slate-500">Inativos</p>
           </div>
         </div>

@@ -35,7 +35,7 @@ export default function AvisosNavLink({ className, showActiveCount = true }: { c
     <Link href="/colaboradores" className={`${className} inline-flex items-center gap-2`}>
       <span>AVISOS</span>
       {showActiveCount && count > 0 && (
-        <span className="min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-xs font-bold leading-4 text-white">
+        <span className="min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[11px] md:text-xs font-bold leading-4 text-white">
           {count > 99 ? "99+" : count}
         </span>
       )}

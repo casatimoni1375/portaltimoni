@@ -738,9 +738,9 @@ export default function EstoqueRotativoClient() {
                   >
                     <span className="font-semibold">{supplier.name}</span>
                     <span className="flex shrink-0 items-center gap-1">
-                      {chosen ? <span className="rounded-full bg-blue-700 px-2 py-0.5 text-xs font-semibold text-white">Selecionado</span> : null}
+                      {chosen ? <span className="rounded-full bg-blue-700 px-2 py-0.5 text-[11px] md:text-xs font-semibold text-white">Selecionado</span> : null}
                       {!chosen && existing ? <StatusBadge status={existing.status} /> : null}
-                      {!chosen && !existing ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">Pendente</span> : null}
+                      {!chosen && !existing ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] md:text-xs font-semibold text-amber-800">Pendente</span> : null}
                     </span>
                   </button>
                 );
@@ -867,8 +867,8 @@ export default function EstoqueRotativoClient() {
           </div>
 
           <div id="rotativo-itens-filtrados" className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full min-w-[760px] table-fixed border-collapse text-xs sm:text-xs">
-              <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600 sm:text-xs">
+            <table className="w-full min-w-[760px] table-fixed border-collapse text-[10px] md:text-xs sm:text-[11px] md:text-xs">
+              <thead className="bg-slate-100 text-left text-[9px] md:text-xs uppercase tracking-wide text-slate-600 sm:text-[10px] md:text-xs">
                 <tr>
                   <th className="w-[10%] whitespace-nowrap px-1.5 py-2.5">Cod-venda</th>
                   <th className="w-[10%] whitespace-nowrap px-1.5 py-2.5">Cod-compra</th>
@@ -896,7 +896,7 @@ export default function EstoqueRotativoClient() {
                       <td className="whitespace-nowrap px-1.5 py-2.5 text-center font-semibold text-slate-950">{item.new_stock}</td>
                       <td className="whitespace-nowrap px-1.5 py-2.5 text-center font-semibold text-slate-950">{signedDifference(difference)}</td>
                       <td className="truncate whitespace-nowrap px-1.5 py-2.5">
-                        <span className={`inline-flex max-w-full whitespace-nowrap rounded-full px-1.5 py-1 text-xs font-semibold leading-3 sm:text-xs ${
+                        <span className={`inline-flex max-w-full whitespace-nowrap rounded-full px-1.5 py-1 text-[9px] md:text-xs font-semibold leading-3 sm:text-[10px] md:text-xs ${
                           item.situation === "nao_encontrado"
                             ? "bg-rose-100 text-rose-800"
                             : item.old_stock === null
@@ -908,7 +908,7 @@ export default function EstoqueRotativoClient() {
                           {comparisonResult(item)}
                         </span>
                         {item.suggestion_reason ? (
-                          <p className="mt-1 truncate whitespace-nowrap text-xs leading-3 text-slate-500 sm:text-xs">{item.suggestion_reason}</p>
+                          <p className="mt-1 truncate whitespace-nowrap text-[9px] md:text-xs leading-3 text-slate-500 sm:text-[10px] md:text-xs">{item.suggestion_reason}</p>
                         ) : null}
                       </td>
                       <td className="whitespace-nowrap px-1.5 py-2.5">
@@ -922,7 +922,7 @@ export default function EstoqueRotativoClient() {
                                   setEditingSaleCode(item.suggested_code || item.code || item.source_sale_code || "");
                                   setEditingStock(String(item.new_stock));
                                 }}
-                                className="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-semibold text-blue-800 sm:text-xs"
+                                className="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-[10px] md:text-xs font-semibold text-blue-800 sm:text-xs"
                               >
                                 Editar
                               </button>

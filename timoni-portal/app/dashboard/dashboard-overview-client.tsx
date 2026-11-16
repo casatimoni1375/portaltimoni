@@ -90,8 +90,8 @@ export default function DashboardOverviewClient({ modules, espacoEquipeControle,
         </div>
       ) : null}
       <div className={mobile ? "mt-1" : "mt-4"}>
-        <p className={mobile ? "truncate text-xs font-normal leading-4 text-slate-900" : "truncate text-lg max-md:text-[14px] font-semibold text-slate-950"}>{name}</p>
-        {count !== null ? <p className={mobile ? "mt-1 text-xl max-md:text-[15px] font-bold leading-none text-[#0b1f5e]" : "mt-2 text-[28px] max-md:text-[20px] font-bold leading-none text-[#0b1f5e]"}>{count}</p> : null}
+        <p className={mobile ? "truncate text-[12px] md:text-xs font-normal leading-4 text-slate-900" : "truncate text-lg max-md:text-[14px] font-semibold text-slate-950"}>{name}</p>
+        {count !== null ? <p className={mobile ? "mt-1 text-xl max-md:text-[15px] font-bold leading-none text-[#0b1f5e]" : "mt-2 text-3xl md:text-[28px] max-md:text-[20px] font-bold leading-none text-[#0b1f5e]"}>{count}</p> : null}
       </div>
     </Link>;
   });

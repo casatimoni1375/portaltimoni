@@ -39,7 +39,7 @@ export default function FinanceiroPage() {
     <div className="ct-modern-workspace pb-8">
       <section className="rounded-2xl border border-lime-200 bg-white p-5 shadow-sm">
         <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-lime-700">Módulo operacional</p>
-        <h1 className="mt-1 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Financeiro</h1>
+        <h1 className="mt-1 text-2xl md:text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Financeiro</h1>
         <p className="mt-2 max-w-3xl text-sm max-md:text-[11px] leading-5 text-slate-600">
           Repositório de documentos e checklist de pendências financeiras da Casa Timoni.
         </p>

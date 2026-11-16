@@ -608,7 +608,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
         <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Módulo Estoque</p>
+              <p className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-emerald-700">Módulo Estoque</p>
               <h1 className="mt-1 text-xl max-md:text-[15px] font-semibold">Estoque CT</h1>
               <p className="mt-1 text-xs max-md:text-[10px] text-slate-500">Uso direto no Portal Timoni · notificações com o Portal aberto.</p>
             </div>
@@ -630,7 +630,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
       <nav aria-label="Resumo do Estoque" className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[{ title: "Em aberto", count: openNeeds.length }, { title: "Relação de compra", count: purchaseNeeds.length }, { title: "A caminho", count: onWay.length }, { title: "Chegou", count: history.length }].map((item, index) => (
           <a key={item.title} href={`#estoque-etapa-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-400 focus-visible:outline-2 focus-visible:outline-blue-700">
-            <span className="block text-[28px] max-md:text-[20px] font-semibold text-slate-950">{item.count}</span>
+            <span className="block text-2xl md:text-[28px] max-md:text-[20px] font-semibold text-slate-950">{item.count}</span>
             <span className="mt-1 block text-sm max-md:text-[11px] text-blue-800">{item.title}</span>
           </a>
         ))}

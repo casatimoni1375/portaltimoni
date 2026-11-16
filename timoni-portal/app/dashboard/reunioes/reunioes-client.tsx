@@ -32,7 +32,7 @@ const EMPTY: FormState = {
 // Paleta limpa do padrão aprovado (mesma das agendas).
 const INPUT = "mt-1 w-full rounded-lg border border-[#d7deeb] bg-white px-3 py-2 text-sm max-md:text-[11px] text-[#182443] outline-none focus:border-[#102a83]";
 const LABEL = "text-xs max-md:text-[10px] font-semibold text-[#182443]";
-const AJUDA = "mt-1 block text-xs font-normal text-[#65718a]";
+const AJUDA = "mt-1 block text-[11px] md:text-xs font-normal text-[#65718a]";
 const BOTAO_PRIMARIO = "rounded-lg bg-[#102a83] px-4 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50";
 const BOTAO_SECUNDARIO = "rounded-lg border border-[#102a83] bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-[#102a83] disabled:opacity-50";
 const BOTAO_TEXTO = "text-sm max-md:text-[11px] font-semibold text-[#102a83] underline-offset-2 hover:underline";
@@ -119,7 +119,7 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
 function DataDaReuniao({ rotulo, data, hora }: { rotulo: string; data: string; hora: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-sm font-semibold text-[#65718a]">{rotulo}</p>
+      <p className="text-[13px] md:text-sm font-semibold text-[#65718a]">{rotulo}</p>
       <p className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{data ? formatDate(data) : "A definir"}</p>
       {data && hora && <p className="text-xs max-md:text-[10px] text-[#65718a]">{formatTime(hora)}</p>}
     </div>

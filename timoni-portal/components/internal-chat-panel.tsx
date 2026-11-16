@@ -304,7 +304,7 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
         <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Fechar chat" />
         <section ref={panelRef} className="relative w-[92%] max-w-[390px] rounded-tl-xl border border-slate-200 bg-white p-4 shadow-2xl sm:h-full sm:w-[420px] sm:max-w-[420px] sm:rounded-none">
           <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
-            <div><p className="text-xs font-semibold uppercase tracking-[.14em] text-blue-700">Casa Timoni</p><h2 className="mt-1 text-base max-md:text-[12.5px] font-semibold text-slate-950">Identificação do Chat</h2></div>
+            <div><p className="text-[11px] md:text-xs font-semibold uppercase tracking-[.14em] text-blue-700">Casa Timoni</p><h2 className="mt-1 text-base max-md:text-[12.5px] font-semibold text-slate-950">Identificação do Chat</h2></div>
             <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm max-md:text-[11px] text-slate-500 hover:bg-slate-100">Fechar</button>
           </div>
           {identities.length ? (
@@ -354,14 +354,14 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
         </div>
         <aside className={`${selected ? "hidden sm:flex" : "flex"} w-full flex-col border-r border-slate-200 bg-slate-50 sm:w-[210px] sm:shrink-0`}>
           <div className="border-b border-slate-200 px-3.5 py-3">
-            <p className="text-xs font-semibold uppercase tracking-[.14em] text-blue-700">Casa Timoni</p>
-            <div className="mt-1 flex items-center justify-between gap-2"><h2 className="text-base font-semibold text-slate-950">Chat interno</h2>{identities.length > 1 ? <button type="button" onClick={() => { setActorId(""); setSelected(null); setMessages([]); }} className="text-xs font-semibold text-blue-700 hover:underline">Trocar usuário</button> : null}</div>
+            <p className="text-[11px] md:text-xs font-semibold uppercase tracking-[.14em] text-blue-700">Casa Timoni</p>
+            <div className="mt-1 flex items-center justify-between gap-2"><h2 className="text-[15px] md:text-base font-semibold text-slate-950">Chat interno</h2>{identities.length > 1 ? <button type="button" onClick={() => { setActorId(""); setSelected(null); setMessages([]); }} className="text-[10px] md:text-xs font-semibold text-blue-700 hover:underline">Trocar usuário</button> : null}</div>
             <div className="mt-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2">
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar conversa"
-                className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 sm:text-sm"
+                className="w-full bg-transparent text-[13px] md:text-sm text-slate-800 outline-none placeholder:text-slate-400 sm:text-sm"
                 aria-label="Buscar conversa"
               />
             </div>
@@ -380,11 +380,11 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
                 >
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
-                      <span className={`block min-w-0 flex-1 whitespace-normal break-words text-sm leading-4 sm:text-[11.5px] sm:text-black ${hasUnread ? "font-bold text-slate-950 sm:text-black" : "font-semibold text-slate-800 sm:text-black"}`}>{item.name}</span>
-                      <span className={`shrink-0 text-xs sm:text-xs ${hasUnread ? "font-semibold text-blue-700" : "text-slate-400"}`}>{formatActivity(item.lastMessageAt)}</span>
+                      <span className={`block min-w-0 flex-1 whitespace-normal break-words text-[13px] md:text-sm leading-4 sm:text-[11.5px] sm:text-black ${hasUnread ? "font-bold text-slate-950 sm:text-black" : "font-semibold text-slate-800 sm:text-black"}`}>{item.name}</span>
+                      <span className={`shrink-0 text-[10px] md:text-xs sm:text-[8px] md:text-xs ${hasUnread ? "font-semibold text-blue-700" : "text-slate-400"}`}>{formatActivity(item.lastMessageAt)}</span>
                     </span>
                   </span>
-                  {hasUnread ? <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white sm:text-xs">{item.unread > 99 ? "99+" : item.unread}</span> : null}
+                  {hasUnread ? <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] md:text-xs font-bold text-white sm:text-[11px] md:text-xs">{item.unread > 99 ? "99+" : item.unread}</span> : null}
                 </button>
               );
             })}
@@ -394,25 +394,25 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
           <div className="flex min-h-10 shrink-0 items-center gap-1.5 border-b border-slate-200 bg-white px-2.5 sm:min-h-12 sm:gap-3 sm:px-4">
             <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl max-md:text-[15px] font-semibold text-[#0F2D8F] sm:hidden" aria-label="Voltar para contatos" onClick={() => { setSelected(null); setMessages([]); }}>←</button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-950 sm:text-[11.5px] sm:text-black">{contact?.name || "Selecione uma conversa"}</p>
-              <p className="truncate text-xs text-slate-500 sm:text-xs">{contact?.lastMessageAt ? `Última atividade ${formatActivity(contact.lastMessageAt)}` : "Chat interno · equipe autorizada"}</p>
+              <p className="truncate text-[13px] md:text-sm font-semibold text-slate-950 sm:text-[11.5px] sm:text-black">{contact?.name || "Selecione uma conversa"}</p>
+              <p className="truncate text-[10px] md:text-xs text-slate-500 sm:text-[8px] md:text-xs">{contact?.lastMessageAt ? `Última atividade ${formatActivity(contact.lastMessageAt)}` : "Chat interno · equipe autorizada"}</p>
             </div>
-            {contact ? <button type="button" disabled={conversationAction} className="shrink-0 rounded-lg px-1.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 sm:px-2 sm:text-xs" onClick={() => void clearConversation()}>{conversationAction ? "Excluindo" : <><span className="sm:hidden">Excluir</span><span className="hidden sm:inline">Excluir chat</span></>}</button> : null}
+            {contact ? <button type="button" disabled={conversationAction} className="shrink-0 rounded-lg px-1.5 py-2 text-[10px] md:text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 sm:px-2 sm:text-xs" onClick={() => void clearConversation()}>{conversationAction ? "Excluindo" : <><span className="sm:hidden">Excluir</span><span className="hidden sm:inline">Excluir chat</span></>}</button> : null}
             <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg max-md:text-[14px] font-semibold text-[#0F2D8F] hover:bg-blue-50" onClick={() => setMinimized(true)} title="Minimizar chat" aria-label="Minimizar chat">−</button>
             <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg max-md:text-[14px] text-slate-500 hover:bg-slate-100 sm:h-auto sm:w-auto sm:rounded-lg sm:px-3 sm:py-2 sm:text-sm" onClick={onClose} aria-label="Fechar chat"><span className="sm:hidden">×</span><span className="hidden sm:inline">Fechar</span></button>
           </div>
           <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto bg-slate-50/50 px-3 py-3 sm:px-4">
             {messages.length === 0 ? (
-              <div className="mt-12 text-center text-sm text-slate-500 sm:mt-16 sm:text-sm">Envie a primeira mensagem.</div>
+              <div className="mt-12 text-center text-[13px] md:text-sm text-slate-500 sm:mt-16 sm:text-sm">Envie a primeira mensagem.</div>
             ) : (
               <div className="space-y-1.5">
                 {messages.map((message) => {
                   const mine = message.sender_user_id === currentUserId;
                   return (
                     <div key={message.id} className={`flex items-center gap-1.5 ${mine ? "justify-end" : "justify-start"}`}>
-                      <div className={`w-fit max-w-[78%] rounded-2xl border px-2.5 py-1.5 text-sm font-medium leading-[1.05rem] shadow-sm sm:max-w-[64%] sm:px-3 sm:text-[11.5px] sm:font-normal sm:leading-[1.05rem] ${mine ? "border-[#2296E8]/20 bg-[#F1F8FE] text-[#0F2D8F]" : "border-slate-300 bg-white text-slate-900"}`}>
+                      <div className={`w-fit max-w-[78%] rounded-2xl border px-2.5 py-1.5 text-[13px] md:text-sm font-medium leading-[1.05rem] shadow-sm sm:max-w-[64%] sm:px-3 sm:text-[11.5px] sm:font-normal sm:leading-[1.05rem] ${mine ? "border-[#2296E8]/20 bg-[#F1F8FE] text-[#0F2D8F]" : "border-slate-300 bg-white text-slate-900"}`}>
                         <p className="whitespace-pre-wrap break-words leading-[1.05rem] sm:leading-[1.2rem] sm:text-black">{message.body}</p>
-                        <span className={`mt-0.5 flex items-center justify-end gap-1 text-xs font-medium leading-4 sm:text-xs ${mine ? "text-[#0F2D8F]/75 sm:text-[#0F2D8F]" : "text-[#0F2D8F]/70"}`}>
+                        <span className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] md:text-xs font-medium leading-4 sm:text-[8px] md:text-xs ${mine ? "text-[#0F2D8F]/75 sm:text-[#0F2D8F]" : "text-[#0F2D8F]/70"}`}>
                           {message.edited_at ? <span>Editada</span> : null}
                           <span>{new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date(message.created_at))}</span>
                           {mine ? <span title={message.read_at ? "Lida" : "Enviada"} className={message.read_at ? "font-bold text-[#0F2D8F]" : ""}>{message.read_at ? "✓✓" : "✓"}</span> : null}
@@ -455,8 +455,8 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
               </div>
             ) : null}
             <div data-chat-composer className="flex min-w-0 items-end gap-1.5 overflow-hidden rounded-xl border border-[#2296E8]/30 bg-white p-1.5 shadow-sm focus-within:border-[#2296E8] sm:gap-2 sm:rounded-2xl sm:p-2">
-              <textarea value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendMessage(); } }} rows={1} maxLength={4000} placeholder={contact ? `Mensagem para ${contact.name}` : "Selecione uma conversa"} className="max-h-24 min-h-9 min-w-0 flex-1 resize-none bg-white px-2 py-2 text-xs font-normal leading-4 text-[#0F2D8F] caret-[#0F2D8F] outline-none placeholder:text-[#0F2D8F]/45 sm:max-h-28 sm:min-h-10 sm:text-[11.5px] sm:leading-4 sm:text-black sm:caret-black sm:placeholder:text-black/45" />
-              <button type="button" disabled={!selected || !draft.trim() || sending} onClick={() => void sendMessage()} className="min-h-9 shrink-0 rounded-xl bg-[#2296E8] px-3 text-xs font-semibold text-white disabled:opacity-40 sm:min-h-10 sm:px-4 sm:text-sm">{editingMessage ? "Salvar" : "Enviar"}</button>
+              <textarea value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendMessage(); } }} rows={1} maxLength={4000} placeholder={contact ? `Mensagem para ${contact.name}` : "Selecione uma conversa"} className="max-h-24 min-h-9 min-w-0 flex-1 resize-none bg-white px-2 py-2 text-[12px] md:text-xs font-normal leading-4 text-[#0F2D8F] caret-[#0F2D8F] outline-none placeholder:text-[#0F2D8F]/45 sm:max-h-28 sm:min-h-10 sm:text-[11.5px] sm:leading-4 sm:text-black sm:caret-black sm:placeholder:text-black/45" />
+              <button type="button" disabled={!selected || !draft.trim() || sending} onClick={() => void sendMessage()} className="min-h-9 shrink-0 rounded-xl bg-[#2296E8] px-3 text-[12px] md:text-xs font-semibold text-white disabled:opacity-40 sm:min-h-10 sm:px-4 sm:text-sm">{editingMessage ? "Salvar" : "Enviar"}</button>
             </div>
           </div>
         </div>

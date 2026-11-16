@@ -55,17 +55,22 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
 
 /* Compras: sem barra inferior e lista de itens rolando dentro da própria tela,
    com o cabeçalho da tabela fixo, para ver todos os itens sem cobertura. */
-/* Compras (desktop): tamanhos da escala de 6 níveis, sem !important. */
-@media (min-width:768px){
-.ct-compras-module .ct-clean-purchases label{font-size:18px;line-height:1.5;}
-.ct-compras-module .ct-clean-purchases small:not(.text-xs){font-size:18px;line-height:1.5;}
-.ct-clean-purchases :is(.text-sm,.text-base,label,input,select,textarea,button){font-size:18px;line-height:1.5;}
-.ct-clean-purchases .text-xs{font-size:16px;line-height:1.5;}
-}
 .ct-clean-navigation.ct-no-bottom-nav .ct-clean-bottom{display:none!important;}
 body:has(.ct-clean-navigation.ct-no-bottom-nav){padding-bottom:0!important;}
 .ct-pedidos-lista{max-height:calc(100dvh - 230px);min-height:200px;}
 @media(max-width:767px){.ct-pedidos-lista{max-height:calc(100dvh - 190px);}}
+
+/* Leitura ampliada do formulário de Compras, mantendo títulos e indicadores. */
+@media(max-width:767px){.ct-clean-purchases :is(.text-sm,.text-base,label,input,select,textarea,button){font-size:18px!important;line-height:1.5;}
+.ct-clean-purchases .text-xs{font-size:16px!important;line-height:1.5;}}
+/* Compras (desktop, a partir de 768px): escala de 6 tamanhos, sem !important. */
+@media(min-width:768px){.ct-compras-module .ct-clean-purchases label{font-size:18px;line-height:1.5;}
+.ct-compras-module .ct-clean-purchases small:not(.text-xs){font-size:18px;line-height:1.5;}
+.ct-compras-module h2{font-size:var(--ct-font-section-title);}
+.ct-compras-module h3{font-size:var(--ct-font-subtitle);}
+.ct-compras-module small,.ct-compras-module label{font-size:var(--ct-font-caption);}
+.ct-clean-purchases :is(.text-sm,.text-base,label,input,select,textarea,button){font-size:18px;line-height:1.5;}
+.ct-clean-purchases .text-xs{font-size:16px;line-height:1.5;}}
 
 /* Seletor de unidade em 3 botões (Rio Claro / Araras / Todas), conforme tela aprovada */
 .ct-clean-unit{display:inline-flex;flex:none;border:1px solid #d7deeb;border-radius:8px;overflow:hidden;background:#fff;}
@@ -214,9 +219,11 @@ main .ct-compras-module .ct-tone-card{border:1px solid var(--ct-clean-line)!impo
 .ct-band{border-top:3px solid var(--tone);}
 .ct-stamp-late{color:#c2410c;}
 .ct-stamp-nodate{color:#854f0b;}
-.ct-compras-module h2{font-size:var(--ct-font-section-title);}
-.ct-compras-module h3{font-size:var(--ct-font-subtitle);}
-.ct-compras-module small,.ct-compras-module label{font-size:var(--ct-font-caption);}
+@media(max-width:767px){
+.ct-compras-module h2{font-size:var(--ct-font-section-title)!important;}
+.ct-compras-module h3{font-size:var(--ct-font-subtitle)!important;}
+.ct-compras-module small,.ct-compras-module label{font-size:var(--ct-font-caption)!important;}
+}
 
 .ct-trips-v2{display:none;}
 /* Acesso da Ciça (mcrodini@gmail.com): no celular, fontes menores e Hoje em duas colunas lado a lado. */
