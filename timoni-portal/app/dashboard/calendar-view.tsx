@@ -129,19 +129,19 @@ function AgendaRow({
   return (
     <div
       className={clsx(
-        "flex min-w-0 items-center gap-3 rounded-xl border bg-white px-3 py-2",
+        "relative flex min-w-0 items-center gap-3 rounded-xl border bg-white px-3 py-2",
         concluido && "opacity-60"
       )}
       style={{ borderColor: color }}
     >
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[17px] font-medium text-[#182443]">
+        <p className="truncate pr-24 text-[17px] font-medium text-[#182443]">
           {event.summary}
           {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
+        <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          <span className="shrink-0 rounded-full border px-2 py-px text-xs max-md:text-[10px]" style={{ borderColor: color, color }}>{event.calendarLabel}</span>
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
