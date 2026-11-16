@@ -196,6 +196,8 @@ body:has(.ct-clean-navigation) .ct-update-button.is-floating{display:none;}
 .ct-tone-neutral{--tone:#65718a;--tone-ink:#182443;}
 main .ct-tone-card{border:1px solid color-mix(in srgb,var(--tone) 40%,#e1e6f0);}
 main .ct-tone-card h2{color:var(--ct-clean-blue)!important;}
+/* Compras (desktop): contorno neutro, igual ao celular */
+main .ct-compras-module .ct-tone-card{border:1px solid var(--ct-clean-line)!important;}
 @media(max-width:767px){.ct-today-layout.ct-today-v2{display:flex;flex-direction:column;gap:16px;}.ct-today-layout.ct-today-v2>.ct-today-side,.ct-today-layout.ct-today-v2>.ct-today-main{display:contents;}.ct-m-order-1{order:1}.ct-m-order-2{order:2}.ct-m-order-3{order:3}.ct-m-order-4{order:4}.ct-m-order-5{order:5}}
 
 /* Ajuste Compras (14/11): faixa colorida por status, etiquetas e fontes padronizadas */
