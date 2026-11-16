@@ -70,23 +70,23 @@ export default function ConfigurarTrelloClient() {
   return (
     <div className="mx-auto max-w-2xl">
       <section className="rounded-3xl border border-blue-200 bg-white p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Configuração única</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Configuração única</p>
+        <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">
           Trello — Módulo Compras
         </h1>
-        <p className="mt-3 text-sm leading-6 text-slate-600">
+        <p className="mt-3 text-sm max-md:text-[11px] leading-6 text-slate-600">
           A Ciça conecta uma única vez para todos os usuários autorizados. Trocar a chave mantém a conexão atual até a nova ser validada.
         </p>
 
         {configured ? (
           <div className="mt-5 space-y-4">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm font-semibold text-emerald-900">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm max-md:text-[11px] font-semibold text-emerald-900">
               {message || "Trello conectado ao Portal."}
             </div>
             <div className="flex flex-wrap gap-3">
               <a
                 href="/dashboard/compras"
-                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-800 px-5 text-sm font-semibold text-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-800 px-5 text-sm max-md:text-[11px] font-semibold text-white"
               >
                 Abrir Compras
               </a>
@@ -94,7 +94,7 @@ export default function ConfigurarTrelloClient() {
                 type="button"
                 onClick={() => void reconfigure()}
                 disabled={loading}
-                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 text-sm font-semibold text-blue-800 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 text-sm max-md:text-[11px] font-semibold text-blue-800 disabled:opacity-50"
               >
                 Trocar chave
               </button>
@@ -102,10 +102,10 @@ export default function ConfigurarTrelloClient() {
           </div>
         ) : (
           <div className="mt-5 space-y-5">
-            {legacyAvailable && <button type="button" disabled={loading} onClick={() => void save(true)} className="min-h-12 rounded-xl bg-blue-800 px-5 text-sm font-semibold text-white disabled:opacity-50">Usar conexão atual para todos</button>}
+            {legacyAvailable && <button type="button" disabled={loading} onClick={() => void save(true)} className="min-h-12 rounded-xl bg-blue-800 px-5 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50">Usar conexão atual para todos</button>}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-semibold text-slate-950">Gerar a chave do Trello</p>
-              <ol className="mt-2 space-y-2 text-sm leading-6 text-slate-600">
+              <p className="text-sm max-md:text-[11px] font-semibold text-slate-950">Gerar a chave do Trello</p>
+              <ol className="mt-2 space-y-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
                 <li>1. Clique em “Gerar chave do Trello”.</li>
                 <li>2. No Trello, clique em “Permitir”.</li>
                 <li>3. Copie o código longo exibido, normalmente iniciado por ATTA.</li>
@@ -116,7 +116,7 @@ export default function ConfigurarTrelloClient() {
                   href={TRELLO_AUTHORIZE_URL}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-800 px-5 text-sm font-semibold text-white hover:bg-blue-900"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-800 px-5 text-sm max-md:text-[11px] font-semibold text-white hover:bg-blue-900"
                 >
                   Gerar chave do Trello
                 </a>
@@ -124,7 +124,7 @@ export default function ConfigurarTrelloClient() {
                   href={TRELLO_POWER_UP_PAGE}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 text-sm font-semibold text-blue-800 hover:bg-blue-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-blue-300 bg-white px-5 text-sm max-md:text-[11px] font-semibold text-blue-800 hover:bg-blue-50"
                 >
                   Abrir área da API do Trello
                 </a>
@@ -133,14 +133,14 @@ export default function ConfigurarTrelloClient() {
                 href={ATLASSIAN_APPS_PAGE}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex text-xs font-semibold text-blue-800 hover:underline"
+                className="mt-3 inline-flex text-xs max-md:text-[10px] font-semibold text-blue-800 hover:underline"
               >
                 Alternativa: abrir aplicativos da Atlassian →
               </a>
             </div>
 
             <label className="block">
-              <span className="text-sm font-semibold text-slate-900">Código de autorização do Trello</span>
+              <span className="text-sm max-md:text-[11px] font-semibold text-slate-900">Código de autorização do Trello</span>
               <textarea
                 value={token}
                 onChange={(event) => {
@@ -150,7 +150,7 @@ export default function ConfigurarTrelloClient() {
                 placeholder="Cole aqui o código que começa com ATTA..."
                 rows={3}
                 autoComplete="off"
-                className="mt-2 w-full rounded-xl border border-blue-200 px-4 py-3 text-sm outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full rounded-xl border border-blue-200 px-4 py-3 text-sm max-md:text-[11px] outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
               />
             </label>
 
@@ -158,7 +158,7 @@ export default function ConfigurarTrelloClient() {
               type="button"
               disabled={loading || !token.trim()}
               onClick={() => void save()}
-              className="min-h-12 rounded-xl bg-blue-800 px-6 text-sm font-semibold text-white disabled:opacity-50"
+              className="min-h-12 rounded-xl bg-blue-800 px-6 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50"
             >
               {loading ? "Validando..." : "Salvar e conectar"}
             </button>
@@ -166,7 +166,7 @@ export default function ConfigurarTrelloClient() {
         )}
 
         {error && (
-          <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm max-md:text-[11px] font-semibold text-rose-800">
             {error}
           </p>
         )}
