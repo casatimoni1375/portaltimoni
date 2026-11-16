@@ -365,3 +365,11 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
 /* Comunicados: título em duas linhas, sem caixa-alta */
 .ct-notice-headline{display:block;font-weight:500;}
 .ct-notice-subline{display:block;font-weight:400;color:#5b6478;}
+
+/* Compras no celular: cards, títulos e rótulos no padrão do Fluxo */
+@media (max-width: 767px) {
+  html body main article.rounded-2xl > p.text-3xl { font-size: 14px !important; font-weight: 600 !important; line-height: 1.3 !important; }
+  html body main article.rounded-2xl > p.mt-2 { font-size: 11px !important; font-weight: 400 !important; line-height: 1.35 !important; }
+  html body main h2.text-base { font-size: 15px !important; font-weight: 500 !important; }
+  html body main p.text-sm.font-semibold { font-size: 10px !important; font-weight: 700 !important; }
+}
