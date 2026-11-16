@@ -478,3 +478,19 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main a, html body main button { font-size: 12px !important; }
   html body main span.text-2xl, html body main span.text-3xl, html body main span.text-xl { font-size: 14px !important; font-weight: 600 !important; }
 }
+
+/* Celular (todo o site): ajustes finais de contorno, campos, cabeçalho, chat e abas */
+@media (max-width: 767px) {
+  html body button[aria-label="Abrir chat"], html body .ct-chat-button, html body [aria-label="Abrir chat"] { display: none !important; }
+  html body main section.ct-clean-card, html body main section.rounded-2xl, html body main article.rounded-2xl,
+  html body main .ct-tone-card, html body main .ct-tone-blue {
+    border: 1px solid var(--ct-clean-line) !important; box-shadow: none !important;
+  }
+  html body main h1, html body .ct-clean-today-heading h1 { font-size: 18px !important; font-weight: 500 !important; }
+  html body main input:not([type="checkbox"]):not([type="radio"]), html body main select { min-height: 34px !important; padding: 5px 8px !important; }
+  html body main button[class*="rounded"], html body main a[class*="rounded"] { min-height: 32px !important; }
+  html body main nav a, html body main [role="tablist"] button, html body main [role="tablist"] a {
+    font-size: 11px !important; font-weight: 500 !important; padding: 6px 10px !important; min-height: 32px !important;
+  }
+  html body main .ct-tone-blue a[href], html body main .ct-tone-blue button { font-size: 11px !important; padding: 5px 10px !important; min-height: 30px !important; }
+}
