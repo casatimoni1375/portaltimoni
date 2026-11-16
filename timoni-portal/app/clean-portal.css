@@ -568,3 +568,14 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
     transform: scale(1.1) !important; transform-origin: left center !important;
   }
 }
+
+/* Celular (todo o site, inclusive Estoque): seções, rótulos, parágrafos e botões no padrão do Fluxo. Títulos de página não mudam. */
+@media (max-width: 767px) {
+  html body main section h2, html body main article h2, html body main h2.text-xl, html body main h2.text-2xl { font-size: 15px !important; font-weight: 500 !important; }
+  html body main label, html body main section label, html body main article label { font-size: 11px !important; font-weight: 500 !important; }
+  html body main p.text-sm, html body main p.text-base, html body main section > p, html body main article > p { font-size: 12.5px !important; font-weight: 400 !important; }
+  html body main a[href="#estoque-solicitar"], html body main a[href="/dashboard/compras?aba=acompanhar"], html body main section a.text-sm, html body main article a.text-sm {
+    font-size: 12px !important; font-weight: 800 !important; padding: 6px 9px !important; min-height: 34px !important; border-radius: 11px !important;
+  }
+  html body main section button, html body main article button { font-size: 12px !important; font-weight: 600 !important; }
+}
