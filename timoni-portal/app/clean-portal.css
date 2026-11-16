@@ -355,3 +355,9 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body .ct-user-compact p, html body .ct-user-compact a { font-size: 12.5px !important; }
   html body .ct-user-compact strong { font-size: 12.5px !important; font-weight: 600 !important; }
 }
+
+/* Celular: título e seções com o tamanho e peso exatos do Fluxo */
+@media (max-width: 767px) {
+  html body main h1 { font-size: 20px !important; font-weight: 500 !important; }
+  html body main h2 { font-size: 15px !important; font-weight: 500 !important; }
+}
