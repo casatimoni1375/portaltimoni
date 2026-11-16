@@ -523,3 +523,9 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main h1, html body .ct-clean-today-heading h1, html body main .ct-clean-today-heading h1 { font-size: 16px !important; font-weight: 500 !important; line-height: 1.25 !important; }
   html body main .ct-clean-today-heading > span, html body main .ct-clean-today-heading p { font-size: 11px !important; }
 }
+
+/* Celular: cabeçalho com botões menores, no tamanho do menu inferior */
+@media (max-width: 767px) {
+  html body .portal-mobile-header button, html body .portal-mobile-header a { width: 32px !important; height: 32px !important; min-width: 32px !important; border-radius: 10px !important; }
+  html body .portal-mobile-header svg { width: 17px !important; height: 17px !important; }
+}

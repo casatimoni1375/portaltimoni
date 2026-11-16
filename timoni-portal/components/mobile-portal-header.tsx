@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import PortalIcon, { type PortalIconName } from "@/components/portal-icon";
-import ChatButton from "@/components/chat-button";
 import PortalNotifications from "@/components/portal-notifications";
 import type { UpdateModule } from "@/lib/module-updates";
 import { useModuleUpdates } from "@/components/module-updates-store";
@@ -46,7 +45,7 @@ export default function MobilePortalHeader({ items, showUpdates, showChat, initi
         <Image src="/logo-ct-oficial.png" alt="Casa Timoni" width={32} height={32} className="mr-2 h-8 w-8 object-contain" /><span className="text-sm font-bold tracking-tight">Portal Timoni</span>
       </Link>
       <div className="flex items-center justify-end gap-0.5">
-        {showChat ? <ChatButton mobileHeader /> : null}
+        {null}
         <PortalNotifications items={items} showUpdates={showUpdates} />
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-[11px] font-bold ring-1 ring-white/20" aria-label={`Usuário ${initials}`}>{initials}</span>
       </div>
