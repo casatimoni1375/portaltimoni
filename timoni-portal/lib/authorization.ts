@@ -31,8 +31,7 @@ const EXISTING_PROFILES: Readonly<Record<string, AuthorizationProfile>> = {
   [ADMIN_IDENTITIES.marcelo]: "administracao-marcelo",
   "margareth@casatimoni.com.br": "gestao-rio-claro",
   "balcaotimoni@gmail.com": "vendedores-rio-claro",
-  // Conta do motorista: somente leitura da agenda do motorista.
-  "motoristacasatimoni@gmail.com": "motorista-leitura",
+  // Conta do motorista: agendamento de viagens liberado (pedido da gestão, 16/11/2026).
   "caixarctimoni@gmail.com": "vendedores-rio-claro",
   "marketplacerc.mcr@gmail.com": "vendedores-rio-claro",
   "comercialrc@casatimoni.com.br": "gestao-rio-claro",
