@@ -460,3 +460,10 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   }
   html body .ct-clean-bottom .ct-clean-nav-link { min-height: 43px !important; font-size: 11px !important; }
 }
+
+/* Celular: botões Produto e Pedido enviado (Consultar) com a estrutura do Fluxo */
+@media (max-width: 767px) {
+  html body main a[href="#estoque-solicitar"], html body main a[href="/dashboard/compras?aba=acompanhar"] {
+    min-height: 34px !important; padding: 6px 9px !important; font-size: 12px !important; font-weight: 800 !important; border-radius: 11px !important; line-height: 1.2 !important;
+  }
+}
