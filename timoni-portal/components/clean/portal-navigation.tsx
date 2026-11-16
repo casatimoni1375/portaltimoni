@@ -23,7 +23,8 @@ export default function PortalNavigation({items,name,initials,units,settings,act
  useEffect(()=>{setProfile(false);},[pathname]);
  function changeUnit(value:string){if(!units.includes(value)&&!(value==="todas"&&units.length>1))return;const next=new URLSearchParams(params.toString());next.set("unidade",value);router.replace(`${pathname}?${next}`,{scroll:false});window.localStorage.setItem("portalTimoniStoreView",value);window.dispatchEvent(new CustomEvent("portal-store-view-change",{detail:value}));}
  const nav=(item:CleanNavItem)=> <Link key={item.key} href={item.href+(unit?`?unidade=${unit}`:"")} aria-current={active===item.key?"page":undefined} className="ct-clean-nav-link"><PortalIcon name={icons[item.key]} className="h-[18px] w-[18px]"/><span>{item.label}</span>{counts[item.key]>0&&<small aria-label={`${counts[item.key]} pendências`}>{counts[item.key]}</small>}</Link>;
- return <div className="ct-clean-navigation">
+ const fullScreenList=pathname.startsWith("/dashboard/compras");
+ return <div className={`ct-clean-navigation${fullScreenList?" ct-no-bottom-nav":""}`}>
   <header className="ct-clean-top"><Link href="/dashboard" aria-label="Casa Timoni — Hoje" className="ct-clean-brand"><Image src="/brand/CasaTimoni_horizontal_azul.svg" width={140} height={28} alt="Casa Timoni" priority/></Link>
    <button type="button" className="ct-clean-search-trigger" aria-label="Buscar no Portal" onClick={()=>setSearch(true)}><span>Buscar</span><PortalIcon name="search" className="h-4 w-4"/></button>
    {!onAgendaLoja&&<div className={`ct-clean-unit${units.length>1?" ct-clean-unit-multi":""}`} role="group" aria-label="Unidade">{[...units,...(units.length>1?["todas"]:[])].map(value=><button key={value} type="button" aria-pressed={unit===value} disabled={units.length===1} onClick={()=>changeUnit(value)}>{value==="rio_claro"?"Rio Claro":value==="araras"?"Araras":"Todas"}</button>)}</div>}

@@ -53,6 +53,13 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
   .ct-clean-spacer { height:104px; }
 }
 
+/* Compras: sem barra inferior e lista de itens rolando dentro da própria tela,
+   com o cabeçalho da tabela fixo, para ver todos os itens sem cobertura. */
+.ct-clean-navigation.ct-no-bottom-nav .ct-clean-bottom{display:none!important;}
+body:has(.ct-clean-navigation.ct-no-bottom-nav){padding-bottom:0!important;}
+.ct-pedidos-lista{max-height:calc(100dvh - 230px);min-height:200px;}
+@media(max-width:767px){.ct-pedidos-lista{max-height:calc(100dvh - 190px);}}
+
 /* Leitura ampliada do formulário de Compras, mantendo títulos e indicadores. */
 .ct-clean-purchases :is(.text-sm,.text-base,label,input,select,textarea,button){font-size:18px!important;line-height:1.5;}
 .ct-clean-purchases .text-xs{font-size:16px!important;line-height:1.5;}

@@ -451,9 +451,9 @@ export default function ComprasClient() {
             </h2>
             <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Confira e ajuste manualmente quando necessário.</p>
           </div>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
+          <div className="ct-pedidos-lista mt-4 overflow-auto rounded-2xl border border-slate-200">
             <table className="w-full min-w-[760px] border-collapse text-sm max-md:text-[11px]">
-              <thead className="bg-slate-100 text-left text-xs max-md:text-[10px] uppercase tracking-wide text-slate-600">
+              <thead className="sticky top-0 z-10 bg-slate-100 text-left text-xs max-md:text-[10px] uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="px-3 py-3">Código</th>
                   <th className="px-3 py-3">Descrição</th>
