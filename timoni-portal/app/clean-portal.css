@@ -517,3 +517,9 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
 @media (max-width: 767px) {
   html body main .ct-clean-card-heading > a, html body main a[href*="view=loja"], html body main a[href^="/agenda"] { font-size: 11px !important; font-weight: 500 !important; }
 }
+
+/* Celular: título de saudação e data do Hoje reduzidos */
+@media (max-width: 767px) {
+  html body main h1, html body .ct-clean-today-heading h1, html body main .ct-clean-today-heading h1 { font-size: 16px !important; font-weight: 500 !important; line-height: 1.25 !important; }
+  html body main .ct-clean-today-heading > span, html body main .ct-clean-today-heading p { font-size: 11px !important; }
+}
