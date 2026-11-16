@@ -416,3 +416,9 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main section a, html body main .ct-clean-card a { font-size: 12px !important; font-weight: 500 !important; }
   html body main section strong, html body main .ct-clean-card strong { font-size: 12.5px !important; font-weight: 600 !important; }
 }
+
+/* Hoje no celular: seções e links de cabeçalho no padrão do Fluxo */
+@media (max-width: 767px) {
+  html body main section.ct-clean-card h2, html body main .ct-clean-card-heading h2, html body main section h2 { font-size: 15px !important; font-weight: 500 !important; }
+  html body main .ct-clean-card-heading > a, html body main section > div > a { font-size: 11px !important; font-weight: 500 !important; }
+}
