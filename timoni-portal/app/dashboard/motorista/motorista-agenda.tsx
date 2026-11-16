@@ -900,7 +900,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           </div>
         ) : (
           <div className="mt-4">
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-slate-400"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold uppercase text-slate-400"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
             <div className="mt-1 grid grid-cols-7 gap-1">
               {diasMes.map((d) => {
                 const data = localDateString(d);
@@ -908,7 +908,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                 const fora = d.getMonth() !== mesBase.getMonth();
                 return <button key={data} type="button" onClick={() => selecionarDia(data)} className={`min-h-24 rounded-xl border p-2 text-left ${fora ? "border-slate-100 bg-slate-50 text-slate-300" : data === hoje ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"}`}>
                   <p className="text-sm max-md:text-[11px] font-semibold">{d.getDate()}</p>
-                  <div className="mt-1 space-y-1">{itens.slice(0, 3).map((v) => <p key={v.id} className="truncate text-[10px] text-slate-600">{horaCurta(v.horario)} {v.clienteFornecedor || v.tipoHorario}</p>)}{itens.length > 3 && <p className="text-[10px] text-slate-400">+{itens.length - 3}</p>}</div>
+                  <div className="mt-1 space-y-1">{itens.slice(0, 3).map((v) => <p key={v.id} className="truncate text-xs text-slate-600">{horaCurta(v.horario)} {v.clienteFornecedor || v.tipoHorario}</p>)}{itens.length > 3 && <p className="text-xs text-slate-400">+{itens.length - 3}</p>}</div>
                 </button>;
               })}
             </div>

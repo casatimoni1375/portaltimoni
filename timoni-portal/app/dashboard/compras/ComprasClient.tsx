@@ -256,7 +256,7 @@ export default function ComprasClient() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">Módulo operacional</p>
-            <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Compras</h1>
+            <h1 className="mt-2 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Compras</h1>
             <p className="mt-3 max-w-3xl text-sm max-md:text-[11px] leading-6 text-slate-600">
               Selecione um fornecedor quando houver cartão pendente ou atualize diretamente criando um novo cartão no Trello.
             </p>
@@ -275,7 +275,7 @@ export default function ComprasClient() {
           ["Enviados — Araras", summary?.enviadosAraras],
         ].map(([label, value]) => (
           <article key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-3xl max-md:text-[20px] font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
+            <p className="text-[28px] max-md:text-[20px] font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
             <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">{label}</p>
           </article>
         ))}
@@ -341,17 +341,17 @@ export default function ComprasClient() {
                       <span className="font-semibold">{supplier.name}</span>
                       <span className="flex shrink-0 items-center gap-1">
                         {selected && (
-                          <span className="rounded-full bg-blue-700 px-2 py-0.5 text-[11px] font-semibold text-white">
+                          <span className="rounded-full bg-blue-700 px-2 py-0.5 text-xs font-semibold text-white">
                             Selecionado
                           </span>
                         )}
                         {supplier.urgent && (
-                          <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                          <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700">
                             Urgente
                           </span>
                         )}
                         {supplier.unit !== "nao_informada" && (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
                             {supplier.unit === "araras" ? "Araras" : "Rio Claro"}
                           </span>
                         )}

@@ -128,7 +128,7 @@ export default function ChatColaboradores({ individual, historyAllowed }: { indi
   function selectTab(value: boolean) { setHistory(value); setPeer(""); setConversation(""); setMessages([]); }
 
   return <section className="space-y-4">
-    <h1 className="text-2xl max-md:text-[20px] font-semibold text-[#14038D]">Chat</h1>
+    <h1 className="text-[28px] max-md:text-[20px] font-semibold text-[#14038D]">Chat</h1>
     <div className="flex flex-wrap gap-2" aria-label="Tipo de conversa">
       {individual && <button type="button" disabled={saving} onClick={() => selectTab(false)} aria-pressed={!history} className={button}>Conversas individuais</button>}
       {historyAllowed && <button type="button" disabled={saving} onClick={() => selectTab(true)} aria-pressed={history} className={button}>Histórico antigo · consulta</button>}

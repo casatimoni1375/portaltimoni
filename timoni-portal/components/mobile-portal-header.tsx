@@ -47,7 +47,7 @@ export default function MobilePortalHeader({ items, showUpdates, showChat, initi
       <div className="flex items-center justify-end gap-0.5">
         {null}
         <PortalNotifications items={items} showUpdates={showUpdates} />
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-[11px] font-bold ring-1 ring-white/20" aria-label={`Usuário ${initials}`}>{initials}</span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-xs font-bold ring-1 ring-white/20" aria-label={`Usuário ${initials}`}>{initials}</span>
       </div>
     </div>
 
@@ -56,7 +56,7 @@ export default function MobilePortalHeader({ items, showUpdates, showChat, initi
       <aside className="absolute inset-y-0 left-0 flex w-[85%] max-w-[20rem] flex-col bg-white shadow-2xl">
         <div className="flex h-10 items-center justify-between border-b border-slate-100 px-2.5">
           <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center text-[#0F2D8F]" aria-label="Casa Timoni — início">
-            <span className="text-[13px] font-bold tracking-tight">Casa Timoni</span>
+            <span className="text-sm font-bold tracking-tight">Casa Timoni</span>
           </Link>
           <button type="button" onClick={() => setOpen(false)} className="flex h-8 w-8 items-center justify-center text-slate-700" aria-label="Fechar menu"><PortalIcon name="close" className="h-4 w-4" /></button>
         </div>
@@ -64,12 +64,12 @@ export default function MobilePortalHeader({ items, showUpdates, showChat, initi
           {items.map((item, index) => {
             const pending = item.updateModule ? updates[item.updateModule] : undefined;
             const active = (item.targetHref ?? item.href) === "/dashboard";
-            return <Link key={`${item.label}-${index}`} href={item.targetHref ?? item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} onClick={() => void openItem(item)} className={`flex min-h-7 items-center rounded-md px-2 text-[11px] leading-4 text-slate-800 transition ${active ? "bg-blue-50 font-bold text-[#0F2D8F]" : "font-normal hover:bg-slate-50"}`}>
+            return <Link key={`${item.label}-${index}`} href={item.targetHref ?? item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener noreferrer" : undefined} onClick={() => void openItem(item)} className={`flex min-h-7 items-center rounded-md px-2 text-xs leading-4 text-slate-800 transition ${active ? "bg-blue-50 font-bold text-[#0F2D8F]" : "font-normal hover:bg-slate-50"}`}>
               <span className="min-w-0 flex-1 truncate">{item.label}</span>
-              {pending ? <span className="ml-2 min-w-5 rounded-full bg-red-500 px-1.5 text-center text-[10px] font-bold leading-5 text-white">{pending.count}</span> : null}
+              {pending ? <span className="ml-2 min-w-5 rounded-full bg-red-500 px-1.5 text-center text-xs font-bold leading-5 text-white">{pending.count}</span> : null}
             </Link>;
           })}
-          <Link href="/login" prefetch={false} onClick={() => setOpen(false)} title="Sair da tela mantendo a sessão" className="mt-1 flex min-h-7 w-full items-center border-t border-slate-200 px-2 pt-1 text-left text-[11px] font-normal text-slate-800"><span>Sair</span></Link>
+          <Link href="/login" prefetch={false} onClick={() => setOpen(false)} title="Sair da tela mantendo a sessão" className="mt-1 flex min-h-7 w-full items-center border-t border-slate-200 px-2 pt-1 text-left text-xs font-normal text-slate-800"><span>Sair</span></Link>
         </nav>
       </aside>
     </div>, document.body) : null}

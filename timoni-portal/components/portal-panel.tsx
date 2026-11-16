@@ -60,5 +60,5 @@ async function MeetingsBlock({items,now,store}:{items:Promise<Meeting[]>;now:Dat
 }
 export default function PortalPanel({embedded=false}:{embedded?:boolean}){
  const Heading=embedded?"h2":"h1";
- return <div className="ct-modern-panel pb-10"><header className="mb-6"><p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">Comunicação interna</p><Heading className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Painel Timoni</Heading></header><Suspense fallback={<section className="grid portal-comms-grid grid-cols-2 items-stretch gap-2 sm:gap-4 lg:grid-cols-2"><CardSkeleton label="AVISOS"/><CardSkeleton label="PRÓXIMAS REUNIÕES"/></section>}><PanelContent showDates={!embedded}/></Suspense></div>;
+ return <div className="ct-modern-panel pb-10"><header className="mb-6"><p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">Comunicação interna</p><Heading className="mt-2 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Painel Timoni</Heading></header><Suspense fallback={<section className="grid portal-comms-grid grid-cols-2 items-stretch gap-2 sm:gap-4 lg:grid-cols-2"><CardSkeleton label="AVISOS"/><CardSkeleton label="PRÓXIMAS REUNIÕES"/></section>}><PanelContent showDates={!embedded}/></Suspense></div>;
 }

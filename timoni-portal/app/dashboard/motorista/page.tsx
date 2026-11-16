@@ -25,8 +25,8 @@ export default async function MotoristaPage() {
   return (
     <div className="ct-modern-calendar mx-auto w-full max-w-6xl space-y-4">
       <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
-        <h1 className="mt-1 text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
+        <h1 className="mt-1 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>
         <p className="mt-1 text-sm max-md:text-[11px] text-slate-600">Entregas, retiradas e bloqueios de horário em uma agenda única.</p>
       </header>
       <div className="motorista-agenda-controle">

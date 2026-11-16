@@ -253,10 +253,10 @@ export default function MotoristaLeitura() {
     <main className="ct-modern-calendar min-h-screen bg-slate-50 px-3 py-4 sm:px-5">
       <div className="mx-auto max-w-5xl">
         <header className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
           <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>
+              <h1 className="text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>
               <p className="mt-1 text-xs max-md:text-[10px] text-slate-600">Visualização somente leitura.</p>
             </div>
             <div className="flex gap-2">
@@ -278,10 +278,10 @@ export default function MotoristaLeitura() {
               <section key={data} className={`rounded-2xl border bg-white p-4 shadow-sm ${hoje ? "border-blue-300" : "border-slate-200"}`}>
                 <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
                     <h2 className="mt-0.5 text-base max-md:text-[12.5px] font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}</h2>
                   </div>
-                  {hoje && <span className="rounded-full bg-blue-800 px-2.5 py-1 text-[10px] font-semibold text-white">Hoje</span>}
+                  {hoje && <span className="rounded-full bg-blue-800 px-2.5 py-1 text-xs font-semibold text-white">Hoje</span>}
                 </div>
 
                 <div className="mt-3 space-y-3">
@@ -297,16 +297,16 @@ export default function MotoristaLeitura() {
                       return (
                         <article key={v.id} style={estiloBoxViagem(v)} className={`rounded-xl border p-3 ${bloqueio ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
                           <div className="flex items-start gap-3">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-slate-700 shadow-sm">{index + 1}</span>
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-700 shadow-sm">{index + 1}</span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
                                   <EtiquetaTipo tipo={lerTipo(v.notasJson)} />
                                   <EtiquetaEmpresa loja={v.loja} />
-                                  {v.tipoHorario === "Bloqueio" ? <span className="rounded-full bg-slate-200 px-2 py-px text-[10px] font-semibold text-slate-700">Bloqueio</span> : null}
+                                  {v.tipoHorario === "Bloqueio" ? <span className="rounded-full bg-slate-200 px-2 py-px text-xs font-semibold text-slate-700">Bloqueio</span> : null}
                                   {v.vendedor ? <span className="text-xs max-md:text-[10px] text-slate-600">Vend.: {v.vendedor}</span> : null}
                                 </div>
-                                {!bloqueio && concluida(v.notasJson) && <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">Concluído</span>}
+                                {!bloqueio && concluida(v.notasJson) && <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">Concluído</span>}
                               </div>
                               <p className="mt-2 text-xs max-md:text-[10px] font-bold uppercase text-slate-900">
                                 {documentoTexto(v.numeroPedido)}

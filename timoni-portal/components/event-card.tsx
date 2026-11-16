@@ -69,13 +69,13 @@ export function EventCard({
             {event.summary}
           </p>
           {concluido && <span className="mt-1 inline-flex"><Carimbo>Concluído</Carimbo></span>}
-          {event.location && <p className="mt-1 break-words text-[15px] text-slate-500 sm:text-sm">{event.location}</p>}
+          {event.location && <p className="mt-1 break-words text-base text-slate-500 sm:text-sm">{event.location}</p>}
         </div>
         <div className="grid w-full grid-cols-3 items-center gap-2 sm:flex sm:w-auto sm:shrink-0 sm:flex-wrap sm:items-center">
-          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="secondary" onClick={() => onEdit(event)}>
+          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-sm sm:px-3 sm:text-sm" variant="secondary" onClick={() => onEdit(event)}>
             Editar
           </Button>
-          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-[13px] sm:px-3 sm:text-sm" variant="danger" onClick={() => onDelete(event)}>
+          <Button className="inline-flex min-h-9 min-w-0 items-center justify-center px-2 text-sm sm:px-3 sm:text-sm" variant="danger" onClick={() => onDelete(event)}>
             Cancelar
           </Button>
         </div>

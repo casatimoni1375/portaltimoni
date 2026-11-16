@@ -17,7 +17,7 @@ export default function MarketingPage() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-pink-700">Módulo operacional</p>
-            <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Marketing</h1>
+            <h1 className="mt-2 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Marketing</h1>
             <p className="mt-3 max-w-2xl text-sm max-md:text-[11px] leading-6 text-slate-600">Central de acesso para campanhas, conteúdo, materiais e comunicação da Casa Timoni.</p>
           </div>
           <span className="w-fit rounded-full bg-pink-100 px-3 py-1.5 text-xs max-md:text-[10px] font-semibold text-pink-800">Disponível</span>

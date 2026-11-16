@@ -331,7 +331,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
     <div className="pb-10">
       <header className="mb-4">
         <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.18em] text-[#13038D]">Configuração da equipe</p>
-        <h1 className="mt-1 text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950 sm:text-3xl">Acessos e permissões</h1>
+        <h1 className="mt-1 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950 sm:text-[28px]">Acessos e permissões</h1>
         <p className="mt-1 text-sm max-md:text-[11px] text-slate-600">Escolha o e-mail de acesso e personalize. Cada colaborador pertence a um e-mail.</p>
       </header>
 
@@ -437,7 +437,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           <div className="border-t border-slate-200 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <p className={SECTION_TITLE}>Mobile</p>
-              <p className="text-[11px] text-slate-500">O que aparece no menu do celular.</p>
+              <p className="text-xs text-slate-500">O que aparece no menu do celular.</p>
             </div>
             <div className={GRID}>
               {MODULES.map((module) => {
@@ -456,12 +456,12 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           <div className="border-t border-slate-200 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <p className={SECTION_TITLE}>Tela Hoje</p>
-              <label className="flex items-center gap-2 text-[11px] text-slate-600">
+              <label className="flex items-center gap-2 text-xs text-slate-600">
                 <input type="checkbox" checked={perm.todayBlocks === null} disabled={locked} onChange={(event) => setPerm({ ...perm, todayBlocks: event.target.checked ? null : TODAY_BLOCKS.filter((block) => wantsTodayBlock(undefined, block.id, (module) => perm.modules.includes(module))).map((block) => block.id) })} className="h-4 w-4 accent-[#13038D]" />
                 Padrão pelas permissões
               </label>
             </div>
-            <p className="mt-1 text-[11px] text-slate-500">Blocos da tela inicial. Comunicados aparecem sempre. Um bloco só aparece se o módulo estiver liberado em Personalização.</p>
+            <p className="mt-1 text-xs text-slate-500">Blocos da tela inicial. Comunicados aparecem sempre. Um bloco só aparece se o módulo estiver liberado em Personalização.</p>
             <div className={GRID}>
               {TODAY_BLOCKS.map((block) => {
                 const enabled = block.modules.some((module) => perm.modules.includes(module)) && perm.todayBlocks !== null;
@@ -479,7 +479,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
           <div className="border-t border-slate-200 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <p className={SECTION_TITLE}>Somente leitura</p>
-              <p className="text-[11px] text-slate-500">O módulo continua visível, mas não cria, edita nem exclui.</p>
+              <p className="text-xs text-slate-500">O módulo continua visível, mas não cria, edita nem exclui.</p>
             </div>
             <div className={GRID}>
               {MODULES.map((module) => {
@@ -506,7 +506,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
               <p className="text-xs max-md:text-[10px] text-slate-500">Seu acesso permite editar colaboradores, mas não alterar permissões.</p>
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[11px] text-slate-500">As permissões valem para todos os colaboradores deste e-mail.</p>
+                <p className="text-xs text-slate-500">As permissões valem para todos os colaboradores deste e-mail.</p>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => selectAccess(selected)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-slate-700">Desfazer</button>
                   <button type="button" disabled={savingAccess} onClick={() => void savePermissions()} className="rounded-lg bg-[#13038D] px-5 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-60">{savingAccess ? "Salvando..." : "Salvar"}</button>

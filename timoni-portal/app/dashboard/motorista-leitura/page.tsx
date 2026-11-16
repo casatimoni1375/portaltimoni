@@ -8,8 +8,8 @@ export default function MotoristaLeituraPage() {
   return (
     <div className="w-full">
       <header className="mb-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
-        <h1 className="mt-1 text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Motorista</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
+        <h1 className="mt-1 text-[28px] max-md:text-[20px] font-semibold tracking-tight text-slate-950">Motorista</h1>
         <p className="mt-1 text-sm max-md:text-[11px] text-slate-600">Visualização somente para leitura.</p>
       </header>
       <iframe
