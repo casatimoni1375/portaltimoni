@@ -512,3 +512,8 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   }
   html body main span.font-medium, html body main strong, html body main [class*="font-medium"] { font-size: 14px !important; font-weight: 500 !important; }
 }
+
+/* Celular: links de cabeçalho de cards (Abrir agenda etc.) reduzidos */
+@media (max-width: 767px) {
+  html body main .ct-clean-card-heading > a, html body main a[href*="view=loja"], html body main a[href^="/agenda"] { font-size: 11px !important; font-weight: 500 !important; }
+}
