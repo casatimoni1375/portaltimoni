@@ -1,0 +1,24 @@
+name: Validar arquivos de workflow
+
+# Bloqueia no PR qualquer workflow com YAML invalido. Em 16/11/2026 seis workflows
+# estavam quebrados e nunca executaram: o GitHub rejeita o arquivo no parse e o unico
+# sinal e uma falha vermelha. Ver PR #506.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rodar actionlint
+        uses: raven-actions/actionlint@v2
+        with:
+          files: '.github/workflows/*.yml'
