@@ -43,23 +43,23 @@ export default function EspacoEquipeForm() {
   return (
     <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
+        <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
+        <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
           Use este espaço para enviar sugestões, reclamações, dificuldades ou ideias de melhoria.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
         <label className="block">
-          <span className="text-sm font-semibold text-slate-800">Mensagem</span>
+          <span className="text-sm max-md:text-[11px] font-semibold text-slate-800">Mensagem</span>
           <textarea
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             rows={4}
             maxLength={2500}
             placeholder="Escreva sua sugestão, reclamação ou ideia..."
-            className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-2 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm max-md:text-[11px] leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             required
           />
         </label>
@@ -67,14 +67,14 @@ export default function EspacoEquipeForm() {
         <button
           type="submit"
           disabled={status === "saving"}
-          className="inline-flex h-12 items-center justify-center rounded-xl bg-blue-800 px-6 text-sm font-semibold text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-xl bg-blue-800 px-6 text-sm max-md:text-[11px] font-semibold text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "saving" ? "Registrando..." : "Registrar"}
         </button>
       </form>
 
       {feedback && (
-        <p className={`mt-3 text-sm font-medium ${status === "success" ? "text-emerald-700" : "text-rose-700"}`}>
+        <p className={`mt-3 text-sm max-md:text-[11px] font-medium ${status === "success" ? "text-emerald-700" : "text-rose-700"}`}>
           {feedback}
         </p>
       )}

@@ -20,7 +20,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        "rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+        "rounded-lg px-3 py-1.5 text-sm max-md:text-[11px] font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
         VARIANT_CLASSES[variant],
         className
       )}

@@ -171,12 +171,12 @@ export default function ComunicadosFeed({ store, isAdmin = false, canConfirmRead
     [items, store],
   );
 
-  if (!visible.length) return <p className="text-sm text-slate-500">Nenhum aviso ativo.</p>;
+  if (!visible.length) return <p className="text-sm max-md:text-[11px] text-slate-500">Nenhum aviso ativo.</p>;
 
   return (
     <>
       <section className="space-y-4">
-        {error && <p className="text-sm font-medium text-red-700">{error}</p>}
+        {error && <p className="text-sm max-md:text-[11px] font-medium text-red-700">{error}</p>}
         {visible.map((item) => {
           const isReadByEveryone = completedAvisoIds.includes(item.id);
           const readers = readersByAviso[item.id] || [];
@@ -185,14 +185,14 @@ export default function ComunicadosFeed({ store, isAdmin = false, canConfirmRead
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   {isReadByEveryone && <span className="mb-1 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">Lido</span>}
-                  <h3 className="text-base font-bold text-slate-950 sm:text-lg">{item.title}</h3>
+                  <h3 className="text-base max-md:text-[12.5px] font-bold text-slate-950 sm:text-lg">{item.title}</h3>
                 </div>
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">{formatDate(item.createdAt)}</span>
+                <span className="rounded-full bg-white px-3 py-1 text-xs max-md:text-[10px] font-semibold text-slate-700 shadow-sm">{formatDate(item.createdAt)}</span>
               </div>
               <details className="mt-2">
-                <summary className="cursor-pointer text-sm font-semibold text-blue-800">Ver aviso completo →</summary>
+                <summary className="cursor-pointer text-sm max-md:text-[11px] font-semibold text-blue-800">Ver aviso completo →</summary>
                 <div className="mt-3 border-t border-blue-100 pt-3">
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{item.message}</p>
+                  <p className="whitespace-pre-wrap text-sm max-md:text-[11px] leading-6 text-slate-700">{item.message}</p>
                   {item.imageDataUrl && (
                     <button type="button" onClick={() => setEnlargedImage({ src: item.imageDataUrl!, title: item.title })} className="mt-4 block w-full cursor-zoom-in rounded-xl" aria-label={`Ampliar imagem do aviso ${item.title}`}>
                       <img src={item.imageDataUrl} alt={`Imagem do aviso ${item.title}`} className="max-h-[520px] w-full rounded-xl border border-slate-200 object-contain bg-white" />
@@ -203,41 +203,41 @@ export default function ComunicadosFeed({ store, isAdmin = false, canConfirmRead
               {canConfirmRead && members.length > 0 && (
                 <div className="mt-3">
                   {readingId !== item.id ? (
-                    <button type="button" onClick={() => { setReadingId(item.id); setReadFeedback(null); setEmployee(""); }} className="w-full rounded-xl bg-blue-800 px-4 py-3 text-sm font-semibold text-white sm:w-auto">Li e estou ciente</button>
+                    <button type="button" onClick={() => { setReadingId(item.id); setReadFeedback(null); setEmployee(""); }} className="w-full rounded-xl bg-blue-800 px-4 py-3 text-sm max-md:text-[11px] font-semibold text-white sm:w-auto">Li e estou ciente</button>
                   ) : (
                     <div className="grid gap-2 rounded-xl border border-blue-200 bg-white p-3 sm:grid-cols-[minmax(180px,1fr)_auto] sm:items-end">
-                      <label className="text-xs font-semibold text-slate-700">Seu nome
-                        <select value={employee} onChange={(event) => setEmployee(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">Seu nome
+                        <select value={employee} onChange={(event) => setEmployee(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm max-md:text-[11px]">
                           <option value="">Selecione</option>
                           {members.map((member) => <option key={`${member.unit}-${member.name}`} value={`${member.unit}::${member.name}`}>{member.name}</option>)}
                         </select>
                       </label>
-                      <button type="button" onClick={() => confirmRead(item)} disabled={busyId === item.id} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{busyId === item.id ? "Registrando..." : "Confirmar leitura"}</button>
+                      <button type="button" onClick={() => confirmRead(item)} disabled={busyId === item.id} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50">{busyId === item.id ? "Registrando..." : "Confirmar leitura"}</button>
                     </div>
                   )}
-                  {readFeedback?.id === item.id && <p className={`mt-2 text-sm font-medium ${readFeedback.success ? "text-emerald-700" : "text-red-700"}`}>{readFeedback.message}</p>}
+                  {readFeedback?.id === item.id && <p className={`mt-2 text-sm max-md:text-[11px] font-medium ${readFeedback.success ? "text-emerald-700" : "text-red-700"}`}>{readFeedback.message}</p>}
                 </div>
               )}
               {isAdmin && (
                 <>
                   <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quem leu</p>
+                    <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wide text-slate-500">Quem leu</p>
                     {readers.length ? (
                       <ul className="mt-2 space-y-1.5">
                         {readers.map((reader) => (
-                          <li key={`${item.id}-${reader.unit}-${reader.employee}`} className="text-sm text-slate-700">
+                          <li key={`${item.id}-${reader.unit}-${reader.employee}`} className="text-sm max-md:text-[11px] text-slate-700">
                             <span className="font-semibold text-slate-900">{reader.employee}</span> · {reader.unit} · {formatDateTime(reader.readAt)}
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-500">Ninguém confirmou a leitura ainda.</p>
+                      <p className="mt-2 text-sm max-md:text-[11px] text-slate-500">Ninguém confirmou a leitura ainda.</p>
                     )}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("comunicado:edit", { detail: item }))} disabled={busyId === item.id} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-800 disabled:opacity-50">Editar</button>
-                    <button type="button" onClick={() => setActive(item.id, false)} disabled={busyId === item.id} className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-800 disabled:opacity-50">Inativar</button>
-                    <button type="button" onClick={() => remove(item.id)} disabled={busyId === item.id} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 disabled:opacity-50">Excluir</button>
+                    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("comunicado:edit", { detail: item }))} disabled={busyId === item.id} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs max-md:text-[10px] font-semibold text-blue-800 disabled:opacity-50">Editar</button>
+                    <button type="button" onClick={() => setActive(item.id, false)} disabled={busyId === item.id} className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs max-md:text-[10px] font-semibold text-emerald-800 disabled:opacity-50">Inativar</button>
+                    <button type="button" onClick={() => remove(item.id)} disabled={busyId === item.id} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs max-md:text-[10px] font-semibold text-red-700 disabled:opacity-50">Excluir</button>
                   </div>
                 </>
               )}
@@ -248,7 +248,7 @@ export default function ComunicadosFeed({ store, isAdmin = false, canConfirmRead
 
       {enlargedImage && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 p-4" onClick={() => setEnlargedImage(null)}>
-          <button type="button" onClick={() => setEnlargedImage(null)} className="absolute right-4 top-4 rounded-full bg-white px-3 py-2 text-sm font-bold text-slate-900" aria-label="Fechar imagem ampliada">✕</button>
+          <button type="button" onClick={() => setEnlargedImage(null)} className="absolute right-4 top-4 rounded-full bg-white px-3 py-2 text-sm max-md:text-[11px] font-bold text-slate-900" aria-label="Fechar imagem ampliada">✕</button>
           <img src={enlargedImage.src} alt={`Imagem ampliada do aviso ${enlargedImage.title}`} className="max-h-[92vh] max-w-[96vw] object-contain" onClick={(event) => event.stopPropagation()} />
         </div>
       )}

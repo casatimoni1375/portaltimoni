@@ -23,14 +23,14 @@ export default async function LoginPage({
       : error ? "Usuário ou senha inválidos, ou acesso indisponível." : null;
     return <main className="flex min-h-screen items-center justify-center px-4">
       <section className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-center text-xl font-semibold">Portal Timoni</h1>
-        <p className="mt-2 text-center text-sm text-slate-600">Prévia do acesso individual</p>
-        {message && <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{message}</p>}
+        <h1 className="text-center text-xl max-md:text-[15px] font-semibold">Portal Timoni</h1>
+        <p className="mt-2 text-center text-sm max-md:text-[11px] text-slate-600">Prévia do acesso individual</p>
+        {message && <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm max-md:text-[11px] text-red-800">{message}</p>}
         {connected ? <>
           <p className="mt-5 text-center font-medium">{session?.collaboratorAccess?.name}</p>
           <Link href="/acesso/inicio" prefetch={false} className="mt-5 block rounded-lg bg-[#14038D] px-4 py-2 text-center font-medium text-white">Abrir meu acesso</Link>
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
-            <button className="mt-3 w-full text-sm text-slate-600" type="submit">Sair e trocar usuário</button>
+            <button className="mt-3 w-full text-sm max-md:text-[11px] text-slate-600" type="submit">Sair e trocar usuário</button>
           </form>
         </> : <form className="mt-6 space-y-4" action={async form => {
           "use server";
@@ -44,10 +44,10 @@ export default async function LoginPage({
             throw cause;
           }
         }}>
-          <div><label htmlFor="username" className="mb-1 block text-sm font-medium">Usuário</label><input id="username" name="username" autoComplete="username" required minLength={3} maxLength={64} autoCapitalize="none" spellCheck={false} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></div>
-          <div><label htmlFor="password" className="mb-1 block text-sm font-medium">Senha</label><input id="password" name="password" type="password" autoComplete="current-password" required maxLength={128} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></div>
+          <div><label htmlFor="username" className="mb-1 block text-sm max-md:text-[11px] font-medium">Usuário</label><input id="username" name="username" autoComplete="username" required minLength={3} maxLength={64} autoCapitalize="none" spellCheck={false} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></div>
+          <div><label htmlFor="password" className="mb-1 block text-sm max-md:text-[11px] font-medium">Senha</label><input id="password" name="password" type="password" autoComplete="current-password" required maxLength={128} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></div>
           <button type="submit" className="w-full rounded-lg bg-[#14038D] px-4 py-2 font-medium text-white">Entrar</button>
-          <p className="text-xs text-slate-500">A recuperação de senha ainda não está disponível nesta prévia.</p>
+          <p className="text-xs max-md:text-[10px] text-slate-500">A recuperação de senha ainda não está disponível nesta prévia.</p>
         </form>}
       </section>
     </main>;
@@ -58,28 +58,28 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-xl font-semibold">Portal Timoni</h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <h1 className="text-xl max-md:text-[15px] font-semibold">Portal Timoni</h1>
+        <p className="mt-2 text-sm max-md:text-[11px] text-slate-500">
           {canResume ? "Seu acesso continua conectado." : "Entre com a conta Google autorizada para acessar o Portal Timoni."}
         </p>
 
         {errorMessage && (
-          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm max-md:text-[11px] text-red-700">
             {errorMessage}
           </p>
         )}
 
         {canResume ? (
           <>
-            <p className="mt-3 break-all text-sm text-slate-600">{session?.user?.email}</p>
-            <Link href="/dashboard" prefetch={false} className="mt-6 block w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+            <p className="mt-3 break-all text-sm max-md:text-[11px] text-slate-600">{session?.user?.email}</p>
+            <Link href="/dashboard" prefetch={false} className="mt-6 block w-full rounded-lg bg-slate-900 px-4 py-2 text-sm max-md:text-[11px] font-medium text-white hover:bg-slate-800">
               Entrar no Portal
             </Link>
             <form action={async () => {
               "use server";
               await signOut({ redirectTo: "/login?trocar=1" });
             }}>
-              <button type="submit" className="mt-3 text-sm text-slate-500 hover:text-slate-800">Trocar conta</button>
+              <button type="submit" className="mt-3 text-sm max-md:text-[11px] text-slate-500 hover:text-slate-800">Trocar conta</button>
             </form>
           </>
         ) : (
@@ -91,7 +91,7 @@ export default async function LoginPage({
         >
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="mt-6 w-full rounded-lg bg-slate-900 px-4 py-2 text-sm max-md:text-[11px] font-medium text-white hover:bg-slate-800"
           >
             Entrar com Google
           </button>

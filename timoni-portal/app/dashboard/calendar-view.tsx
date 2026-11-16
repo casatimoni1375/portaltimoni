@@ -140,16 +140,16 @@ function AgendaRow({
           {event.summary}
           {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        <p className="flex min-w-0 items-center gap-2 text-sm text-slate-500">
-          <span className="shrink-0 rounded-full border px-2 py-px text-xs" style={{ borderColor: color, color }}>{event.calendarLabel}</span>
+        <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
+          <span className="shrink-0 rounded-full border px-2 py-px text-xs max-md:text-[10px]" style={{ borderColor: color, color }}>{event.calendarLabel}</span>
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
       <div className={clsx("flex shrink-0 gap-2", compact && "flex-col")}>
-        <Button className="min-h-11 px-3 text-base lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
+        <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
           Editar
         </Button>
-        <Button className="min-h-11 px-3 text-base lg:min-h-9 lg:text-sm" variant="danger" disabled={deleting} onClick={() => onDelete(event)}>
+        <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="danger" disabled={deleting} onClick={() => onDelete(event)}>
           Cancelar
         </Button>
       </div>
@@ -357,8 +357,8 @@ export function CalendarView({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         {abas}
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-          <h1 className="text-xl font-semibold text-[#102a83]">{title}</h1>
-          <p className="capitalize text-base text-slate-500">{periodLabel}</p>
+          <h1 className="text-xl max-md:text-[15px] font-semibold text-[#102a83]">{title}</h1>
+          <p className="capitalize text-base max-md:text-[12.5px] text-slate-500">{periodLabel}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <div className="inline-flex overflow-hidden rounded-xl border border-[#d7deeb]" role="group" aria-label="Visão da agenda">
@@ -369,7 +369,7 @@ export function CalendarView({
                 aria-pressed={view === mode}
                 onClick={() => changeView(mode)}
                 className={clsx(
-                  "min-h-11 px-4 text-base font-medium",
+                  "min-h-11 px-4 text-base max-md:text-[12.5px] font-medium",
                   view === mode ? "bg-[#102a83] text-white" : "bg-white text-[#102a83] hover:bg-[#f0f3fb]"
                 )}
               >
@@ -378,7 +378,7 @@ export function CalendarView({
             ))}
           </div>
           <Button
-            className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-base"
+            className="inline-flex shrink-0 items-center justify-center whitespace-nowrap text-base max-md:text-[12.5px]"
             onClick={() => {
               setEditingEvent(null);
               setFormOpen(true);
@@ -405,14 +405,14 @@ export function CalendarView({
           }}
           placeholder="Pesquisar compromissos (±1 ano)"
           aria-label="Pesquisar compromissos"
-          className="h-12 w-full min-w-0 rounded-xl border border-slate-300 bg-white pl-10 pr-24 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="h-12 w-full min-w-0 rounded-xl border border-slate-300 bg-white pl-10 pr-24 text-base max-md:text-[12.5px] text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
-        {searchLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">Buscando…</span>}
+        {searchLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm max-md:text-[11px] text-slate-400">Buscando…</span>}
         {!searchLoading && searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-sm max-md:text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
           >
             Limpar
           </button>
@@ -421,31 +421,31 @@ export function CalendarView({
 
       {!isSearching && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Button className="text-base" variant="secondary" onClick={() => setPeriodOffset((offset) => offset - 1)}>
+          <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => setPeriodOffset((offset) => offset - 1)}>
             {previousLabel}
           </Button>
-          <Button className="text-base" variant="secondary" onClick={() => setPeriodOffset(0)}>
+          <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => setPeriodOffset(0)}>
             Hoje
           </Button>
-          <Button className="text-base" variant="secondary" onClick={() => setPeriodOffset((offset) => offset + 1)}>
+          <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => setPeriodOffset((offset) => offset + 1)}>
             {nextLabel}
           </Button>
         </div>
       )}
 
-      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-base text-red-700">{error}</p>}
+      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-base max-md:text-[12.5px] text-red-700">{error}</p>}
 
       {isSearching && (
         <section className="mt-6" aria-live="polite">
-          <h2 className="text-base font-semibold text-slate-700">
+          <h2 className="text-base max-md:text-[12.5px] font-semibold text-slate-700">
             {searchLoading
               ? "Pesquisando compromissos…"
               : `${searchResults.length} ${searchResults.length === 1 ? "compromisso encontrado" : "compromissos encontrados"}`}
           </h2>
-          {!searchLoading && searchGroups.length === 0 && <p className="mt-3 text-base text-slate-500">Nenhum compromisso encontrado.</p>}
+          {!searchLoading && searchGroups.length === 0 && <p className="mt-3 text-base max-md:text-[12.5px] text-slate-500">Nenhum compromisso encontrado.</p>}
           {searchGroups.map(([dayKey, dayEvents]) => (
             <div key={dayKey} className="mt-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-[#102a83]">
+              <h3 className="text-sm max-md:text-[11px] font-semibold uppercase tracking-wide text-[#102a83]">
                 {format(dateFromKey(dayKey), "EEEE, dd/MM/yyyy", { locale: ptBR })}
               </h3>
               <div className="mt-2 divide-y divide-[#edf0f6] overflow-hidden rounded-xl border border-[#e1e6f0]">{renderRows(dayEvents)}</div>
@@ -458,7 +458,7 @@ export function CalendarView({
         <section className="mt-5">
           <div className="divide-y divide-[#edf0f6] overflow-hidden rounded-xl border border-[#e1e6f0]">
             {(eventsByDate.get(anchorKey) ?? []).length === 0 && (
-              <p className="bg-white px-4 py-6 text-base text-slate-500">Nenhum compromisso neste dia.</p>
+              <p className="bg-white px-4 py-6 text-base max-md:text-[12.5px] text-slate-500">Nenhum compromisso neste dia.</p>
             )}
             {renderRows(eventsByDate.get(anchorKey) ?? [])}
           </div>
@@ -480,13 +480,13 @@ export function CalendarView({
                 )}
               >
                 <div className="flex items-baseline gap-2 px-3 py-3 lg:flex-col lg:items-start lg:gap-0 lg:border-b lg:border-[#edf0f6]">
-                  <p className="text-sm font-semibold uppercase text-slate-500">{WEEK_DAY_LABELS[index]}</p>
-                  <p className={clsx("text-2xl font-semibold", isToday ? "text-[#102a83]" : "text-[#182443]")}>{format(dateFromKey(dayKey), "d")}</p>
-                  {isToday && <p className="ml-auto text-xs font-semibold text-[#102a83] lg:ml-0">Hoje</p>}
+                  <p className="text-sm max-md:text-[11px] font-semibold uppercase text-slate-500">{WEEK_DAY_LABELS[index]}</p>
+                  <p className={clsx("text-2xl max-md:text-[20px] font-semibold", isToday ? "text-[#102a83]" : "text-[#182443]")}>{format(dateFromKey(dayKey), "d")}</p>
+                  {isToday && <p className="ml-auto text-xs max-md:text-[10px] font-semibold text-[#102a83] lg:ml-0">Hoje</p>}
                 </div>
                 <div className="min-w-0 divide-y divide-[#edf0f6]">
                   {dayEvents.length === 0 ? (
-                    <p className="px-3 py-3 text-base text-slate-400">Sem compromissos</p>
+                    <p className="px-3 py-3 text-base max-md:text-[12.5px] text-slate-400">Sem compromissos</p>
                   ) : (
                     renderRows(dayEvents, true)
                   )}
@@ -501,7 +501,7 @@ export function CalendarView({
         <section className="mt-5">
           <div className="grid grid-cols-7 gap-px overflow-hidden rounded-xl border border-[#e1e6f0] bg-[#e1e6f0]">
             {WEEK_DAY_LABELS.map((label) => (
-              <div key={label} className="bg-[#eef1fa] py-2 text-center text-sm font-semibold text-slate-600">
+              <div key={label} className="bg-[#eef1fa] py-2 text-center text-sm max-md:text-[11px] font-semibold text-slate-600">
                 {label}
               </div>
             ))}
@@ -516,7 +516,7 @@ export function CalendarView({
                   onClick={() => setSelectedDateKey(key)}
                   aria-pressed={selected}
                   className={clsx(
-                    "flex min-h-[64px] flex-col items-center bg-white py-2 text-base",
+                    "flex min-h-[64px] flex-col items-center bg-white py-2 text-base max-md:text-[12.5px]",
                     !inMonth && "text-slate-300",
                     selected && "ring-2 ring-inset ring-[#102a83]",
                     isToday && "font-semibold text-[#102a83]"
@@ -529,12 +529,12 @@ export function CalendarView({
             })}
           </div>
           <div className="mt-4">
-            <h2 className="text-base font-semibold capitalize text-slate-700">
+            <h2 className="text-base max-md:text-[12.5px] font-semibold capitalize text-slate-700">
               {selectedDateKey ? format(dateFromKey(selectedDateKey), "EEEE, dd 'de' MMMM", { locale: ptBR }) : ""}
             </h2>
             <div className="mt-2 divide-y divide-[#edf0f6] overflow-hidden rounded-xl border border-[#e1e6f0]">
               {selectedDateKey && (eventsByDate.get(selectedDateKey) ?? []).length === 0 && (
-                <p className="bg-white px-4 py-6 text-base text-slate-500">Nenhum compromisso neste dia.</p>
+                <p className="bg-white px-4 py-6 text-base max-md:text-[12.5px] text-slate-500">Nenhum compromisso neste dia.</p>
               )}
               {selectedDateKey && renderRows(eventsByDate.get(selectedDateKey) ?? [])}
             </div>
@@ -555,7 +555,7 @@ export function CalendarView({
       )}
 
       {deletingId && (
-        <p className="fixed bottom-4 right-4 rounded-lg bg-slate-900 px-3 py-2 text-sm text-white">Cancelando evento…</p>
+        <p className="fixed bottom-4 right-4 rounded-lg bg-slate-900 px-3 py-2 text-sm max-md:text-[11px] text-white">Cancelando evento…</p>
       )}
     </div>
   );

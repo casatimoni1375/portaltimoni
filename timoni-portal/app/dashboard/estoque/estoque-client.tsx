@@ -40,8 +40,8 @@ type EstoqueClientProps = {
   allowedUnits?: RequestUnit[];
 };
 
-const input = "rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm disabled:bg-slate-50 disabled:text-slate-500";
-const primary = "rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50";
+const input = "rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm max-md:text-[11px] disabled:bg-slate-50 disabled:text-slate-500";
+const primary = "rounded-xl bg-emerald-700 px-5 py-3 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50";
 
 function norm(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -438,44 +438,44 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
       <article className={"rounded-2xl border bg-white p-4 shadow-sm " + (isNew ? "border-[#13038D] ring-2 ring-blue-100" : "border-slate-200")}>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            {isNew && <span className="mb-2 inline-block rounded-full bg-[#D40C0D] px-3 py-1 text-xs font-bold text-white">Novo</span>}
+            {isNew && <span className="mb-2 inline-block rounded-full bg-[#D40C0D] px-3 py-1 text-xs max-md:text-[10px] font-bold text-white">Novo</span>}
             <p className="font-semibold text-slate-950"><span className="text-blue-700">{need.codigo}</span> {need.descricao}</p>
-            <p className="mt-1 text-xs text-slate-500">{unitLabel(need.unidade)} · {need.vendedor} · Qtd. {need.quantidade || "—"}</p>
+            <p className="mt-1 text-xs max-md:text-[10px] text-slate-500">{unitLabel(need.unidade)} · {need.vendedor} · Qtd. {need.quantidade || "—"}</p>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{label(need.status)}</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs max-md:text-[10px] font-semibold">{label(need.status)}</span>
         </div>
-        {need.notaVendedor && <p className="mt-3 text-sm text-slate-600">{need.notaVendedor}</p>}
-        {need.observacao && <p className="mt-3 text-sm font-medium text-amber-700">{need.observacao}</p>}
-        {need.status === "pedido_existente" && <p className="mt-3 text-sm">Pedido <strong>{need.numeroPedido}</strong> · previsão {need.previsaoEntrega || "não informada"}</p>}
-        <p className="mt-3 text-xs text-slate-400">{date(need.criadoEm)}</p>
+        {need.notaVendedor && <p className="mt-3 text-sm max-md:text-[11px] text-slate-600">{need.notaVendedor}</p>}
+        {need.observacao && <p className="mt-3 text-sm max-md:text-[11px] font-medium text-amber-700">{need.observacao}</p>}
+        {need.status === "pedido_existente" && <p className="mt-3 text-sm max-md:text-[11px]">Pedido <strong>{need.numeroPedido}</strong> · previsão {need.previsaoEntrega || "não informada"}</p>}
+        <p className="mt-3 text-xs max-md:text-[10px] text-slate-400">{date(need.criadoEm)}</p>
         {need.status !== "chegou" && isManager && canRespond && (
           <div className="mt-4 space-y-3">
             {(showManagerResponseField || !need.observacao || editingResponseIds.has(need.id)) && (
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Observação / resposta da necessidade</span>
+                <span className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-slate-500">Observação / resposta da necessidade</span>
                 <textarea
                   defaultValue={draft}
                   onChange={(event) => { responseDraftsRef.current[need.id] = event.target.value; }}
                   rows={3}
                   placeholder="Registre aqui a resposta, orientação ou observação sobre esta necessidade."
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm max-md:text-[11px] leading-6 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </label>
             )}
             <div className="flex flex-wrap gap-2">
-              {["pendente", "observacao"].includes(need.status) && <button disabled={disabled} onClick={() => void markAsConsultation(need)} className="rounded-lg bg-slate-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Consulta</button>}
-              {["pendente", "observacao", "consulta"].includes(need.status) && <button disabled={disabled} onClick={() => void post({ action: "em_compra", id: need.id }, need.id)} className="rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Relação de compra</button>}
-              {["pendente", "em_compra", "observacao", "consulta"].includes(need.status) && <button disabled={disabled} onClick={() => void order(need)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Pedido feito</button>}
-              {(["pendente", "em_compra", "observacao", "consulta"].includes(need.status) || editingResponseIds.has(need.id)) && <button disabled={disabled} onClick={() => void observe(need)} className="rounded-lg border px-3 py-2 text-xs font-semibold disabled:opacity-50">{editingResponseIds.has(need.id) ? "Salvar edição" : "Salvar observação"}</button>}
-              {need.status === "pedido_existente" && <button disabled={disabled} onClick={() => void arrived(need)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Produto chegou</button>}
-              {canDelete && <button disabled={disabled} onClick={() => void remove(need)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50">Excluir</button>}
+              {["pendente", "observacao"].includes(need.status) && <button disabled={disabled} onClick={() => void markAsConsultation(need)} className="rounded-lg bg-slate-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Consulta</button>}
+              {["pendente", "observacao", "consulta"].includes(need.status) && <button disabled={disabled} onClick={() => void post({ action: "em_compra", id: need.id }, need.id)} className="rounded-lg bg-blue-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Relação de compra</button>}
+              {["pendente", "em_compra", "observacao", "consulta"].includes(need.status) && <button disabled={disabled} onClick={() => void order(need)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Pedido feito</button>}
+              {(["pendente", "em_compra", "observacao", "consulta"].includes(need.status) || editingResponseIds.has(need.id)) && <button disabled={disabled} onClick={() => void observe(need)} className="rounded-lg border px-3 py-2 text-xs max-md:text-[10px] font-semibold disabled:opacity-50">{editingResponseIds.has(need.id) ? "Salvar edição" : "Salvar observação"}</button>}
+              {need.status === "pedido_existente" && <button disabled={disabled} onClick={() => void arrived(need)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Produto chegou</button>}
+              {canDelete && <button disabled={disabled} onClick={() => void remove(need)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50">Excluir</button>}
             </div>
           </div>
         )}
         {need.status !== "chegou" && !isManager && canRespond && (
           <div className="mt-4 border-t border-slate-100 pt-4">
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wider text-blue-700">Responder à consulta</span>
+              <span className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Responder à consulta</span>
               <textarea
                 value={responseDrafts[need.id] ?? ""}
                 onChange={(event) => {
@@ -484,19 +484,19 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
                 }}
                 rows={2}
                 placeholder="Digite sua resposta para o Estoque"
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm max-md:text-[11px] leading-6 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </label>
-            <button type="button" disabled={disabled} onClick={() => void replyToConsultation(need)} className="mt-2 w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto">
+            <button type="button" disabled={disabled} onClick={() => void replyToConsultation(need)} className="mt-2 w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50 sm:w-auto">
               {disabled ? "Enviando..." : "Enviar resposta"}
             </button>
           </div>
         )}
-        {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 disabled:opacity-50">Editar</button>}
-        {need.status === "chegou" && canEdit && <button type="button" disabled={disabled} onClick={() => void reopen(need)} className="ml-2 mt-4 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Reabrir</button>}
+        {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-amber-800 disabled:opacity-50">Editar</button>}
+        {need.status === "chegou" && canEdit && <button type="button" disabled={disabled} onClick={() => void reopen(need)} className="ml-2 mt-4 rounded-lg bg-blue-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Reabrir</button>}
         {need.status === "chegou" && canDelete && (
           <div className="mt-4">
-            <button disabled={disabled} onClick={() => void remove(need)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50">Excluir</button>
+            <button disabled={disabled} onClick={() => void remove(need)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50">Excluir</button>
           </div>
         )}
       </article>
@@ -506,10 +506,10 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
   function ConsultCard() {
     return (
       <section className="ct-clean-card">
-        <h2 className="text-lg font-semibold text-[#102a83]">Consultar</h2>
+        <h2 className="text-lg max-md:text-[14px] font-semibold text-[#102a83]">Consultar</h2>
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <a href="#estoque-solicitar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold">Produto</a>
-          <a href="/dashboard/compras?aba=acompanhar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm font-semibold">Pedido enviado</a>
+          <a href="#estoque-solicitar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm max-md:text-[11px] font-semibold">Produto</a>
+          <a href="/dashboard/compras?aba=acompanhar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm max-md:text-[11px] font-semibold">Pedido enviado</a>
         </div>
       </section>
     );
@@ -518,7 +518,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
   function RequestForm() {
     return (
       <section id="estoque-solicitar" className="ct-clean-card">
-        <h2 className="text-xl font-semibold">Consultar e solicitar produto</h2>
+        <h2 className="text-xl max-md:text-[15px] font-semibold">Consultar e solicitar produto</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <select value={newUnit} onChange={(event) => { setNewUnit(event.target.value as RequestUnit); setSeller(""); }} disabled={safeAllowedUnits.length === 1} className={input}>
             {safeAllowedUnits.map((item) => <option key={item} value={item}>{unitLabel(item)}</option>)}
@@ -531,7 +531,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
             <input ref={codeInputRef} value={codeSearch} onChange={(event) => { setCodeSearch(event.target.value); setSelected(""); }} onKeyDown={handleCodeKeyDown} inputMode="numeric" placeholder="Código do produto" className={input + " w-full"} />
             {codeResults.length > 0 && (
               <div className="absolute z-10 mt-1 max-h-72 w-full overflow-auto rounded-xl border bg-white shadow-lg">
-                {codeResults.map((product) => <button key={product.codigo} onMouseDown={(event) => event.preventDefault()} onClick={() => selectProduct(product)} className="block w-full border-b px-4 py-3 text-left text-sm hover:bg-slate-50"><strong>{product.codigo}</strong> {product.descricao}</button>)}
+                {codeResults.map((product) => <button key={product.codigo} onMouseDown={(event) => event.preventDefault()} onClick={() => selectProduct(product)} className="block w-full border-b px-4 py-3 text-left text-sm max-md:text-[11px] hover:bg-slate-50"><strong>{product.codigo}</strong> {product.descricao}</button>)}
               </div>
             )}
           </div>
@@ -539,17 +539,17 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
             <input ref={descriptionInputRef} value={descriptionSearch} onChange={(event) => { setDescriptionSearch(event.target.value); setSelected(""); }} onKeyDown={handleDescriptionKeyDown} placeholder="Descrição do produto" className={input + " w-full"} />
             {descriptionResults.length > 0 && (
               <div className="absolute z-10 mt-1 max-h-72 w-full overflow-auto rounded-xl border bg-white shadow-lg">
-                {descriptionResults.map((product) => <button key={product.codigo} onMouseDown={(event) => event.preventDefault()} onClick={() => selectProduct(product)} className="block w-full border-b px-4 py-3 text-left text-sm hover:bg-slate-50"><strong>{product.codigo}</strong> {product.descricao}</button>)}
+                {descriptionResults.map((product) => <button key={product.codigo} onMouseDown={(event) => event.preventDefault()} onClick={() => selectProduct(product)} className="block w-full border-b px-4 py-3 text-left text-sm max-md:text-[11px] hover:bg-slate-50"><strong>{product.codigo}</strong> {product.descricao}</button>)}
               </div>
             )}
           </div>
           <div>
             <input ref={quantityInputRef} value={quantity} onChange={(event) => setQuantity(event.target.value)} onKeyDown={handleQuantityKeyDown} placeholder={quantityPlaceholder} className={input + " w-full"} />
-            {activeUnit && <p className="mt-1 text-xs font-semibold text-emerald-700">Unidade de medida: {activeUnit}</p>}
+            {activeUnit && <p className="mt-1 text-xs max-md:text-[10px] font-semibold text-emerald-700">Unidade de medida: {activeUnit}</p>}
           </div>
           <input ref={noteInputRef} value={note} onChange={(event) => setNote(event.target.value)} onKeyDown={handleNoteKeyDown} placeholder="Observação" className={input + " md:col-span-2 xl:col-span-5"} />
         </div>
-        <label className="mt-4 flex items-center gap-2 text-sm"><input ref={waitingInputRef} type="checkbox" checked={waiting} onChange={(event) => setWaiting(event.target.checked)} onKeyDown={handleWaitingKeyDown} /> Cliente aguardando</label>
+        <label className="mt-4 flex items-center gap-2 text-sm max-md:text-[11px]"><input ref={waitingInputRef} type="checkbox" checked={waiting} onChange={(event) => setWaiting(event.target.checked)} onKeyDown={handleWaitingKeyDown} /> Cliente aguardando</label>
         <button ref={registerButtonRef} onClick={() => void create()} disabled={busy === "geral"} className={primary + " mt-4"}>Registrar solicitação</button>
       </section>
     );
@@ -584,16 +584,16 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
         {statusSections.map(({ title, items, empty }, index) => (
           <section key={title} id={`estoque-etapa-${index}`} className="scroll-mt-24 ct-clean-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold">{title}</h2>
+              <h2 className="text-xl max-md:text-[15px] font-semibold">{title}</h2>
               {isManager && index === 0 && (
                 <div className="flex rounded-xl bg-slate-100 p-1">
-                  {(["todas", ...safeAllowedUnits] as Unit[]).map((item) => <button key={item} onClick={() => setUnit(item)} className={`rounded-lg px-3 py-2 text-xs font-semibold ${unit === item ? "bg-white shadow-sm" : "text-slate-500"}`}>{item === "todas" ? "Todas" : unitLabel(item)}</button>)}
+                  {(["todas", ...safeAllowedUnits] as Unit[]).map((item) => <button key={item} onClick={() => setUnit(item)} className={`rounded-lg px-3 py-2 text-xs max-md:text-[10px] font-semibold ${unit === item ? "bg-white shadow-sm" : "text-slate-500"}`}>{item === "todas" ? "Todas" : unitLabel(item)}</button>)}
                 </div>
               )}
             </div>
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
               {items.map((need) => <div key={need.id}>{NeedCard({ need })}</div>)}
-              {!loading && !items.length && <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 lg:col-span-2">{empty}</p>}
+              {!loading && !items.length && <p className="rounded-xl bg-slate-50 p-4 text-sm max-md:text-[11px] text-slate-500 lg:col-span-2">{empty}</p>}
             </div>
           </section>
         ))}
@@ -609,49 +609,49 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Módulo Estoque</p>
-              <h1 className="mt-1 text-xl font-semibold">Estoque CT</h1>
-              <p className="mt-1 text-xs text-slate-500">Uso direto no Portal Timoni · notificações com o Portal aberto.</p>
+              <h1 className="mt-1 text-xl max-md:text-[15px] font-semibold">Estoque CT</h1>
+              <p className="mt-1 text-xs max-md:text-[10px] text-slate-500">Uso direto no Portal Timoni · notificações com o Portal aberto.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => void refresh()} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Atualizar informações</button>
-              <button onClick={() => void requestNotifications()} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
+              <button onClick={() => void refresh()} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Atualizar informações</button>
+              <button onClick={() => void requestNotifications()} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs max-md:text-[10px] font-semibold text-slate-700">
                 {notificationPermission === "granted" ? "Notificações ativadas" : "Ativar notificações"}
               </button>
-              <a href={SHEET_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-xs font-semibold text-slate-700">Abrir planilha</a>
+              <a href={SHEET_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-xs max-md:text-[10px] font-semibold text-slate-700">Abrir planilha</a>
             </div>
           </div>
         </section>
       )}
 
-      {error && <div className={isManager ? "mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800" : "rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800"}>{error}</div>}
-      {notice && <div className={isManager ? "mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800" : "rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800"}>{notice}</div>}
+      {error && <div className={isManager ? "mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm max-md:text-[11px] font-medium text-red-800" : "rounded-2xl border border-red-200 bg-red-50 p-4 text-sm max-md:text-[11px] font-medium text-red-800"}>{error}</div>}
+      {notice && <div className={isManager ? "mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm max-md:text-[11px] font-medium text-emerald-800" : "rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm max-md:text-[11px] font-medium text-emerald-800"}>{notice}</div>}
 
 
       <nav aria-label="Resumo do Estoque" className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[{ title: "Em aberto", count: openNeeds.length }, { title: "Relação de compra", count: purchaseNeeds.length }, { title: "A caminho", count: onWay.length }, { title: "Chegou", count: history.length }].map((item, index) => (
           <a key={item.title} href={`#estoque-etapa-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-400 focus-visible:outline-2 focus-visible:outline-blue-700">
-            <span className="block text-2xl font-semibold text-slate-950">{item.count}</span>
-            <span className="mt-1 block text-sm text-blue-800">{item.title}</span>
+            <span className="block text-2xl max-md:text-[20px] font-semibold text-slate-950">{item.count}</span>
+            <span className="mt-1 block text-sm max-md:text-[11px] text-blue-800">{item.title}</span>
           </a>
         ))}
       </nav>
       {editingNeed && (
         <section role="dialog" aria-modal="true" aria-label="Editar solicitação" className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/40 p-4">
           <form onSubmit={async (event) => { event.preventDefault(); if (await post({ action: "editar", id: editingNeed.id, status: editingNeed.status, quantidade: editingNeed.quantidade, nota: editingNeed.notaVendedor, observacao: editingNeed.observacao, numeroPedido: editingNeed.numeroPedido, previsao: editingNeed.previsaoEntrega }, editingNeed.id)) setEditingNeed(null); }} className="mx-auto my-8 max-w-lg space-y-4 rounded-2xl bg-white p-5 shadow-xl">
-            <h2 className="text-xl font-semibold">Editar solicitação</h2>
-            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-            <p className="text-sm">{editingNeed.codigo} · {editingNeed.descricao}</p>
-            <label className="block text-sm">Etapa<select value={editingNeed.status} onChange={(event) => setEditingNeed({ ...editingNeed, status: event.target.value })} className={input + " mt-1 w-full"}>
+            <h2 className="text-xl max-md:text-[15px] font-semibold">Editar solicitação</h2>
+            {error && <p role="alert" className="text-sm max-md:text-[11px] text-red-700">{error}</p>}
+            <p className="text-sm max-md:text-[11px]">{editingNeed.codigo} · {editingNeed.descricao}</p>
+            <label className="block text-sm max-md:text-[11px]">Etapa<select value={editingNeed.status} onChange={(event) => setEditingNeed({ ...editingNeed, status: event.target.value })} className={input + " mt-1 w-full"}>
               {!["pendente", "em_compra", "pedido_existente"].includes(editingNeed.status) && <option value={editingNeed.status}>Manter etapa atual: {label(editingNeed.status)}</option>}
               <option value="pendente">Necessidades de compra</option>
               <option value="em_compra">Relação de compra</option>
               <option value="pedido_existente">A caminho</option>
             </select></label>
-            <label className="block text-sm">Quantidade<input autoFocus value={editingNeed.quantidade} onChange={(event) => setEditingNeed({ ...editingNeed, quantidade: event.target.value })} className={input + " mt-1 w-full"} /></label>
-            <label className="block text-sm">Observação do vendedor<textarea value={editingNeed.notaVendedor} onChange={(event) => setEditingNeed({ ...editingNeed, notaVendedor: event.target.value })} className={input + " mt-1 w-full"} /></label>
-            <label className="block text-sm">Resposta do Estoque<textarea value={editingNeed.observacao} onChange={(event) => setEditingNeed({ ...editingNeed, observacao: event.target.value })} className={input + " mt-1 w-full"} /></label>
-            <label className="block text-sm">Número do pedido<input value={editingNeed.numeroPedido} onChange={(event) => setEditingNeed({ ...editingNeed, numeroPedido: event.target.value })} className={input + " mt-1 w-full"} /></label>
-            <label className="block text-sm">Previsão de entrega<input type="date" value={editingNeed.previsaoEntrega} onChange={(event) => setEditingNeed({ ...editingNeed, previsaoEntrega: event.target.value })} className={input + " mt-1 w-full"} /></label>
+            <label className="block text-sm max-md:text-[11px]">Quantidade<input autoFocus value={editingNeed.quantidade} onChange={(event) => setEditingNeed({ ...editingNeed, quantidade: event.target.value })} className={input + " mt-1 w-full"} /></label>
+            <label className="block text-sm max-md:text-[11px]">Observação do vendedor<textarea value={editingNeed.notaVendedor} onChange={(event) => setEditingNeed({ ...editingNeed, notaVendedor: event.target.value })} className={input + " mt-1 w-full"} /></label>
+            <label className="block text-sm max-md:text-[11px]">Resposta do Estoque<textarea value={editingNeed.observacao} onChange={(event) => setEditingNeed({ ...editingNeed, observacao: event.target.value })} className={input + " mt-1 w-full"} /></label>
+            <label className="block text-sm max-md:text-[11px]">Número do pedido<input value={editingNeed.numeroPedido} onChange={(event) => setEditingNeed({ ...editingNeed, numeroPedido: event.target.value })} className={input + " mt-1 w-full"} /></label>
+            <label className="block text-sm max-md:text-[11px]">Previsão de entrega<input type="date" value={editingNeed.previsaoEntrega} onChange={(event) => setEditingNeed({ ...editingNeed, previsaoEntrega: event.target.value })} className={input + " mt-1 w-full"} /></label>
             <div className="flex gap-2"><button type="submit" disabled={busy === editingNeed.id} className={primary}>Salvar</button><button type="button" disabled={busy === editingNeed.id} onClick={() => setEditingNeed(null)} className={input}>Cancelar</button></div>
           </form>
         </section>

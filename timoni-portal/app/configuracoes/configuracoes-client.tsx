@@ -91,8 +91,8 @@ function permissionsOf(access?: PortalUser): Permissions {
   };
 }
 
-const FIELD = "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-normal text-slate-900";
-const SECTION_TITLE = "text-xs font-semibold uppercase tracking-wide text-slate-500";
+const FIELD = "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm max-md:text-[11px] font-normal text-slate-900";
+const SECTION_TITLE = "text-xs max-md:text-[10px] font-semibold uppercase tracking-wide text-slate-500";
 const GRID = "mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4";
 
 export default function ConfiguracoesClient({ canAdministerPermissions = false }: { canAdministerPermissions?: boolean }) {
@@ -330,15 +330,15 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
   return (
     <div className="pb-10">
       <header className="mb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#13038D]">Configuração da equipe</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Acessos e permissões</h1>
-        <p className="mt-1 text-sm text-slate-600">Escolha o e-mail de acesso e personalize. Cada colaborador pertence a um e-mail.</p>
+        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.18em] text-[#13038D]">Configuração da equipe</p>
+        <h1 className="mt-1 text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950 sm:text-3xl">Acessos e permissões</h1>
+        <p className="mt-1 text-sm max-md:text-[11px] text-slate-600">Escolha o e-mail de acesso e personalize. Cada colaborador pertence a um e-mail.</p>
       </header>
 
-      {loading ? <p className="mt-5 text-sm text-slate-500">Carregando...</p> : (
+      {loading ? <p className="mt-5 text-sm max-md:text-[11px] text-slate-500">Carregando...</p> : (
         <section className="rounded-2xl border border-blue-200 bg-white shadow-sm">
           <div className="px-4 py-4">
-            <label className="block text-xs font-semibold text-slate-600">
+            <label className="block text-xs max-md:text-[10px] font-semibold text-slate-600">
               E-mail de acesso
               <select value={selected} onChange={(event) => selectAccess(event.target.value)} className={FIELD}>
                 {accessOptions.map((user) => (
@@ -350,11 +350,11 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
 
             {isNew && (
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                <label className="text-xs font-semibold text-slate-600 sm:col-span-2">
+                <label className="text-xs max-md:text-[10px] font-semibold text-slate-600 sm:col-span-2">
                   Novo e-mail
                   <input type="email" value={newEmail} onChange={(event) => setNewEmail(event.target.value)} placeholder="email@exemplo.com" className={FIELD} />
                 </label>
-                <label className="text-xs font-semibold text-slate-600">
+                <label className="text-xs max-md:text-[10px] font-semibold text-slate-600">
                   Unidade
                   <select value={newUnit} onChange={(event) => setNewUnit(event.target.value as ConfiguredCollaborator["unit"])} className={FIELD}>
                     <option>Geral</option>
@@ -366,7 +366,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
             )}
 
             {!isNew && (
-              <p className="mt-3 text-sm leading-7 text-slate-700">
+              <p className="mt-3 text-sm max-md:text-[11px] leading-7 text-slate-700">
                 <span className="font-semibold text-slate-950">Colaboradores: </span>
                 {!linkedMembers.length && <span className="text-slate-500">nenhum ligado a este e-mail. </span>}
                 {linkedMembers.map((member, index) => (
@@ -375,7 +375,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                     {index < linkedMembers.length - 1 ? ", " : ". "}
                   </span>
                 ))}
-                <button type="button" onClick={() => { setMemberDraft(emptyMember(selected)); setError(""); setMessage(""); }} className="ml-1 rounded-md border border-slate-300 px-2 py-0.5 text-xs font-semibold text-slate-700">+ Colaborador</button>
+                <button type="button" onClick={() => { setMemberDraft(emptyMember(selected)); setError(""); setMessage(""); }} className="ml-1 rounded-md border border-slate-300 px-2 py-0.5 text-xs max-md:text-[10px] font-semibold text-slate-700">+ Colaborador</button>
               </p>
             )}
 
@@ -383,15 +383,15 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
               <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className={SECTION_TITLE}>{memberDraft.id ? "Editar colaborador" : "Novo colaborador"}</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <label className="text-xs font-semibold text-slate-600">
+                  <label className="text-xs max-md:text-[10px] font-semibold text-slate-600">
                     Nome
                     <input value={memberDraft.name} onChange={(event) => setMemberDraft({ ...memberDraft, name: event.target.value })} className={FIELD} />
                   </label>
-                  <label className="text-xs font-semibold text-slate-600">
+                  <label className="text-xs max-md:text-[10px] font-semibold text-slate-600">
                     Função
                     <input value={memberDraft.role} onChange={(event) => setMemberDraft({ ...memberDraft, role: event.target.value })} placeholder="Ex.: Vendedor" className={FIELD} />
                   </label>
-                  <label className="text-xs font-semibold text-slate-600">
+                  <label className="text-xs max-md:text-[10px] font-semibold text-slate-600">
                     Unidade
                     <select value={memberDraft.unit} onChange={(event) => setMemberDraft({ ...memberDraft, unit: event.target.value as ConfiguredCollaborator["unit"] })} className={FIELD}>
                       <option>Geral</option>
@@ -399,7 +399,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                       <option>Araras</option>
                     </select>
                   </label>
-                  <label className="text-xs font-semibold text-slate-600">
+                  <label className="text-xs max-md:text-[10px] font-semibold text-slate-600">
                     E-mail de acesso
                     <select value={usersByEmail.has(normalizeEmail(memberDraft.accessEmail)) ? normalizeEmail(memberDraft.accessEmail) : selected} onChange={(event) => setMemberDraft({ ...memberDraft, accessEmail: event.target.value })} className={FIELD}>
                       {accessOptions.map((user) => (
@@ -409,10 +409,10 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                   </label>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <div>{memberDraft.id && <button type="button" disabled={Boolean(busy)} onClick={() => void deleteMember(memberDraft)} className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-[#D40C0D] disabled:opacity-60">Excluir</button>}</div>
+                  <div>{memberDraft.id && <button type="button" disabled={Boolean(busy)} onClick={() => void deleteMember(memberDraft)} className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-[#D40C0D] disabled:opacity-60">Excluir</button>}</div>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setMemberDraft(null)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">Cancelar</button>
-                    <button type="button" disabled={savingMember} onClick={() => void saveMember()} className="rounded-lg bg-[#13038D] px-5 py-2 text-sm font-semibold text-white disabled:opacity-60">{savingMember ? "Salvando..." : "Salvar colaborador"}</button>
+                    <button type="button" onClick={() => setMemberDraft(null)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-slate-700">Cancelar</button>
+                    <button type="button" disabled={savingMember} onClick={() => void saveMember()} className="rounded-lg bg-[#13038D] px-5 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-60">{savingMember ? "Salvando..." : "Salvar colaborador"}</button>
                   </div>
                 </div>
               </div>
@@ -425,7 +425,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
               {MODULES.map((module) => {
                 const checked = perm.modules.includes(module.id);
                 return (
-                  <label key={module.id} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                  <label key={module.id} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs max-md:text-[10px] font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}>
                     <input type="checkbox" checked={checked} disabled={locked} onChange={(event) => toggleModule(module.id, event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
                     {module.label}
                   </label>
@@ -444,7 +444,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 const enabled = perm.modules.includes(module.id);
                 const checked = enabled && perm.mobileModules.includes(module.id);
                 return (
-                  <label key={`mobile-${module.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${enabled && !locked ? "cursor-pointer" : "cursor-not-allowed"} ${enabled ? "" : "opacity-45"}`}>
+                  <label key={`mobile-${module.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs max-md:text-[10px] font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${enabled && !locked ? "cursor-pointer" : "cursor-not-allowed"} ${enabled ? "" : "opacity-45"}`}>
                     <input type="checkbox" checked={checked} disabled={locked || !enabled} onChange={(event) => toggleMobileModule(module.id, event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
                     {module.label}
                   </label>
@@ -467,7 +467,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 const enabled = block.modules.some((module) => perm.modules.includes(module)) && perm.todayBlocks !== null;
                 const checked = perm.todayBlocks === null ? wantsTodayBlock(undefined, block.id, (module) => perm.modules.includes(module)) : perm.todayBlocks.includes(block.id);
                 return (
-                  <label key={`hoje-${block.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${enabled && !locked ? "cursor-pointer" : "cursor-not-allowed"} ${enabled ? "" : "opacity-45"}`}>
+                  <label key={`hoje-${block.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs max-md:text-[10px] font-medium ${checked ? "border-blue-300 bg-blue-50 text-blue-950" : "border-slate-200 bg-white text-slate-700"} ${enabled && !locked ? "cursor-pointer" : "cursor-not-allowed"} ${enabled ? "" : "opacity-45"}`}>
                     <input type="checkbox" checked={checked} disabled={locked || !enabled} onChange={(event) => { const current = perm.todayBlocks || []; setPerm({ ...perm, todayBlocks: event.target.checked ? [...current, block.id] : current.filter((id) => id !== block.id) }); }} className="h-4 w-4 accent-[#13038D]" />
                     {block.label}
                   </label>
@@ -486,30 +486,30 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 const enabled = perm.modules.includes(module.id);
                 const checked = enabled && perm.readOnlyModules.includes(module.id);
                 return (
-                  <label key={`leitura-${module.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${checked ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-white text-slate-700"} ${enabled && !locked ? "cursor-pointer" : "cursor-not-allowed"} ${enabled ? "" : "opacity-45"}`}>
+                  <label key={`leitura-${module.id}`} className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs max-md:text-[10px] font-medium ${checked ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-200 bg-white text-slate-700"} ${enabled && !locked ? "cursor-pointer" : "cursor-not-allowed"} ${enabled ? "" : "opacity-45"}`}>
                     <input type="checkbox" checked={checked} disabled={locked || !enabled} onChange={(event) => toggleReadOnly(module.id, event.target.checked)} className="h-4 w-4 accent-[#13038D]" />
                     {module.label}
                   </label>
                 );
               })}
             </div>
-            <label className={`mt-3 flex items-center gap-2 text-sm font-medium text-slate-700 ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}>
+            <label className={`mt-3 flex items-center gap-2 text-sm max-md:text-[11px] font-medium text-slate-700 ${locked ? "cursor-not-allowed" : "cursor-pointer"}`}>
               <input type="checkbox" checked={perm.noticeRequired} disabled={locked} onChange={(event) => setPerm({ ...perm, noticeRequired: event.target.checked })} className="h-4 w-4 accent-[#13038D]" />
               Exige confirmação de leitura dos comunicados
             </label>
           </div>
 
           <div className="border-t border-slate-200 px-4 py-4">
-            {message && <p className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">{message}</p>}
-            {error && <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>}
+            {message && <p className="mb-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm max-md:text-[11px] font-medium text-emerald-800">{message}</p>}
+            {error && <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm max-md:text-[11px] font-medium text-red-700">{error}</p>}
             {locked ? (
-              <p className="text-xs text-slate-500">Seu acesso permite editar colaboradores, mas não alterar permissões.</p>
+              <p className="text-xs max-md:text-[10px] text-slate-500">Seu acesso permite editar colaboradores, mas não alterar permissões.</p>
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-[11px] text-slate-500">As permissões valem para todos os colaboradores deste e-mail.</p>
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => selectAccess(selected)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Desfazer</button>
-                  <button type="button" disabled={savingAccess} onClick={() => void savePermissions()} className="rounded-lg bg-[#13038D] px-5 py-2 text-sm font-semibold text-white disabled:opacity-60">{savingAccess ? "Salvando..." : "Salvar"}</button>
+                  <button type="button" onClick={() => selectAccess(selected)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-slate-700">Desfazer</button>
+                  <button type="button" disabled={savingAccess} onClick={() => void savePermissions()} className="rounded-lg bg-[#13038D] px-5 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-60">{savingAccess ? "Salvando..." : "Salvar"}</button>
                 </div>
               </div>
             )}

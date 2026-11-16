@@ -138,7 +138,7 @@ function formatHistoryDate(value: string) {
 
 function StatusBadge({ status }: { status: Status }) {
   const color = status === "atualizado" ? "bg-emerald-100 text-emerald-800" : status === "em_conferencia" ? "bg-blue-100 text-blue-800" : status === "aguardando_mapeamento" ? "bg-violet-100 text-violet-800" : "bg-amber-100 text-amber-800";
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${color}`}>{STATUS_LABEL[status]}</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs max-md:text-[10px] font-semibold ${color}`}>{STATUS_LABEL[status]}</span>;
 }
 
 export default function EstoqueRotativoClient() {
@@ -734,7 +734,7 @@ export default function EstoqueRotativoClient() {
                       setError("");
                       setFeedback("");
                     }}
-                    className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm last:border-b-0 ${chosen ? "bg-blue-50 text-blue-900" : "bg-white text-slate-800 hover:bg-slate-50"}`}
+                    className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm max-md:text-[11px] last:border-b-0 ${chosen ? "bg-blue-50 text-blue-900" : "bg-white text-slate-800 hover:bg-slate-50"}`}
                   >
                     <span className="font-semibold">{supplier.name}</span>
                     <span className="flex shrink-0 items-center gap-1">
@@ -744,7 +744,7 @@ export default function EstoqueRotativoClient() {
                     </span>
                   </button>
                 );
-              }) : <p className="p-5 text-sm text-slate-500">Nenhum card pendente.</p>}
+              }) : <p className="p-5 text-sm max-md:text-[11px] text-slate-500">Nenhum card pendente.</p>}
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3">
@@ -763,7 +763,7 @@ export default function EstoqueRotativoClient() {
           <article className="ct-rt-card">
             <p className="ct-rt-step">2. Planilha do fornecedor</p>
             <h2 className="ct-rt-title">Planilha do fornecedor</h2>
-            <label className="mt-4 block text-sm font-semibold text-slate-800">
+            <label className="mt-4 block text-sm max-md:text-[11px] font-semibold text-slate-800">
               Fornecedor / grupo · opcional
               <input
                 value={supplierName}
@@ -772,65 +772,65 @@ export default function EstoqueRotativoClient() {
                   if (trelloCardId) setTrelloCardId("");
                 }}
                 placeholder="Selecione um card ao lado ou digite"
-                className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm"
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm max-md:text-[11px]"
               />
             </label>
 
-            <label className="mt-4 block text-sm font-semibold text-slate-800">
+            <label className="mt-4 block text-sm max-md:text-[11px] font-semibold text-slate-800">
               Link do Google Sheets
               <input
                 type="url"
                 value={spreadsheetReference}
                 onChange={(event) => setSpreadsheetReference(event.target.value)}
                 placeholder="https://docs.google.com/spreadsheets/d/..."
-                className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4 text-sm outline-none focus:border-blue-600"
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4 text-sm max-md:text-[11px] outline-none focus:border-blue-600"
               />
             </label>
 
             <div className="mt-4 grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-6">
-              <label className="text-sm font-semibold text-slate-800">
+              <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
                 <span className="block h-5 whitespace-nowrap">Aba</span>
                 <input
                   value={sourceSheetName}
                   onChange={(event) => selectSourceSheetName(event.target.value)}
                   placeholder={detectingSheet ? "Identificando..." : "Preencha somente se houver mais de uma aba"}
-                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-800">
+              <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
                 <span className="block h-5 whitespace-nowrap">Cod-venda</span>
                 <input
                   value={sourceCodeColumn}
                   onChange={(event) => setSourceCodeColumn(event.target.value.toUpperCase())}
-                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-800">
+              <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
                 <span className="block h-5 whitespace-nowrap">Cod-compra</span>
                 <input
                   value={sourcePurchaseCodeColumn}
                   onChange={(event) => setSourcePurchaseCodeColumn(event.target.value.toUpperCase())}
                   placeholder="Opcional"
-                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-800">
+              <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
                 <span className="block h-5 whitespace-nowrap">Descrição</span>
                 <input
                   value={sourceDescriptionColumn}
                   onChange={(event) => setSourceDescriptionColumn(event.target.value.toUpperCase())}
-                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-800">
+              <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
                 <span className="block h-5 whitespace-nowrap">Estoque</span>
                 <input
                   value={sourceStockColumn}
                   onChange={(event) => setSourceStockColumn(event.target.value.toUpperCase())}
-                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
                 />
               </label>
-              <label className="text-sm font-semibold text-slate-800">
+              <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
                 <span className="block h-5 whitespace-nowrap">Linha inicial</span>
                 <input
                   type="text"
@@ -839,7 +839,7 @@ export default function EstoqueRotativoClient() {
                   value={sourceStartRow}
                   onChange={(event) => setSourceStartRow(event.target.value.replace(/\D/g, ""))}
                   placeholder="Ex.: 6"
-                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                  className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
                 />
               </label>
             </div>
@@ -853,7 +853,7 @@ export default function EstoqueRotativoClient() {
               {busy ? "Filtrando..." : "Filtrar itens do estoque"}
             </button>
             {activeId && data?.items?.length ? (
-              <p className="mt-3 text-sm font-semibold text-emerald-700">{sourceSheetName || "Aba"} · {data.items.length} itens</p>
+              <p className="mt-3 text-sm max-md:text-[11px] font-semibold text-emerald-700">{sourceSheetName || "Aba"} · {data.items.length} itens</p>
             ) : null}
           </article>
         </section>
@@ -928,21 +928,21 @@ export default function EstoqueRotativoClient() {
                               </button>
                             ) : (
                               <div className="space-y-2">
-                                <label className="block text-xs font-semibold text-slate-700">
+                                <label className="block text-xs max-md:text-[10px] font-semibold text-slate-700">
                                   COD-VENDA correto
                                   <input
                                     value={editingSaleCode}
                                     onChange={(event) => setEditingSaleCode(event.target.value)}
-                                    className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm"
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm max-md:text-[11px]"
                                   />
                                 </label>
-                                <label className="block text-xs font-semibold text-slate-700">
+                                <label className="block text-xs max-md:text-[10px] font-semibold text-slate-700">
                                   Estoque físico
                                   <input
                                     inputMode="numeric"
                                     value={editingStock}
                                     onChange={(event) => setEditingStock(event.target.value.replace(/\D/g, ""))}
-                                    className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm"
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-2 text-sm max-md:text-[11px]"
                                   />
                                 </label>
                                 <div className="flex gap-2">
@@ -950,7 +950,7 @@ export default function EstoqueRotativoClient() {
                                     type="button"
                                     disabled={busy}
                                     onClick={() => void saveConferenceItemCorrection(item)}
-                                    className="rounded-lg bg-blue-800 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                                    className="rounded-lg bg-blue-800 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50"
                                   >
                                     Salvar
                                   </button>
@@ -961,7 +961,7 @@ export default function EstoqueRotativoClient() {
                                       setEditingSaleCode("");
                                       setEditingStock("");
                                     }}
-                                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-slate-600"
                                   >
                                     Cancelar
                                   </button>
@@ -969,7 +969,7 @@ export default function EstoqueRotativoClient() {
                               </div>
                             )}
                           </div>
-                        ) : <span className="text-xs text-slate-400">—</span>}
+                        ) : <span className="text-xs max-md:text-[10px] text-slate-400">—</span>}
                       </td>
                     </tr>
                   );
@@ -986,19 +986,19 @@ export default function EstoqueRotativoClient() {
           <h2 className="ct-rt-title">Atualizar Rotativo</h2>
 
           {(data.items || []).some((item) => item.situation === "nao_encontrado") ? (
-            <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+            <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm max-md:text-[11px] font-semibold text-amber-900">
               Corrija os itens sem COD-VENDA confirmado antes de atualizar a planilha central.
             </p>
           ) : null}
 
           <div className="mt-4">
-            <p className="text-sm font-semibold text-slate-800">Atualizar Estoque?</p>
+            <p className="text-sm max-md:text-[11px] font-semibold text-slate-800">Atualizar Estoque?</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => void apply()}
                 disabled={busy || (data.items || []).some((item) => item.situation === "nao_encontrado")}
-                className="min-h-11 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="min-h-11 rounded-xl bg-emerald-700 px-5 text-sm max-md:text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
                 {busy ? "Atualizando..." : "Sim · Atualizar"}
               </button>
@@ -1022,8 +1022,8 @@ export default function EstoqueRotativoClient() {
             <h2 className="ct-rt-title">Comparação entre períodos</h2>
           </div>
           <div className="mt-4 max-h-96 overflow-auto rounded-2xl border border-slate-200">
-            <table className="w-full min-w-[700px] border-collapse text-sm">
-              <thead className="sticky top-0 bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
+            <table className="w-full min-w-[700px] border-collapse text-sm max-md:text-[11px]">
+              <thead className="sticky top-0 bg-slate-100 text-left text-xs max-md:text-[10px] uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="px-3 py-3">Data</th>
                   <th className="px-3 py-3">Código</th>
@@ -1059,9 +1059,9 @@ export default function EstoqueRotativoClient() {
             {visibleUpdates.length ? visibleUpdates.map((item) => (
               <article key={item.id} className="rounded-xl border border-slate-200 px-3 py-2.5 sm:px-4">
                 <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                  <p className="min-w-0 shrink truncate text-sm font-semibold text-slate-950 sm:min-w-[150px]">{item.supplier_name}</p>
-                  <p className="shrink-0 whitespace-nowrap text-xs text-slate-500">{formatDate(item.reported_at)}</p>
-                  <p className="hidden min-w-0 flex-1 truncate text-xs text-slate-500 md:block">
+                  <p className="min-w-0 shrink truncate text-sm max-md:text-[11px] font-semibold text-slate-950 sm:min-w-[150px]">{item.supplier_name}</p>
+                  <p className="shrink-0 whitespace-nowrap text-xs max-md:text-[10px] text-slate-500">{formatDate(item.reported_at)}</p>
+                  <p className="hidden min-w-0 flex-1 truncate text-xs max-md:text-[10px] text-slate-500 md:block">
                     {item.items_read} lidos · {item.found_count} divergências · {item.not_found_count} não encontrados · {item.unchanged_count} OK
                   </p>
                   <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -1070,7 +1070,7 @@ export default function EstoqueRotativoClient() {
                       type="button"
                       disabled={busy || !data.permissions.canReport}
                       onClick={() => reopenForEdit(item)}
-                      className="min-h-9 rounded-lg border border-slate-300 px-2.5 text-sm font-semibold text-slate-700 disabled:opacity-40"
+                      className="min-h-9 rounded-lg border border-slate-300 px-2.5 text-sm max-md:text-[11px] font-semibold text-slate-700 disabled:opacity-40"
                     >
                       Editar
                     </button>
@@ -1078,7 +1078,7 @@ export default function EstoqueRotativoClient() {
                       type="button"
                       disabled={busy || !data.permissions.canReport || editingId !== item.id}
                       onClick={() => void saveEditedUpdate(item)}
-                      className="min-h-9 rounded-lg bg-blue-800 px-2.5 text-sm font-semibold text-white disabled:bg-slate-300"
+                      className="min-h-9 rounded-lg bg-blue-800 px-2.5 text-sm max-md:text-[11px] font-semibold text-white disabled:bg-slate-300"
                     >
                       Salvar
                     </button>
@@ -1086,29 +1086,29 @@ export default function EstoqueRotativoClient() {
                       type="button"
                       disabled={busy || !data.permissions.canManage}
                       onClick={() => void removeUpdate(item)}
-                      className="min-h-9 rounded-lg border border-rose-200 px-2.5 text-sm font-semibold text-rose-700 disabled:opacity-40"
+                      className="min-h-9 rounded-lg border border-rose-200 px-2.5 text-sm max-md:text-[11px] font-semibold text-rose-700 disabled:opacity-40"
                     >
                       Excluir
                     </button>
                   </div>
                 </div>
-                <p className="mt-1 truncate text-xs text-slate-500 md:hidden">
+                <p className="mt-1 truncate text-xs max-md:text-[10px] text-slate-500 md:hidden">
                   {item.items_read} lidos · {item.found_count} divergências · {item.not_found_count} não encontrados · {item.unchanged_count} OK
                 </p>
                 {item.status === "atualizado" ? (
                   <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                    <p className="text-xs font-semibold text-emerald-900">
+                    <p className="text-xs max-md:text-[10px] font-semibold text-emerald-900">
                       Rotativo conferido · {(item.conference_rows || []).length} item(ns)
                     </p>
-                    <p className="mt-1 text-xs text-emerald-800">
+                    <p className="mt-1 text-xs max-md:text-[10px] text-emerald-800">
                       Coluna Status atualizada para todos os itens encontrados.
                     </p>
                     {item.updated_rows?.length ? (
-                      <p className="mt-1 text-xs text-emerald-800">
+                      <p className="mt-1 text-xs max-md:text-[10px] text-emerald-800">
                         {item.updated_count} estoque(s) alterado(s) · destaque amarelo em Produtos!D{item.updated_rows.join(", D")}
                       </p>
                     ) : (
-                      <p className="mt-1 text-xs text-emerald-800">Nenhum estoque precisou ser alterado.</p>
+                      <p className="mt-1 text-xs max-md:text-[10px] text-emerald-800">Nenhum estoque precisou ser alterado.</p>
                     )}
                     <div className="mt-2 flex flex-wrap gap-2">
                       <a
@@ -1126,64 +1126,64 @@ export default function EstoqueRotativoClient() {
                 {editingId === item.id ? (
                   <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/40 p-3">
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="text-xs font-semibold text-slate-700 sm:col-span-2">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700 sm:col-span-2">
                         Link do Google Sheets
                         <input
                           type="url"
                           value={spreadsheetReference}
                           onChange={(event) => setSpreadsheetReference(event.target.value)}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">
                         Aba
                         <input
                           value={sourceSheetName}
                           onChange={(event) => selectSourceSheetName(event.target.value)}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">
                         Linha inicial
                         <input
                           inputMode="numeric"
                           value={sourceStartRow}
                           onChange={(event) => setSourceStartRow(event.target.value.replace(/\D/g, ""))}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
                     </div>
                     <div className="mt-3 grid grid-cols-4 gap-2">
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">
                         Cod-venda
                         <input
                           value={sourceCodeColumn}
                           onChange={(event) => setSourceCodeColumn(event.target.value.toUpperCase())}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">
                         Cod-compra
                         <input
                           value={sourcePurchaseCodeColumn}
                           onChange={(event) => setSourcePurchaseCodeColumn(event.target.value.toUpperCase())}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">
                         Descrição
                         <input
                           value={sourceDescriptionColumn}
                           onChange={(event) => setSourceDescriptionColumn(event.target.value.toUpperCase())}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs max-md:text-[10px] font-semibold text-slate-700">
                         Estoque
                         <input
                           value={sourceStockColumn}
                           onChange={(event) => setSourceStockColumn(event.target.value.toUpperCase())}
-                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                          className="mt-1 min-h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm max-md:text-[11px]"
                         />
                       </label>
                     </div>
@@ -1192,7 +1192,7 @@ export default function EstoqueRotativoClient() {
 
               </article>
             )) : (
-              <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500">Nenhuma atualização registrada.</p>
+              <p className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm max-md:text-[11px] text-slate-500">Nenhuma atualização registrada.</p>
             )}
           </div>
         </section>
@@ -1207,16 +1207,16 @@ export default function EstoqueRotativoClient() {
           if (supplier) void selectStandardizationSupplier(supplier.id);
         }} className="ct-rt-card">
           <summary className="ct-rt-summary">Padronização das planilhas</summary>
-          {standardizationError ? <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">{standardizationError}</p> : null}
+          {standardizationError ? <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm max-md:text-[11px] font-semibold text-rose-800">{standardizationError}</p> : null}
           <div className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2">
-            <label className="min-w-0 text-sm font-semibold text-slate-800">Fornecedor
-              <select value={selectedStandardizationSupplierId} onChange={(event) => void selectStandardizationSupplier(event.target.value)} disabled={busy || standardizingSupplier} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm">
+            <label className="min-w-0 text-sm max-md:text-[11px] font-semibold text-slate-800">Fornecedor
+              <select value={selectedStandardizationSupplierId} onChange={(event) => void selectStandardizationSupplier(event.target.value)} disabled={busy || standardizingSupplier} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm max-md:text-[11px]">
                 <option value="">Selecione...</option>
                 {pendingSupplierFiles.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
               </select>
             </label>
-            <label className="min-w-0 text-sm font-semibold text-slate-800">Aba da planilha
-              <select value={standardizationSheetName} onChange={(event) => setStandardizationSheetName(event.target.value)} disabled={busy || standardizingSupplier || loadingStandardizationSheets || !selectedStandardizationSupplierId} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm disabled:bg-slate-100">
+            <label className="min-w-0 text-sm max-md:text-[11px] font-semibold text-slate-800">Aba da planilha
+              <select value={standardizationSheetName} onChange={(event) => setStandardizationSheetName(event.target.value)} disabled={busy || standardizingSupplier || loadingStandardizationSheets || !selectedStandardizationSupplierId} className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm max-md:text-[11px] disabled:bg-slate-100">
                 <option value="">{loadingStandardizationSheets ? "Carregando abas..." : "Selecione a aba..."}</option>
                 {standardizationSheetNames.map((name) => <option key={name} value={name}>{name}{data.supplierStandardizations.some((item) => item.spreadsheet_id === selectedStandardizationSupplierId && item.sheet_name === name && item.status === "atualizada") ? " — Padronizada ✓" : ""}</option>)}
               </select>
@@ -1226,12 +1226,12 @@ export default function EstoqueRotativoClient() {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {data.supplierStandardizations.some((item) => item.spreadsheet_id === selectedStandardizationSupplierId && item.sheet_name === standardizationSheetName && item.status === "atualizada") && !selectedPreparedSupplier ? (
                 <>
-                  <span className="text-sm font-semibold text-emerald-700">Padronizada ✓</span>
+                  <span className="text-sm max-md:text-[11px] font-semibold text-emerald-700">Padronizada ✓</span>
                   <button type="button" onClick={() => void standardizeNextSupplier(selectedStandardizationSupplier.id)} disabled={busy || standardizingSupplier} className="ct-clean-action">{standardizingSupplier ? "Padronizando..." : "Refazer no modelo TERUYA"}</button>
                 </>
               ) : selectedPreparedSupplier ? (
                 <>
-                  <a href={selectedPreparedSupplier.spreadsheet_url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[#13038D] underline">Abrir aba para conferir</a>
+                  <a href={selectedPreparedSupplier.spreadsheet_url} target="_blank" rel="noreferrer" className="text-sm max-md:text-[11px] font-semibold text-[#13038D] underline">Abrir aba para conferir</a>
                   <button type="button" onClick={() => void confirmSupplierSheet()} disabled={busy || standardizingSupplier} className="ct-rt-primary">Salvar padronização</button>
                   <button type="button" onClick={() => void revertPreparedSupplier()} disabled={busy || standardizingSupplier} className="ct-clean-action">Reverter</button>
                 </>
@@ -1251,14 +1251,14 @@ export default function EstoqueRotativoClient() {
                 .filter((item) => item.status === "atualizada")
                 .map((item) => (
                   <div key={`${item.spreadsheet_id}:${item.sheet_name}`} className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 sm:px-4">
-                    <p className="min-w-0 shrink truncate text-sm font-semibold text-slate-950 sm:min-w-[150px]">{item.supplier_name} · {item.sheet_name}</p>
-                    <p className="shrink-0 whitespace-nowrap text-xs text-slate-500">{item.confirmed_at ? formatDate(item.confirmed_at) : ""}</p>
+                    <p className="min-w-0 shrink truncate text-sm max-md:text-[11px] font-semibold text-slate-950 sm:min-w-[150px]">{item.supplier_name} · {item.sheet_name}</p>
+                    <p className="shrink-0 whitespace-nowrap text-xs max-md:text-[10px] text-slate-500">{item.confirmed_at ? formatDate(item.confirmed_at) : ""}</p>
                     <div className="ml-auto flex shrink-0 items-center gap-2">
                       <a
                         href={item.spreadsheet_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="whitespace-nowrap text-sm font-semibold text-blue-800 underline"
+                        className="whitespace-nowrap text-sm max-md:text-[11px] font-semibold text-blue-800 underline"
                       >
                         Abrir planilha
                       </a>
@@ -1266,7 +1266,7 @@ export default function EstoqueRotativoClient() {
                         type="button"
                         onClick={() => void removeSupplierStandardization(item)}
                         disabled={busy}
-                        className="min-h-9 rounded-lg border border-red-200 px-2.5 text-sm font-semibold text-red-700 disabled:opacity-50"
+                        className="min-h-9 rounded-lg border border-red-200 px-2.5 text-sm max-md:text-[11px] font-semibold text-red-700 disabled:opacity-50"
                       >
                         Excluir
                       </button>
@@ -1274,7 +1274,7 @@ export default function EstoqueRotativoClient() {
                   </div>
                 ))
             ) : (
-              <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">Nenhuma planilha padronizada e confirmada ainda.</p>
+              <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm max-md:text-[11px] text-slate-500">Nenhuma planilha padronizada e confirmada ainda.</p>
             )}
           </div>
         </div>

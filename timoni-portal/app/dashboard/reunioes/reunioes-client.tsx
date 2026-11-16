@@ -30,12 +30,12 @@ const EMPTY: FormState = {
 };
 
 // Paleta limpa do padrão aprovado (mesma das agendas).
-const INPUT = "mt-1 w-full rounded-lg border border-[#d7deeb] bg-white px-3 py-2 text-sm text-[#182443] outline-none focus:border-[#102a83]";
-const LABEL = "text-xs font-semibold text-[#182443]";
+const INPUT = "mt-1 w-full rounded-lg border border-[#d7deeb] bg-white px-3 py-2 text-sm max-md:text-[11px] text-[#182443] outline-none focus:border-[#102a83]";
+const LABEL = "text-xs max-md:text-[10px] font-semibold text-[#182443]";
 const AJUDA = "mt-1 block text-[11px] font-normal text-[#65718a]";
-const BOTAO_PRIMARIO = "rounded-lg bg-[#102a83] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50";
-const BOTAO_SECUNDARIO = "rounded-lg border border-[#102a83] bg-white px-4 py-2 text-sm font-semibold text-[#102a83] disabled:opacity-50";
-const BOTAO_TEXTO = "text-sm font-semibold text-[#102a83] underline-offset-2 hover:underline";
+const BOTAO_PRIMARIO = "rounded-lg bg-[#102a83] px-4 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50";
+const BOTAO_SECUNDARIO = "rounded-lg border border-[#102a83] bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-[#102a83] disabled:opacity-50";
+const BOTAO_TEXTO = "text-sm max-md:text-[11px] font-semibold text-[#102a83] underline-offset-2 hover:underline";
 
 function formatDate(value: string) {
   if (!value) return "";
@@ -120,8 +120,8 @@ function DataDaReuniao({ rotulo, data, hora }: { rotulo: string; data: string; h
   return (
     <div className="min-w-0">
       <p className="text-[13px] font-semibold text-[#65718a]">{rotulo}</p>
-      <p className="mt-1 text-base font-bold text-[#182443]">{data ? formatDate(data) : "A definir"}</p>
-      {data && hora && <p className="text-xs text-[#65718a]">{formatTime(hora)}</p>}
+      <p className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{data ? formatDate(data) : "A definir"}</p>
+      {data && hora && <p className="text-xs max-md:text-[10px] text-[#65718a]">{formatTime(hora)}</p>}
     </div>
   );
 }
@@ -143,8 +143,8 @@ function MeetingCard({
   return (
     <article className="rounded-xl border border-[#e1e6f0] bg-white p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h3 className="text-base font-bold text-[#182443]">{meeting.unit}</h3>
-        <span className="text-xs text-[#65718a]">{meeting.frequency}</span>
+        <h3 className="text-base max-md:text-[12.5px] font-bold text-[#182443]">{meeting.unit}</h3>
+        <span className="text-xs max-md:text-[10px] text-[#65718a]">{meeting.frequency}</span>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4">
@@ -153,7 +153,7 @@ function MeetingCard({
       </div>
 
       {(meeting.additionalDates || []).length > 0 && (
-        <p className="mt-3 text-xs text-[#65718a]">
+        <p className="mt-3 text-xs max-md:text-[10px] text-[#65718a]">
           Outras datas: {meeting.additionalDates.map((item) => `${formatDate(item.date)}${item.time ? ` · ${formatTime(item.time)}` : ""}`).join("  ·  ")}
         </p>
       )}
@@ -161,7 +161,7 @@ function MeetingCard({
       {pendingOccurrences.length > 0 && (
         <div className="mt-4 space-y-2 border-t border-[#e1e6f0] pt-3">
           {pendingOccurrences.map((occurrence) => (
-            <div key={occurrence.date} className="flex flex-wrap items-center justify-between gap-2 text-sm text-[#65718a]">
+            <div key={occurrence.date} className="flex flex-wrap items-center justify-between gap-2 text-sm max-md:text-[11px] text-[#65718a]">
               <span className="flex items-center gap-2">
                 <Carimbo tom="pendente">Pendente</Carimbo>
                 Anterior: {formatDate(occurrence.date)}{occurrence.time ? ` · ${formatTime(occurrence.time)}` : ""}
@@ -174,7 +174,7 @@ function MeetingCard({
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-[#e1e6f0] pt-4 text-sm font-semibold">
+      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-[#e1e6f0] pt-4 text-sm max-md:text-[11px] font-semibold">
         {links.map((link) => link.url ? (
           <a key={link.label} href={link.url} target="_blank" rel="noreferrer" className="text-[#102a83] hover:underline">{link.label}</a>
         ) : (
@@ -347,7 +347,7 @@ export default function ReunioesClient({
       <header className="ct-clean-today-heading flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[length:var(--ct-font-page-title)] font-semibold text-[#102a83]">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
-          <p className="mt-1 text-base text-[#65718a]">Pautas, atas e apresentações.</p>
+          <p className="mt-1 text-base max-md:text-[12.5px] text-[#65718a]">Pautas, atas e apresentações.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className={BOTAO_SECUNDARIO}>Abrir pasta oficial</a>
@@ -362,7 +362,7 @@ export default function ReunioesClient({
           onSubmit={(event) => { event.preventDefault(); void salvar(false); }}
           className="mt-6 rounded-xl border border-[#e1e6f0] bg-white p-5"
         >
-          <h2 className="text-base font-bold text-[#182443]">{form.id ? "Editar reunião" : "Nova reunião"}</h2>
+          <h2 className="text-base max-md:text-[12.5px] font-bold text-[#182443]">{form.id ? "Editar reunião" : "Nova reunião"}</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-4">
             <label className={LABEL}>Loja
               <select value={form.unit} onChange={(e) => trocarLoja(e.target.value as Meeting["unit"])} className={INPUT}>
@@ -397,7 +397,7 @@ export default function ReunioesClient({
                 <label className={LABEL}>Horário
                   <div className="flex gap-2">
                     <input type="time" value={item.time} onChange={(e) => setField("additionalDates", form.additionalDates.map((date, i) => i === index ? { ...date, time: e.target.value } : date))} className={INPUT} />
-                    <button type="button" onClick={() => setField("additionalDates", form.additionalDates.filter((_, i) => i !== index))} className="mt-1 rounded-lg border border-[#e1e6f0] bg-white px-3 text-sm font-semibold text-[#65718a] hover:text-[#182443]">Remover</button>
+                    <button type="button" onClick={() => setField("additionalDates", form.additionalDates.filter((_, i) => i !== index))} className="mt-1 rounded-lg border border-[#e1e6f0] bg-white px-3 text-sm max-md:text-[11px] font-semibold text-[#65718a] hover:text-[#182443]">Remover</button>
                   </div>
                 </label>
               </div>
@@ -425,11 +425,11 @@ export default function ReunioesClient({
         </form>
       )}
 
-      {error && <p className="mt-4 rounded-lg border border-[#f3c4c4] bg-white px-3 py-2 text-sm text-[#b42318]">{error}</p>}
+      {error && <p className="mt-4 rounded-lg border border-[#f3c4c4] bg-white px-3 py-2 text-sm max-md:text-[11px] text-[#b42318]">{error}</p>}
 
       <section className="mt-8">
-        <h2 className="text-base font-semibold text-[#65718a]">Reuniões agendadas</h2>
-        {loading ? <p className="mt-3 text-sm text-[#65718a]">Carregando...</p> :
+        <h2 className="text-base max-md:text-[12.5px] font-semibold text-[#65718a]">Reuniões agendadas</h2>
+        {loading ? <p className="mt-3 text-sm max-md:text-[11px] text-[#65718a]">Carregando...</p> :
           visible.length ? <div className={`mt-3 grid gap-4 ${allowedUnits.length > 1 ? "md:grid-cols-2" : ""}`}>
             {visible.map((meeting) => {
               const sourceMeeting = items.find((item) => item.id === meeting.id) || meeting;
@@ -444,40 +444,40 @@ export default function ReunioesClient({
                 />
               );
             })}
-          </div> : <p className="mt-3 text-sm text-[#65718a]">Nenhuma reunião agendada.</p>}
+          </div> : <p className="mt-3 text-sm max-md:text-[11px] text-[#65718a]">Nenhuma reunião agendada.</p>}
       </section>
 
       <details className="ct-clean-card mt-6">
-        <summary className="cursor-pointer text-sm font-semibold text-[#182443]">Editar ou excluir reuniões agendadas ({scheduled.length})</summary>
+        <summary className="cursor-pointer text-sm max-md:text-[11px] font-semibold text-[#182443]">Editar ou excluir reuniões agendadas ({scheduled.length})</summary>
         <div className="mt-3 divide-y divide-[#e1e6f0]">
           {scheduled.length ? scheduled.map((meeting) => (
             <div key={meeting.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <p className="text-sm text-[#182443]"><strong>{meeting.unit}</strong> · {meeting.frequency} · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
+              <p className="text-sm max-md:text-[11px] text-[#182443]"><strong>{meeting.unit}</strong> · {meeting.frequency} · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
               {canManage && (
                 <div className="flex flex-wrap gap-4">
                   <button onClick={() => edit(meeting)} className={BOTAO_TEXTO}>Editar</button>
-                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="text-sm font-semibold text-[#b42318] hover:underline">Excluir</button>}
+                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="text-sm max-md:text-[11px] font-semibold text-[#b42318] hover:underline">Excluir</button>}
                 </div>
               )}
             </div>
-          )) : <p className="py-3 text-sm text-[#65718a]">Nenhuma reunião agendada.</p>}
+          )) : <p className="py-3 text-sm max-md:text-[11px] text-[#65718a]">Nenhuma reunião agendada.</p>}
         </div>
       </details>
 
       <details className="ct-clean-card mt-4">
-        <summary className="cursor-pointer text-sm font-semibold text-[#182443]">Reuniões arquivadas ({history.length})</summary>
+        <summary className="cursor-pointer text-sm max-md:text-[11px] font-semibold text-[#182443]">Reuniões arquivadas ({history.length})</summary>
         <div className="mt-3 divide-y divide-[#e1e6f0]">
           {history.length ? history.map((meeting) => (
             <div key={meeting.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <p className="text-sm text-[#182443]"><strong>{meeting.unit}</strong> · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
+              <p className="text-sm max-md:text-[11px] text-[#182443]"><strong>{meeting.unit}</strong> · {formatDate(meeting.date)} · {formatTime(meeting.time)}</p>
               {canManage && (
                 <div className="flex flex-wrap gap-4">
                   <button onClick={() => void mutate(meeting.id, "reopen")} className={BOTAO_TEXTO}>Desarquivar</button>
-                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="text-sm font-semibold text-[#b42318] hover:underline">Excluir</button>}
+                  {canDelete && <button onClick={() => void mutate(meeting.id, "delete")} className="text-sm max-md:text-[11px] font-semibold text-[#b42318] hover:underline">Excluir</button>}
                 </div>
               )}
             </div>
-          )) : <p className="py-3 text-sm text-[#65718a]">Nenhuma reunião concluída.</p>}
+          )) : <p className="py-3 text-sm max-md:text-[11px] text-[#65718a]">Nenhuma reunião concluída.</p>}
         </div>
       </details>
     </div>

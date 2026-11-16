@@ -21,11 +21,11 @@ function MessageBox({ item, index, canDelete }: { item: TeamMessage; index: numb
       key={`${item.date}-${index}`}
       className="rounded-2xl border border-blue-100 bg-white/80 p-4 shadow-sm"
     >
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-wider text-blue-700">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">
         {item.id ? <span>Mensagem #{item.id}</span> : null}
         <span>{formatMessageDate(item.date)}</span>
       </div>
-      <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">{item.message}</p>
+      <p className="mt-3 whitespace-pre-wrap text-sm max-md:text-[11px] leading-6 text-slate-700">{item.message}</p>
       {canDelete && item.id ? <EspacoEquipeDeleteButton id={item.id} /> : null}
     </article>
   );
@@ -49,19 +49,19 @@ export default async function EspacoEquipeInbox({
   return (
     <section className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
       <div className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
+        <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
+        <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
           Use este espaço para enviar sugestões, reclamações, dificuldades ou ideias de melhoria. Os registros serão analisados pela gestão e poderão ser considerados nas pautas das reuniões.
         </p>
       </div>
 
       <div className="mt-5 border-t border-blue-200 pt-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Mensagens recebidas</p>
+          <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Mensagens recebidas</p>
           <a
             href="/api/espaco-equipe/planilha"
-            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm transition hover:bg-blue-50"
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800 shadow-sm transition hover:bg-blue-50"
           >
             Baixar planilha para pauta
           </a>
@@ -75,7 +75,7 @@ export default async function EspacoEquipeInbox({
           ))}
         </div>
       ) : (
-        <p className="mt-3 rounded-2xl bg-white/80 p-4 text-sm text-slate-600">
+        <p className="mt-3 rounded-2xl bg-white/80 p-4 text-sm max-md:text-[11px] text-slate-600">
           Nenhuma mensagem registrada ainda.
         </p>
       )}

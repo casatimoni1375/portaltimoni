@@ -84,14 +84,14 @@ export default function DashboardOverviewClient({ modules, espacoEquipeControle,
       : "relative flex min-h-36 min-w-0 flex-col justify-between rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"}>
       {pending ? (
         <div className="flex justify-end">
-          <span aria-label={`${pending.count} atualizações em ${name}`} className="min-w-6 rounded-full bg-red-500 px-1.5 text-center text-xs font-bold leading-6 text-white">
+          <span aria-label={`${pending.count} atualizações em ${name}`} className="min-w-6 rounded-full bg-red-500 px-1.5 text-center text-xs max-md:text-[10px] font-bold leading-6 text-white">
             {pending.count > 99 ? "99+" : pending.count}
           </span>
         </div>
       ) : null}
       <div className={mobile ? "mt-1" : "mt-4"}>
-        <p className={mobile ? "truncate text-[12px] font-normal leading-4 text-slate-900" : "truncate text-lg font-semibold text-slate-950"}>{name}</p>
-        {count !== null ? <p className={mobile ? "mt-1 text-xl font-bold leading-none text-[#0b1f5e]" : "mt-2 text-3xl font-bold leading-none text-[#0b1f5e]"}>{count}</p> : null}
+        <p className={mobile ? "truncate text-[12px] font-normal leading-4 text-slate-900" : "truncate text-lg max-md:text-[14px] font-semibold text-slate-950"}>{name}</p>
+        {count !== null ? <p className={mobile ? "mt-1 text-xl max-md:text-[15px] font-bold leading-none text-[#0b1f5e]" : "mt-2 text-3xl max-md:text-[20px] font-bold leading-none text-[#0b1f5e]"}>{count}</p> : null}
       </div>
     </Link>;
   });
