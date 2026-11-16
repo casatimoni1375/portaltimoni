@@ -34,8 +34,8 @@ export function AgendaCTClient() {
       <section className="min-w-0 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white p-2 sm:rounded-2xl sm:p-4">
         <div className="mb-3 flex flex-col gap-3 px-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-[#182443] sm:text-2xl">Agenda CT</h1>
-            <p className="mt-1 text-sm text-[#65718a]">
+            <h1 className="text-xl max-md:text-[15px] font-semibold text-[#182443] sm:text-2xl">Agenda CT</h1>
+            <p className="mt-1 text-sm max-md:text-[11px] text-[#65718a]">
               Calendário compartilhado da Casa Timoni. A agenda pessoal da Ciça permanece separada.
             </p>
           </div>
@@ -49,8 +49,8 @@ export function AgendaCTClient() {
                   type="button"
                   onClick={() => setViewMode(option.value)}
                   className={active
-                    ? "rounded-md bg-[#102a83] px-3 py-1.5 text-sm font-medium text-white transition"
-                    : "rounded-md px-3 py-1.5 text-sm font-medium text-[#102a83] transition hover:bg-[#f5f7fd]"}
+                    ? "rounded-md bg-[#102a83] px-3 py-1.5 text-sm max-md:text-[11px] font-medium text-white transition"
+                    : "rounded-md px-3 py-1.5 text-sm max-md:text-[11px] font-medium text-[#102a83] transition hover:bg-[#f5f7fd]"}
                   aria-pressed={active}
                 >
                   {option.label}
@@ -60,7 +60,7 @@ export function AgendaCTClient() {
           </div>
         </div>
 
-        <p className="mb-3 px-1 text-sm text-slate-600">
+        <p className="mb-3 px-1 text-sm max-md:text-[11px] text-slate-600">
           Se o Google pedir acesso no celular,{" "}
           <a href={embedUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-800 underline">
             abra a Agenda CT diretamente no Google

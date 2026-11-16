@@ -253,13 +253,13 @@ export default function ComprasClient() {
       <section className="ct-clean-card ct-tone-card ct-tone-blue">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-blue-700">Módulo operacional</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Compras</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+            <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">Módulo operacional</p>
+            <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Compras</h1>
+            <p className="mt-3 max-w-3xl text-sm max-md:text-[11px] leading-6 text-slate-600">
               Selecione um fornecedor quando houver cartão pendente ou atualize diretamente criando um novo cartão no Trello.
             </p>
           </div>
-          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs max-md:text-[10px] font-semibold text-emerald-800">
             Fluxo rápido
           </span>
         </div>
@@ -273,21 +273,21 @@ export default function ComprasClient() {
           ["Enviados — Araras", summary?.enviadosAraras],
         ].map(([label, value]) => (
           <article key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-3xl font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
-            <p className="mt-2 text-sm text-slate-600">{label}</p>
+            <p className="text-3xl max-md:text-[20px] font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
+            <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">{label}</p>
           </article>
         ))}
       </section>
 
       {!trello.configured && !loadingTrello && (
         <section className="ct-clean-card ct-tone-card ct-tone-blue">
-          <h2 className="text-xl font-semibold text-slate-950">Conectar o Trello</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-700">
+          <h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Conectar o Trello</h2>
+          <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-700">
             A conexão será mantida pelo Portal e usada para ler, atualizar e mover os cartões.
           </p>
           <Link
             href="/dashboard/compras/configurar"
-            className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-5 text-sm font-semibold text-white"
+            className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-5 text-sm max-md:text-[11px] font-semibold text-white"
           >
             Configurar Trello
           </Link>
@@ -298,15 +298,15 @@ export default function ComprasClient() {
         <article className="ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-blue-700">1. Fornecedor</p>
-              <h2 className="mt-2 text-base font-semibold text-slate-950">Pedidos pendentes</h2>
-              <p className="mt-1 text-sm text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
+              <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">1. Fornecedor</p>
+              <h2 className="mt-2 text-base max-md:text-[12.5px] font-semibold text-slate-950">Pedidos pendentes</h2>
+              <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
             </div>
             <button
               type="button"
               onClick={() => void loadTrello()}
               disabled={loadingTrello}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-blue-800 disabled:opacity-50"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800 disabled:opacity-50"
             >
               Atualizar
             </button>
@@ -322,7 +322,7 @@ export default function ComprasClient() {
                       type="button"
                       key={supplier.id}
                       onClick={() => chooseSupplier(supplier)}
-                      className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm last:border-b-0 ${
+                      className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left text-sm max-md:text-[11px] last:border-b-0 ${
                         selected ? "bg-blue-50 text-blue-900" : "bg-white text-slate-800 hover:bg-slate-50"
                       }`}
                     >
@@ -348,7 +348,7 @@ export default function ComprasClient() {
                   );
                 })
               ) : (
-                <p className="p-5 text-sm text-slate-500">Nenhum cartão em PEDIDOS PENDENTES.</p>
+                <p className="p-5 text-sm max-md:text-[11px] text-slate-500">Nenhum cartão em PEDIDOS PENDENTES.</p>
               )}
             </div>
           )}
@@ -358,7 +358,7 @@ export default function ComprasClient() {
               href={DRIVE_URL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm font-semibold text-white"
+              className="inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm max-md:text-[11px] font-semibold text-white"
               style={{color:"#fff",textDecoration:"none"}}
             >
               Abrir pasta de fornecedores
@@ -367,57 +367,57 @@ export default function ComprasClient() {
         </article>
 
         <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-blue-700">2. Itens do pedido · opcional</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-950">Planilha do pedido</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
+          <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">2. Itens do pedido · opcional</p>
+          <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Planilha do pedido</h2>
+          <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
             Funciona de forma independente. Preencha as colunas conforme a planilha do fornecedor.
           </p>
 
-          <label className="mt-4 block text-sm font-semibold text-slate-800">
+          <label className="mt-4 block text-sm max-md:text-[11px] font-semibold text-slate-800">
             Link do Google Sheets
             <input
               type="url"
               value={sheetUrl}
               onChange={(event) => setSheetUrl(event.target.value)}
               placeholder="https://docs.google.com/spreadsheets/d/..."
-              className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4 text-sm outline-none focus:border-blue-600"
+              className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4 text-sm max-md:text-[11px] outline-none focus:border-blue-600"
             />
           </label>
-          <label className="mt-4 block text-sm font-semibold text-slate-800">
+          <label className="mt-4 block text-sm max-md:text-[11px] font-semibold text-slate-800">
             Aba
             <input
               value={sheetTab}
               onChange={(event) => setSheetTab(event.target.value)}
               placeholder="Preencha"
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             />
           </label>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="text-sm font-semibold text-slate-800">
+            <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
               Código
               <input
                 value={columnCode}
                 onChange={(event) => setColumnCode(event.target.value)}
-                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
               />
             </label>
-            <label className="text-sm font-semibold text-slate-800">
+            <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
               Descrição
               <input
                 value={columnDescription}
                 onChange={(event) => setColumnDescription(event.target.value)}
-                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
               />
             </label>
-            <label className="text-sm font-semibold text-slate-800">
+            <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
               Quantidade
               <input
                 value={columnQuantity}
                 onChange={(event) => setColumnQuantity(event.target.value)}
-                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
               />
             </label>
-            <label className="text-sm font-semibold text-slate-800">
+            <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
               Linha inicial <span className="font-normal text-slate-500">(opcional)</span>
               <input
                 type="number"
@@ -426,7 +426,7 @@ export default function ComprasClient() {
                 value={startRow}
                 onChange={(event) => setStartRow(event.target.value)}
                 placeholder="Ex.: 10"
-                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+                className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
               />
             </label>
           </div>
@@ -434,26 +434,26 @@ export default function ComprasClient() {
             type="button"
             onClick={() => void extractItems()}
             disabled={busy}
-            className="mt-4 min-h-12 rounded-xl bg-blue-700 px-6 text-sm font-semibold text-white hover:bg-blue-800 disabled:bg-slate-300"
+            className="mt-4 min-h-12 rounded-xl bg-blue-700 px-6 text-sm max-md:text-[11px] font-semibold text-white hover:bg-blue-800 disabled:bg-slate-300"
           >
             {busy ? "Filtrando..." : "Filtrar itens do pedido"}
           </button>
-          {sheetInfo && <p className="mt-3 text-sm font-semibold text-emerald-700">{sheetInfo}</p>}
+          {sheetInfo && <p className="mt-3 text-sm max-md:text-[11px] font-semibold text-emerald-700">{sheetInfo}</p>}
         </article>
       </section>
 
       {items.length > 0 && (
         <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <div>
-            <p className="text-sm font-semibold text-blue-700">Itens filtrados</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">
+            <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">Itens filtrados</p>
+            <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">
               Total: {items.length} itens
             </h2>
-            <p className="mt-1 text-sm text-slate-500">Confira e ajuste manualmente quando necessário.</p>
+            <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Confira e ajuste manualmente quando necessário.</p>
           </div>
           <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full min-w-[760px] border-collapse text-sm">
-              <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
+            <table className="w-full min-w-[760px] border-collapse text-sm max-md:text-[11px]">
+              <thead className="bg-slate-100 text-left text-xs max-md:text-[10px] uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="px-3 py-3">Código</th>
                   <th className="px-3 py-3">Descrição</th>
@@ -489,7 +489,7 @@ export default function ComprasClient() {
                       <button
                         type="button"
                         onClick={() => removeItem(index)}
-                        className="rounded-lg px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50"
+                        className="rounded-lg px-3 py-2 text-xs max-md:text-[10px] font-semibold text-rose-700 hover:bg-rose-50"
                       >
                         Remover
                       </button>
@@ -503,68 +503,68 @@ export default function ComprasClient() {
       )}
 
       <section className="ct-clean-card ct-tone-card ct-tone-blue">
-        <p className="text-sm font-semibold text-blue-700">3. Finalizar</p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-950">Atualizar Trello</h2>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">3. Finalizar</p>
+        <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Atualizar Trello</h2>
+        <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">
           Fornecedor e número do pedido são opcionais. Informe os dados disponíveis para atualizar o Trello.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Fornecedor <span className="font-normal text-slate-500">(opcional)</span>
             <input
               value={supplierName}
               onChange={(event) => setSupplierName(event.target.value)}
               placeholder="Digite o fornecedor"
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             />
           </label>
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Número do pedido <span className="font-normal text-slate-500">(opcional)</span>
             <input
               value={orderNumber}
               onChange={(event) => setOrderNumber(event.target.value)}
               placeholder="Ex.: 6055"
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             />
           </label>
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Nossa empresa
             <select
               value={company}
               onChange={(event) => setCompany(event.target.value as Company)}
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             >
               <option value="MCR">MCR</option>
               <option value="ROD">ROD</option>
               <option value="CT">CT</option>
             </select>
           </label>
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Unidade
             <select
               value={unit}
               onChange={(event) => setUnit(event.target.value as Unit | "")}
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             >
               <option value="">Escolha</option>
               <option value="rio_claro">Rio Claro</option>
               <option value="araras">Araras</option>
             </select>
           </label>
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Envio
             <BrazilianDateInput
               value={dataEnvio}
               onChange={setDataEnvio}
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             />
           </label>
-          <label className="text-sm font-semibold text-slate-800">
+          <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Entrega
             <BrazilianDateInput
               value={dataEntrega}
               onChange={setDataEntrega}
-              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             />
           </label>
         </div>
@@ -575,20 +575,20 @@ export default function ComprasClient() {
           type="button"
           onClick={() => void finalizePurchase()}
           disabled={busy || !canFinalize}
-          className="mt-4 min-h-12 rounded-xl bg-emerald-700 px-6 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="mt-4 min-h-12 rounded-xl bg-emerald-700 px-6 text-sm max-md:text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {busy ? "Atualizando..." : "Atualizar Trello"}
         </button>
       </section>
 
       {error && (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-800">
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm max-md:text-[11px] font-semibold text-rose-800">
           {error}
         </p>
       )}
 
       {success && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-800">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm max-md:text-[11px] font-semibold text-emerald-800">
           <p>{success}</p>
           {updatedCardUrl && (
             <a href={updatedCardUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex underline">
