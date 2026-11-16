@@ -391,3 +391,18 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body nav[aria-label="Menu do celular"] a { font-size: 10px !important; }
   html body nav[aria-label="Menu do celular"] svg { width: 18px !important; height: 18px !important; }
 }
+
+/* Celular: menos espaço vazio, mais conteúdo visível (padrão Fluxo) */
+@media (max-width: 767px) {
+  html body main { padding-top: 8px !important; padding-bottom: 12px !important; }
+  html body main > div, html body main > section { margin-top: 0 !important; }
+  html body main .space-y-4 > * + *, html body main .space-y-5 > * + *, html body main .space-y-6 > * + * { margin-top: 10px !important; }
+  html body main .space-y-3 > * + * { margin-top: 8px !important; }
+  html body main .gap-6, html body main .gap-5, html body main .gap-4 { gap: 10px !important; }
+  html body main .p-6, html body main .p-5 { padding: 12px !important; }
+  html body main section.rounded-2xl, html body main article.rounded-2xl, html body main section.ct-clean-card { padding: 12px !important; }
+  html body main .mb-6, html body main .mb-5, html body main .mb-4 { margin-bottom: 10px !important; }
+  html body main .mt-6, html body main .mt-5, html body main .mt-4 { margin-top: 10px !important; }
+  html body .ct-clean-today-heading { margin-bottom: 10px !important; }
+  html body .ct-clean-spacer { height: 52px !important; }
+}
