@@ -529,3 +529,13 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body .portal-mobile-header button, html body .portal-mobile-header a { width: 32px !important; height: 32px !important; min-width: 32px !important; border-radius: 10px !important; }
   html body .portal-mobile-header svg { width: 17px !important; height: 17px !important; }
 }
+
+/* Celular (todo o site): links de ação no padrão do botão Ver todos do Fluxo */
+@media (max-width: 767px) {
+  html body main .ct-clean-card-heading > a, html body main a[href^="/agenda"], html body main a[href*="view=loja"],
+  html body main a[href*="aba=montar"], html body main a[href*="aba=acompanhar"], html body main section a[href^="/dashboard"] {
+    display: inline-flex !important; align-items: center !important; min-height: 28px !important; padding: 4px 10px !important;
+    border: 1px solid #dfe9e3 !important; border-radius: 10px !important; background: #fff !important;
+    font-size: 11px !important; font-weight: 500 !important; text-decoration: none !important; line-height: 1.2 !important;
+  }
+}
