@@ -467,3 +467,14 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
     min-height: 34px !important; padding: 6px 9px !important; font-size: 12px !important; font-weight: 800 !important; border-radius: 11px !important; line-height: 1.2 !important;
   }
 }
+
+/* Celular (todo o site): papéis de texto do Fluxo, inclusive em Estoque e formulários */
+@media (max-width: 767px) {
+  html body main h1 { font-size: 20px !important; font-weight: 500 !important; }
+  html body main h2, html body main h3 { font-size: 15px !important; font-weight: 500 !important; }
+  html body main p { font-size: 12.5px !important; font-weight: 400 !important; }
+  html body main label { font-size: 11px !important; font-weight: 500 !important; }
+  html body main option { font-size: 12.5px !important; }
+  html body main a, html body main button { font-size: 12px !important; }
+  html body main span.text-2xl, html body main span.text-3xl, html body main span.text-xl { font-size: 14px !important; font-weight: 600 !important; }
+}
