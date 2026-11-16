@@ -343,3 +343,15 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   strong, b { font-size: 12.5px !important; font-weight: 600 !important; }
   small { font-size: 11px !important; }
 }
+
+/* Celular: a classe .ct-user-compact aumentava títulos e corpo; volta ao padrão do Fluxo */
+@media (max-width: 767px) {
+  html body .ct-user-compact {
+    --ct-font-body: 12.5px; --ct-font-page-title: 20px; --ct-font-section-title: 15px;
+    --ct-font-subtitle: 13px; --ct-font-caption: 11px; --ct-font-label: 10px;
+  }
+  html body .ct-user-compact h1 { font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important; }
+  html body .ct-user-compact h2 { font-size: 15px !important; font-weight: 500 !important; }
+  html body .ct-user-compact p, html body .ct-user-compact a { font-size: 12.5px !important; }
+  html body .ct-user-compact strong { font-size: 12.5px !important; font-weight: 600 !important; }
+}
