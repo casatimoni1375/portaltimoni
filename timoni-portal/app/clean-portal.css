@@ -373,3 +373,21 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main h2.text-base { font-size: 15px !important; font-weight: 500 !important; }
   html body main p.text-sm.font-semibold { font-size: 10px !important; font-weight: 700 !important; }
 }
+
+/* Celular: site inteiro no padrão Fluxo (leve, delicado, sutil). Cores não mudam. */
+@media (max-width: 767px) {
+  html body main { font-size: 12.5px !important; }
+  html body main h1, html body .ct-clean-today-heading h1 { font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important; }
+  html body main h2, html body main h3 { font-size: 15px !important; font-weight: 500 !important; line-height: 1.3 !important; }
+  html body main p, html body main li, html body main label { font-size: 12.5px !important; font-weight: 400 !important; line-height: 1.5 !important; }
+  html body main a, html body main button { font-size: 12px !important; font-weight: 500 !important; }
+  html body main strong, html body main b { font-size: 12.5px !important; font-weight: 600 !important; }
+  html body main small, html body main .text-xs, html body main .text-sm { font-size: 11px !important; font-weight: 400 !important; }
+  html body main .ct-notice-stamp, html body main .ct-notice-scope { font-size: 10px !important; font-weight: 500 !important; }
+  html body main .text-xl, html body main .text-lg { font-size: 15px !important; font-weight: 500 !important; }
+  html body main .text-3xl, html body main .text-2xl, html body main .text-4xl { font-size: 20px !important; font-weight: 500 !important; }
+  html body main .text-base { font-size: 12.5px !important; }
+  html body main .font-bold, html body main .font-extrabold, html body main .font-semibold { font-weight: 600 !important; }
+  html body nav[aria-label="Menu do celular"] a { font-size: 10px !important; }
+  html body nav[aria-label="Menu do celular"] svg { width: 18px !important; height: 18px !important; }
+}
