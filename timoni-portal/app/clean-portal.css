@@ -613,3 +613,17 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
     font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important;
   }
 }
+
+/* Celular (todo o site): comunicados no padrão Aniversários e botões de texto no padrão Abrir agenda */
+@media (max-width: 767px) {
+  html body main .ct-notice-headline, html body main .ct-notice-title, html body main .ct-notice-title > span.ct-notice-headline {
+    font-size: 15px !important; font-weight: 500 !important; line-height: 1.3 !important;
+  }
+  html body main .ct-notice-subline { font-size: 13.5px !important; }
+  html body main button:not([class*="bg-"]):not(:has(svg)):not(.ct-notice-close),
+  html body main .ct-notice-archive > button, html body main .ct-clean-action-row > button {
+    display: inline-flex !important; align-items: center !important; min-height: 28px !important; padding: 4px 10px !important;
+    border: 1px solid #dfe9e3 !important; border-radius: 10px !important; background: #fff !important;
+    font-size: 11px !important; font-weight: 500 !important; text-decoration: none !important; line-height: 1.2 !important;
+  }
+}
