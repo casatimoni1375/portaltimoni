@@ -436,3 +436,12 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main .grid { gap: 8px !important; }
   html body main section h2 { font-weight: 500 !important; }
 }
+
+/* Celular: menu inferior mais baixo e delicado (padrão Fluxo) */
+@media (max-width: 767px) {
+  html body .ct-clean-bottom { padding: 4px 2px max(4px, env(safe-area-inset-bottom)) !important; }
+  html body .ct-clean-bottom .ct-clean-nav-link { min-height: 44px !important; gap: 2px !important; padding: 4px 2px !important; font-size: 10px !important; font-weight: 500 !important; }
+  html body .ct-clean-bottom .ct-clean-nav-link svg { width: 18px !important; height: 18px !important; }
+  html body .ct-clean-bottom .ct-clean-nav-link > small { font-size: 9px !important; }
+  html body .ct-clean-spacer, html body body:has(.ct-clean-navigation) { padding-bottom: 60px !important; }
+}
