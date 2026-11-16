@@ -350,7 +350,7 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
       {tipo === "Retirada"
-        ? <span className={base} style={{ background: "#ECE8F7", color: "#534AB7" }}>Coleta</span>
+        ? <span className={base} style={{ background: "#FFF1B8", color: "#7A5A00" }}>Coleta</span>
         : <span className={base} style={{ background: "#E3EEFB", color: "#185FA5" }}>Entrega</span>}
       {rotuloEmpresa && (ehCasaTimoni
         ? <span className={base} style={{ background: "#DDF1EE", color: "#0F6E56" }}>{rotuloEmpresa}</span>

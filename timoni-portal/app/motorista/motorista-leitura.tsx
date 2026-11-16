@@ -152,6 +152,27 @@ function classeLinhaPrincipal(_v: Viagem) {
   return "font-[Calibri] font-bold text-black";
 }
 
+const ETIQUETA_BASE = "rounded-full px-2.5 py-0.5 text-xs max-md:text-[10px] font-semibold";
+
+// Coleta em amarelo; Entrega em azul (padrão do módulo Motorista).
+function EtiquetaTipo({ tipo }: { tipo: string }) {
+  return tipo === "Retirada"
+    ? <span className={ETIQUETA_BASE} style={{ background: "#FFF1B8", color: "#7A5A00" }}>Coleta</span>
+    : <span className={ETIQUETA_BASE} style={{ background: "#E3EEFB", color: "#185FA5" }}>Entrega</span>;
+}
+
+// Casa Timoni em verde; MCR e Rodini em cinza (mesma cor entre elas).
+function EtiquetaEmpresa({ loja }: { loja?: string }) {
+  const valor = String(loja || "").trim();
+  const min = valor.toLocaleLowerCase("pt-BR");
+  if (!valor) return null;
+  const ehCasaTimoni = min === "casa timoni" || min === "araras" || min === "ct";
+  const texto = ehCasaTimoni ? "Casa Timoni" : min === "rio_claro" ? "Rio Claro" : valor;
+  return ehCasaTimoni
+    ? <span className={ETIQUETA_BASE} style={{ background: "#DDF1EE", color: "#0F6E56" }}>{texto}</span>
+    : <span className={ETIQUETA_BASE} style={{ background: "#EDEDEA", color: "#444441" }}>{texto}</span>;
+}
+
 function linhaPrincipal(v: Viagem) {
   return [
     lerTipo(v.notasJson) === "Retirada" ? "Coleta" : "Entrega",
@@ -279,7 +300,12 @@ export default function MotoristaLeitura() {
                             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-slate-700 shadow-sm">{index + 1}</span>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <p className={`text-xs max-md:text-[10px] ${classeLinhaPrincipal(v)}`}>{linhaPrincipal(v)}</p>
+                                <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                                  <EtiquetaTipo tipo={lerTipo(v.notasJson)} />
+                                  <EtiquetaEmpresa loja={v.loja} />
+                                  {v.tipoHorario === "Bloqueio" ? <span className="rounded-full bg-slate-200 px-2 py-px text-[10px] font-semibold text-slate-700">Bloqueio</span> : null}
+                                  {v.vendedor ? <span className="text-xs max-md:text-[10px] text-slate-600">Vend.: {v.vendedor}</span> : null}
+                                </div>
                                 {!bloqueio && concluida(v.notasJson) && <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">Concluído</span>}
                               </div>
                               <p className="mt-2 text-xs max-md:text-[10px] font-bold uppercase text-slate-900">
