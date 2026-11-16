@@ -1,7 +1,7 @@
-function splitNoticeTitle(raw:string):string[]{const parts=raw.split(/\s+-\s+/).map(p=>p.trim()).filter(Boolean);return parts.map((p,i)=>i===0?p.toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):p.replace(/\.$/,"").toLowerCase());}
 "use client";
 import Link from "next/link";
 import {useCallback,useEffect,useMemo,useState} from "react";
+function splitNoticeTitle(raw:string):string[]{const parts=raw.split(/\s+-\s+/).map(p=>p.trim()).filter(Boolean);return parts.map((p,i)=>i===0?p.toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):p.replace(/\.$/,"").toLowerCase());}
 
 type Unit="geral"|"araras"|"rio claro";
 type Notice={id:string;createdAt:string;unit:Unit;title:string;message:string;status:"ativo"|"arquivado";startsAt:string;expiresAt:string;imageDataUrl?:string};
