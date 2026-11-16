@@ -60,22 +60,21 @@ type FormState = {
 
 type Modo = "dia" | "semana" | "mes";
 
-type VendedorOption = { nome: string; unidade: string };
-const RESPONSAVEIS_RIO_CLARO: string[] = [
-  "Ciça",
+// Lista unica usada em Vendedor e em Preenchido por (decisao da gestao, 16/11/2026).
+// Antes eram duas listas diferentes: Preenchido por era fixa e separada em Rio Claro e
+// Araras; Vendedor vinha do cadastro de colaboradores e nao batia com ela.
+const RESPONSAVEIS: string[] = [
   "Bruna",
-  "Jeovana",
-  "Jaqueline",
-  "Marcelo",
-];
-
-const RESPONSAVEIS_ARARAS: string[] = [
-  "Reginaldo",
-  "Margareth",
-  "Reinaldo",
-  "Paulo",
   "Carol",
+  "Ciça",
+  "Jaqueline",
+  "Jeovana",
   "Lyra",
+  "Marcelo",
+  "Margareth",
+  "Paulo",
+  "Reginaldo",
+  "Reinaldo",
   "Yan",
 ];
 
@@ -498,7 +497,6 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
   const [invalidos, setInvalidos] = useState<Set<keyof FormState>>(new Set());
-  const [opcoesVendedores, setOpcoesVendedores] = useState<VendedorOption[]>([]);
   const [layoutViewport, setLayoutViewport] = useState<"mobile" | "tablet" | "desktop">("desktop");
   const leituraAtual = useRef<ReturnType<typeof createMotoristaReadLoader> | null>(null);
   const ativo = useRef(false);
@@ -541,34 +539,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           : desktop,
   });
 
-  const [vendedoresIndisponiveis, setVendedoresIndisponiveis] = useState(false);
-  const vendedoresDisponiveis = useMemo(() => {
-    const nomes = new Map<string, string>();
-    for (const vendedor of opcoesVendedores) {
-      const nome = String(vendedor.nome || "").trim();
-      const chave = nome.toLocaleLowerCase("pt-BR");
-      if (nome && !nomes.has(chave)) nomes.set(chave, nome);
-    }
-    return [...nomes.values()].sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-  }, [opcoesVendedores]);
 
-  useEffect(() => {
-    let ativo = true;
-    void fetch("/api/agenda-motorista-vendedores", { cache: "no-store" })
-      .then(parseResponse)
-      .then((body) => {
-        if (!ativo) return;
-        setOpcoesVendedores(Array.isArray(body.vendedores) ? body.vendedores : []);
-        setVendedoresIndisponiveis(body.fonte === "indisponivel");
-      })
-      .catch(() => {
-        // A agenda continua disponível; sem a lista, o campo Vendedor avisa que ela está indisponível.
-        if (ativo) setVendedoresIndisponiveis(true);
-      });
-    return () => {
-      ativo = false;
-    };
-  }, []);
   const carregarDias = useCallback(async (datas: string[]) => {
     if (!ativo.current) return;
     leituraAtual.current?.dispose();
@@ -962,7 +933,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select>{mensagemCampo("tipo")}</label>
               <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("loja")}</label>
               <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required />{mensagemCampo("data")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !vendedoresDisponiveis.some((nome) => nome === form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{vendedoresDisponiveis.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{vendedoresIndisponiveis && vendedoresDisponiveis.length === 0 && <span className="mt-1 block text-xs max-md:text-[10px] font-normal text-amber-700">Lista de vendedores indisponível no momento. Avise a gestão.</span>}{mensagemCampo("vendedor")}</label>
+              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !RESPONSAVEIS.includes(form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{RESPONSAVEIS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("vendedor")}</label>
             </div>
 
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -999,7 +970,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             </div>
 
             <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="block min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Preenchido por:{actorName ? <input readOnly value={editandoId ? form.preenchidoPor : actorName} className={fieldClass("preenchidoPor")} /> : <select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && ![...RESPONSAVEIS_RIO_CLARO, ...RESPONSAVEIS_ARARAS].includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}<optgroup label="Rio Claro">{RESPONSAVEIS_RIO_CLARO.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup><optgroup label="Araras">{RESPONSAVEIS_ARARAS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</optgroup></select>}</label>
+              <label className="block min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Preenchido por:{actorName ? <input readOnly value={editandoId ? form.preenchidoPor : actorName} className={fieldClass("preenchidoPor")} /> : <select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && !RESPONSAVEIS.includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}{RESPONSAVEIS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>}</label>
               <label className="block min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Forma de pagamento:<select value={form.pagamento} onChange={(e) => set("pagamento", e.target.value as FormState["pagamento"])} className={fieldClass("pagamento")}><option value="">Selecione</option><option value="Boleto">Boleto</option><option value="Debite">Debite</option><option value="Pago">Pago</option><option value="Receber">Receber</option></select></label>
             </div>
 
