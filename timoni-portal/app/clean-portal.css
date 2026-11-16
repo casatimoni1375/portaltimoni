@@ -422,3 +422,17 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body main section.ct-clean-card h2, html body main .ct-clean-card-heading h2, html body main section h2 { font-size: 15px !important; font-weight: 500 !important; }
   html body main .ct-clean-card-heading > a, html body main section > div > a { font-size: 11px !important; font-weight: 500 !important; }
 }
+
+/* Celular (todas as páginas): campos e botões compactos no padrão Fluxo */
+@media (max-width: 767px) {
+  html body main input:not([type="checkbox"]):not([type="radio"]), html body main select, html body main textarea {
+    font-size: 12.5px !important; font-weight: 400 !important; min-height: 36px !important;
+    padding: 6px 10px !important; border-radius: 10px !important; line-height: 1.4 !important;
+  }
+  html body main textarea { min-height: 64px !important; }
+  html body main label, html body main label span { font-size: 11px !important; font-weight: 500 !important; line-height: 1.35 !important; }
+  html body main button, html body main a[role="button"] { min-height: 34px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
+  html body main form > * + *, html body main form .space-y-4 > * + * { margin-top: 8px !important; }
+  html body main .grid { gap: 8px !important; }
+  html body main section h2 { font-weight: 500 !important; }
+}
