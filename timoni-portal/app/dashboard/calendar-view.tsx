@@ -136,12 +136,13 @@ function AgendaRow({
     >
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
-        <p className="truncate pr-24 text-[17px] font-medium text-[#182443]">
+        <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "pr-24")}>
           {event.summary}
           {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>
+        {!compact && <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
+          {compact && <span className="shrink-0 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
