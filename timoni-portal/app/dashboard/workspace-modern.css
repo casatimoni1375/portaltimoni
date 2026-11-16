@@ -8,7 +8,7 @@
   font-size: 16px;
   line-height: 1.5;
 }
-main .ct-modern-workspace :is(h1, h2, h3) { color: #14038d; }
+main .ct-modern-workspace :is(h1, h2, h3) { color: #102a83; }
 main .ct-modern-workspace h1 { font-size: 32px !important; line-height: 1.2 !important; }
 main .ct-modern-workspace h2 { font-size: 21px !important; line-height: 1.3 !important; }
 main .ct-modern-workspace h3 { font-size: 17px !important; line-height: 1.4 !important; }
@@ -39,8 +39,8 @@ main .ct-modern-workspace h3 { font-size: 17px !important; line-height: 1.4 !imp
 .ct-modern-workspace :is(td, th) { padding: 14px 18px !important; }
 .ct-modern-workspace .overflow-x-auto { max-width: 100%; }
 /* Calendários recebem apenas hierarquia de títulos, mantendo a geometria dos dias. */
-.ct-modern-calendar h1 { color: #14038d; font-size: 32px !important; line-height: 1.2 !important; }
-.ct-modern-calendar :is(h2, h3) { color: #14038d; }
+.ct-modern-calendar h1 { color: #102a83; font-size: 32px !important; line-height: 1.2 !important; }
+.ct-modern-calendar :is(h2, h3) { color: #102a83; }
 .ct-modern-calendar :is(button, a, input, select, textarea):focus-visible {
   outline: 3px solid #a898ff;
   outline-offset: 3px;
