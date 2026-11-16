@@ -539,3 +539,8 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
     font-size: 11px !important; font-weight: 500 !important; text-decoration: none !important; line-height: 1.2 !important;
   }
 }
+
+/* Celular: zoom do Portal reduzido (fontes, boxes e campos menores em todas as páginas) */
+@media (max-width: 767px) {
+  html { zoom: 0.85; }
+}
