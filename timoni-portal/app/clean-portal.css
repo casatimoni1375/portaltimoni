@@ -595,3 +595,14 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
     border: 0 !important; border-color: transparent !important; box-shadow: none !important; background: transparent !important; border-radius: 0 !important; padding: 0 0 4px !important;
   }
 }
+
+/* Celular: aba ativa das etapas volta com fundo e texto de destaque */
+@media (max-width: 767px) {
+  html body main a[aria-current="page"] { background: var(--ct-clean-blue) !important; color: #fff !important; border-color: var(--ct-clean-blue) !important; }
+}
+
+/* Celular: comunicados com o mesmo tamanho dos textos de Aniversários e Férias */
+@media (max-width: 767px) {
+  html body .ct-notice-headline, html body .ct-notice-title { font-size: 15px !important; font-weight: 500 !important; line-height: 1.3 !important; }
+  html body .ct-notice-subline { font-size: 13.5px !important; font-weight: 400 !important; }
+}
