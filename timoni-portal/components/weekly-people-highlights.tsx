@@ -63,7 +63,7 @@ export function WeeklyPeopleCards({ events, now = new Date(), unavailable = fals
   const { birthdays, vacations } = selectWeeklyPeople(events, now);
   const duplicates = possibleDuplicates(events.filter(event => normalizedText(event.summary).includes("anivers")), event => `${normalizedText(clean(event.summary))}:${format(event.start)}`);
   return <section className="ct-weekly-people" aria-label="Aniversários e férias da equipe">
-    {duplicates.length > 0 && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Possíveis aniversários duplicados na Agenda CT: {duplicates.map(group => group[0].summary).join("; ")}. Confira os registros na Agenda. Nenhum evento foi apagado.</p>}
+    {duplicates.length > 0 && <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm max-md:text-[11px] text-amber-900">Possíveis aniversários duplicados na Agenda CT: {duplicates.map(group => group[0].summary).join("; ")}. Confira os registros na Agenda. Nenhum evento foi apagado.</p>}
     {([{ title: "Aniversários da semana", subtitle: "Datas para celebrar com a equipe", events: birthdays, vacations: false },
       { title: "Férias da semana", subtitle: "Ausências e próximos retornos", events: vacations, vacations: true }]).map(group => <article className="ct-weekly-card" id={group.vacations ? "ct-ferias" : "ct-aniversarios"} key={group.title}>
       <div className="ct-weekly-heading"><h2>{group.title}</h2><p>{group.subtitle}</p></div>

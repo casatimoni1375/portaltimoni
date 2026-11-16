@@ -66,21 +66,21 @@ export default function GuiaBackupClient() {
       <section id="backup" className="mb-5 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">Backup</h2>
-            <p className="mt-0.5 text-xs text-slate-600">Gerar ou recuperar o backup do Portal Timoni.</p>
+            <h2 className="text-base max-md:text-[12.5px] font-semibold text-slate-950">Backup</h2>
+            <p className="mt-0.5 text-xs max-md:text-[10px] text-slate-600">Gerar ou recuperar o backup do Portal Timoni.</p>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <button type="button" onClick={() => void downloadBackup()} disabled={Boolean(busy)} className="min-h-10 rounded-xl bg-[#13038D] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+            <button type="button" onClick={() => void downloadBackup()} disabled={Boolean(busy)} className="min-h-10 rounded-xl bg-[#13038D] px-4 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50">
               {busy === "backup" ? "Gerando..." : "Backup"}
             </button>
-            <button type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(busy)} className="min-h-10 rounded-xl border border-[#13038D] bg-white px-4 py-2 text-sm font-semibold text-[#13038D] disabled:opacity-50">
+            <button type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(busy)} className="min-h-10 rounded-xl border border-[#13038D] bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-[#13038D] disabled:opacity-50">
               {busy === "restore" ? "Recuperando..." : "Recuperar backup"}
             </button>
             <input ref={inputRef} type="file" accept=".zip,application/zip" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restoreBackup(file); }} />
           </div>
         </div>
-        {message && <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">{message}</p>}
-        {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>}
+        {message && <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs max-md:text-[10px] font-medium text-emerald-800">{message}</p>}
+        {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs max-md:text-[10px] font-medium text-red-700">{error}</p>}
       </section>
 
     </>

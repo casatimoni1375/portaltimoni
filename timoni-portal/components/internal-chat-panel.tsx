@@ -304,17 +304,17 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
         <button type="button" className="absolute inset-0" onClick={onClose} aria-label="Fechar chat" />
         <section ref={panelRef} className="relative w-[92%] max-w-[390px] rounded-tl-xl border border-slate-200 bg-white p-4 shadow-2xl sm:h-full sm:w-[420px] sm:max-w-[420px] sm:rounded-none">
           <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
-            <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-blue-700">Casa Timoni</p><h2 className="mt-1 text-base font-semibold text-slate-950">Identificação do Chat</h2></div>
-            <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100">Fechar</button>
+            <div><p className="text-[11px] font-semibold uppercase tracking-[.14em] text-blue-700">Casa Timoni</p><h2 className="mt-1 text-base max-md:text-[12.5px] font-semibold text-slate-950">Identificação do Chat</h2></div>
+            <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm max-md:text-[11px] text-slate-500 hover:bg-slate-100">Fechar</button>
           </div>
           {identities.length ? (
             <div className="mt-4">
-              <p className="text-sm text-slate-600">Selecione quem está usando este acesso. Apenas colaboradores com Chat liberado em Configurações aparecem aqui.</p>
+              <p className="text-sm max-md:text-[11px] text-slate-600">Selecione quem está usando este acesso. Apenas colaboradores com Chat liberado em Configurações aparecem aqui.</p>
               <div className="mt-3 space-y-2">
-                {identities.map((identity) => <button key={identity.id} type="button" onClick={() => { setActorId(identity.id); setSelected(null); setMessages([]); }} className="flex w-full items-center justify-between rounded-xl border border-blue-200 px-3 py-3 text-left text-sm font-semibold text-[#0F2D8F] hover:bg-blue-50"><span>{identity.name}</span><span className="text-xs font-normal text-slate-500">{identity.unit || ""}</span></button>)}
+                {identities.map((identity) => <button key={identity.id} type="button" onClick={() => { setActorId(identity.id); setSelected(null); setMessages([]); }} className="flex w-full items-center justify-between rounded-xl border border-blue-200 px-3 py-3 text-left text-sm max-md:text-[11px] font-semibold text-[#0F2D8F] hover:bg-blue-50"><span>{identity.name}</span><span className="text-xs max-md:text-[10px] font-normal text-slate-500">{identity.unit || ""}</span></button>)}
               </div>
             </div>
-          ) : <p className="mt-6 rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-600">Chat não liberado para nenhum colaborador vinculado a este acesso.</p>}
+          ) : <p className="mt-6 rounded-xl bg-slate-50 px-4 py-5 text-sm max-md:text-[11px] text-slate-600">Chat não liberado para nenhum colaborador vinculado a este acesso.</p>}
         </section>
       </div>
     );
@@ -325,14 +325,14 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
       <div className="pointer-events-none fixed inset-x-3 bottom-3 z-[80] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:z-[100]">
         <section className="pointer-events-auto flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 shadow-2xl sm:w-80">
           <button type="button" onClick={() => setMinimized(false)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2296E8] text-base text-white">☰</span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2296E8] text-base max-md:text-[12.5px] text-white">☰</span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-[#0F2D8F]">Chat interno</span>
-              <span className="block text-xs text-slate-500">Toque para restaurar</span>
+              <span className="block truncate text-sm max-md:text-[11px] font-semibold text-[#0F2D8F]">Chat interno</span>
+              <span className="block text-xs max-md:text-[10px] text-slate-500">Toque para restaurar</span>
             </span>
-            {overview.totalUnread > 0 ? <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{overview.totalUnread}</span> : null}
+            {overview.totalUnread > 0 ? <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs max-md:text-[10px] font-bold text-white">{overview.totalUnread}</span> : null}
           </button>
-          <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-slate-500 hover:bg-slate-100" aria-label="Fechar chat">×</button>
+          <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full text-xl max-md:text-[15px] text-slate-500 hover:bg-slate-100" aria-label="Fechar chat">×</button>
         </section>
       </div>
     );
@@ -367,7 +367,7 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
-            {filteredContacts.length === 0 ? <p className="px-3 py-8 text-center text-sm text-slate-500">Nenhuma conversa encontrada.</p> : null}
+            {filteredContacts.length === 0 ? <p className="px-3 py-8 text-center text-sm max-md:text-[11px] text-slate-500">Nenhuma conversa encontrada.</p> : null}
             {filteredContacts.map((item) => {
               const hasUnread = item.unread > 0;
               const isSelected = item.id === selected;
@@ -392,14 +392,14 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
         </aside>
         <div className={`${selected ? "flex" : "hidden sm:flex"} min-w-0 flex-1 flex-col`}>
           <div className="flex min-h-10 shrink-0 items-center gap-1.5 border-b border-slate-200 bg-white px-2.5 sm:min-h-12 sm:gap-3 sm:px-4">
-            <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl font-semibold text-[#0F2D8F] sm:hidden" aria-label="Voltar para contatos" onClick={() => { setSelected(null); setMessages([]); }}>←</button>
+            <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xl max-md:text-[15px] font-semibold text-[#0F2D8F] sm:hidden" aria-label="Voltar para contatos" onClick={() => { setSelected(null); setMessages([]); }}>←</button>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-semibold text-slate-950 sm:text-[11.5px] sm:text-black">{contact?.name || "Selecione uma conversa"}</p>
               <p className="truncate text-[10px] text-slate-500 sm:text-[8px]">{contact?.lastMessageAt ? `Última atividade ${formatActivity(contact.lastMessageAt)}` : "Chat interno · equipe autorizada"}</p>
             </div>
             {contact ? <button type="button" disabled={conversationAction} className="shrink-0 rounded-lg px-1.5 py-2 text-[10px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50 sm:px-2 sm:text-xs" onClick={() => void clearConversation()}>{conversationAction ? "Excluindo" : <><span className="sm:hidden">Excluir</span><span className="hidden sm:inline">Excluir chat</span></>}</button> : null}
-            <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-[#0F2D8F] hover:bg-blue-50" onClick={() => setMinimized(true)} title="Minimizar chat" aria-label="Minimizar chat">−</button>
-            <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg text-slate-500 hover:bg-slate-100 sm:h-auto sm:w-auto sm:rounded-lg sm:px-3 sm:py-2 sm:text-sm" onClick={onClose} aria-label="Fechar chat"><span className="sm:hidden">×</span><span className="hidden sm:inline">Fechar</span></button>
+            <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg max-md:text-[14px] font-semibold text-[#0F2D8F] hover:bg-blue-50" onClick={() => setMinimized(true)} title="Minimizar chat" aria-label="Minimizar chat">−</button>
+            <button type="button" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg max-md:text-[14px] text-slate-500 hover:bg-slate-100 sm:h-auto sm:w-auto sm:rounded-lg sm:px-3 sm:py-2 sm:text-sm" onClick={onClose} aria-label="Fechar chat"><span className="sm:hidden">×</span><span className="hidden sm:inline">Fechar</span></button>
           </div>
           <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto bg-slate-50/50 px-3 py-3 sm:px-4">
             {messages.length === 0 ? (
@@ -423,7 +423,7 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
                           <button
                             type="button"
                             onClick={() => setActiveMessageMenu((value) => value === message.id ? null : message.id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none text-[#0F2D8F]/65 hover:bg-blue-50 hover:text-[#0F2D8F] sm:h-7 sm:w-7"
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-lg max-md:text-[14px] leading-none text-[#0F2D8F]/65 hover:bg-blue-50 hover:text-[#0F2D8F] sm:h-7 sm:w-7"
                             aria-label="Opções da mensagem"
                             disabled={messageAction === message.id}
                           >
@@ -431,8 +431,8 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
                           </button>
                           {activeMessageMenu === message.id ? (
                             <div className="absolute right-0 top-8 z-10 w-28 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
-                              <button type="button" onClick={() => startEditingMessage(message)} className="block w-full px-3 py-2 text-left text-xs font-medium text-[#0F2D8F] hover:bg-blue-50">Editar</button>
-                              <button type="button" onClick={() => void removeMessage(message)} className="block w-full px-3 py-2 text-left text-xs font-medium text-red-600 hover:bg-red-50">Excluir</button>
+                              <button type="button" onClick={() => startEditingMessage(message)} className="block w-full px-3 py-2 text-left text-xs max-md:text-[10px] font-medium text-[#0F2D8F] hover:bg-blue-50">Editar</button>
+                              <button type="button" onClick={() => void removeMessage(message)} className="block w-full px-3 py-2 text-left text-xs max-md:text-[10px] font-medium text-red-600 hover:bg-red-50">Excluir</button>
                             </div>
                           ) : null}
                         </div>
@@ -444,14 +444,14 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
             )}
           </div>
           <div data-chat-footer className="shrink-0 border-t border-slate-200 bg-white p-2 pb-[max(0.45rem,env(safe-area-inset-bottom))] sm:p-3">
-            {error ? <p className="mb-2 text-xs font-medium text-red-600">{error}</p> : null}
+            {error ? <p className="mb-2 text-xs max-md:text-[10px] font-medium text-red-600">{error}</p> : null}
             {editingMessage ? (
               <div className="mb-2 flex items-center justify-between rounded-xl border border-[#85B7EB] bg-white px-3 py-2">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-[#0F2D8F]">Editando mensagem</p>
-                  <p className="truncate text-xs text-slate-600">{editingMessage.body}</p>
+                  <p className="text-xs max-md:text-[10px] font-semibold text-[#0F2D8F]">Editando mensagem</p>
+                  <p className="truncate text-xs max-md:text-[10px] text-slate-600">{editingMessage.body}</p>
                 </div>
-                <button type="button" onClick={() => { setEditingMessage(null); setDraft(""); }} className="ml-2 rounded-lg px-2 py-1 text-xs font-medium text-[#0F2D8F] hover:bg-white">Cancelar</button>
+                <button type="button" onClick={() => { setEditingMessage(null); setDraft(""); }} className="ml-2 rounded-lg px-2 py-1 text-xs max-md:text-[10px] font-medium text-[#0F2D8F] hover:bg-white">Cancelar</button>
               </div>
             ) : null}
             <div data-chat-composer className="flex min-w-0 items-end gap-1.5 overflow-hidden rounded-xl border border-[#2296E8]/30 bg-white p-1.5 shadow-sm focus-within:border-[#2296E8] sm:gap-2 sm:rounded-2xl sm:p-2">

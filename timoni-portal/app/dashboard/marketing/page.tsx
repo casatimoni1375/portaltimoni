@@ -16,11 +16,11 @@ export default function MarketingPage() {
       <section className="rounded-3xl border border-pink-100 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-pink-700">Módulo operacional</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Marketing</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Central de acesso para campanhas, conteúdo, materiais e comunicação da Casa Timoni.</p>
+            <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-pink-700">Módulo operacional</p>
+            <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Marketing</h1>
+            <p className="mt-3 max-w-2xl text-sm max-md:text-[11px] leading-6 text-slate-600">Central de acesso para campanhas, conteúdo, materiais e comunicação da Casa Timoni.</p>
           </div>
-          <span className="w-fit rounded-full bg-pink-100 px-3 py-1.5 text-xs font-semibold text-pink-800">Disponível</span>
+          <span className="w-fit rounded-full bg-pink-100 px-3 py-1.5 text-xs max-md:text-[10px] font-semibold text-pink-800">Disponível</span>
         </div>
       </section>
 
@@ -28,17 +28,17 @@ export default function MarketingPage() {
         {frentes.map((frente) => (
           <article key={frente.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="font-semibold text-slate-900">{frente.title}</h2>
-            <p className="mt-2 min-h-16 text-sm leading-5 text-slate-500">{frente.description}</p>
-            <a href={frente.href} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700">{frente.action}</a>
+            <p className="mt-2 min-h-16 text-sm max-md:text-[11px] leading-5 text-slate-500">{frente.description}</p>
+            <a href={frente.href} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm max-md:text-[11px] font-semibold text-white transition hover:bg-pink-700">{frente.action}</a>
           </article>
         ))}
       </section>
 
       <section className="mt-5">
         <article className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Acompanhamento</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">Bruno MKT</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">Reuniões quinzenais e alinhamentos ficam registrados no Trello e no grupo oficial do WhatsApp.</p>
+          <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Acompanhamento</p>
+          <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-900">Bruno MKT</h2>
+          <p className="mt-3 text-sm max-md:text-[11px] leading-6 text-slate-600">Reuniões quinzenais e alinhamentos ficam registrados no Trello e no grupo oficial do WhatsApp.</p>
         </article>
       </section>
     </div>

@@ -21,7 +21,7 @@ function InternalChatMark({ className = "h-6 w-6" }: { className?: string }) {
 export default function ChatButton({ mobile = false, mobileHeader = false, onOpen }: { mobile?: boolean; mobileHeader?: boolean; onOpen?: () => void }) {
   const router = useRouter();
   const className = mobileHeader ? "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition active:bg-white/10"
-    : mobile ? "mt-1 flex min-h-9 w-full items-center border-t border-slate-200 px-2.5 pt-1 text-left text-sm text-slate-800"
+    : mobile ? "mt-1 flex min-h-9 w-full items-center border-t border-slate-200 px-2.5 pt-1 text-left text-sm max-md:text-[11px] text-slate-800"
       : "order-2 inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-1.5 transition hover:bg-white/10 sm:order-none";
   return <button type="button" className={className} aria-label="Abrir chat" title="Chat" onClick={() => { onOpen?.(); router.push("/dashboard/chat"); }}>
     {mobile && !mobileHeader ? <span>Chat</span> : <InternalChatMark className={mobileHeader ? "h-8 w-8" : "h-9 w-9"} />}

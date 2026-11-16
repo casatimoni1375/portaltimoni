@@ -60,12 +60,12 @@ export function EventCard({
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: calendarColor }} />
-            <span className="text-sm text-slate-500">{timeLabel}</span>
-            <span className="inline-flex max-w-full items-center break-words rounded-full border border-[#d7deeb] px-2 py-0.5 text-xs text-[#65718a]">
+            <span className="text-sm max-md:text-[11px] text-slate-500">{timeLabel}</span>
+            <span className="inline-flex max-w-full items-center break-words rounded-full border border-[#d7deeb] px-2 py-0.5 text-xs max-md:text-[10px] text-[#65718a]">
               {event.calendarLabel}
             </span>
           </div>
-          <p className="mt-2 break-words text-base font-medium text-[#182443]">
+          <p className="mt-2 break-words text-base max-md:text-[12.5px] font-medium text-[#182443]">
             {event.summary}
           </p>
           {concluido && <span className="mt-1 inline-flex"><Carimbo>Concluído</Carimbo></span>}

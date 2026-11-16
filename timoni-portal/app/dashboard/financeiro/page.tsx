@@ -38,16 +38,16 @@ export default function FinanceiroPage() {
   return (
     <div className="ct-modern-workspace pb-8">
       <section className="rounded-2xl border border-lime-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wider text-lime-700">Módulo operacional</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Financeiro</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-5 text-slate-600">
+        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-lime-700">Módulo operacional</p>
+        <h1 className="mt-1 text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Financeiro</h1>
+        <p className="mt-2 max-w-3xl text-sm max-md:text-[11px] leading-5 text-slate-600">
           Repositório de documentos e checklist de pendências financeiras da Casa Timoni.
         </p>
         <a
           href={FINANCE_FOLDER_URL}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex min-h-10 items-center rounded-xl bg-blue-800 px-4 text-sm font-semibold text-white hover:bg-blue-900"
+          className="mt-4 inline-flex min-h-10 items-center rounded-xl bg-blue-800 px-4 text-sm max-md:text-[11px] font-semibold text-white hover:bg-blue-900"
         >
           Abrir pasta Financeiro
         </a>
@@ -57,12 +57,12 @@ export default function FinanceiroPage() {
         {categories.map((category) => (
           <article key={category.title} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xl">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xl max-md:text-[15px]">
                 {category.icon}
               </span>
               <div>
-                <h2 className="text-base font-semibold text-slate-950">{category.title}</h2>
-                <p className="mt-1 text-sm leading-5 text-slate-600">{category.description}</p>
+                <h2 className="text-base max-md:text-[12.5px] font-semibold text-slate-950">{category.title}</h2>
+                <p className="mt-1 text-sm max-md:text-[11px] leading-5 text-slate-600">{category.description}</p>
               </div>
             </div>
           </article>
@@ -70,14 +70,14 @@ export default function FinanceiroPage() {
       </section>
 
       <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">Checklist de pendências</p>
+        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-slate-600">Checklist de pendências</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {checklist.map((item, index) => (
             <div key={item} className="flex gap-3 rounded-xl bg-slate-50 p-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs max-md:text-[10px] font-semibold text-white">
                 {index + 1}
               </span>
-              <p className="pt-0.5 text-sm text-slate-700">{item}</p>
+              <p className="pt-0.5 text-sm max-md:text-[11px] text-slate-700">{item}</p>
             </div>
           ))}
         </div>

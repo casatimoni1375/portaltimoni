@@ -72,8 +72,8 @@ export default function AvisosRequiredGate() {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/95 p-6 text-center">
       <div className="max-w-md rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-lg">
-        <p className="text-lg font-semibold text-slate-950">Há avisos pendentes de leitura.</p>
-        <p className="mt-2 text-sm text-slate-700">
+        <p className="text-lg max-md:text-[14px] font-semibold text-slate-950">Há avisos pendentes de leitura.</p>
+        <p className="mt-2 text-sm max-md:text-[11px] text-slate-700">
           Confirme os avisos obrigatórios antes de continuar utilizando o Portal.
         </p>
       </div>

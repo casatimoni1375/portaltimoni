@@ -42,7 +42,7 @@ export default function MobilePortalHeader({ items, showUpdates, showChat, initi
         <PortalIcon name="menu" className="h-6 w-6" />
       </button>
       <Link href="/dashboard" className="flex items-center justify-start leading-none" aria-label="Casa Timoni — início">
-        <Image src="/logo-ct-oficial.png" alt="Casa Timoni" width={32} height={32} className="mr-2 h-8 w-8 object-contain" /><span className="text-sm font-bold tracking-tight">Portal Timoni</span>
+        <Image src="/logo-ct-oficial.png" alt="Casa Timoni" width={32} height={32} className="mr-2 h-8 w-8 object-contain" /><span className="text-sm max-md:text-[11px] font-bold tracking-tight">Portal Timoni</span>
       </Link>
       <div className="flex items-center justify-end gap-0.5">
         {null}

@@ -92,11 +92,11 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
       <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-md">
         <div className="rounded-xl border border-[#102a83]/40 bg-white px-4 py-3">
-          <p className="text-base text-slate-600">Enviados</p>
+          <p className="text-base max-md:text-[12.5px] text-slate-600">Enviados</p>
           <strong className="ct-clean-counter text-[#102a83]">{visibleOrders.length}</strong>
         </div>
         <div className="rounded-xl border border-[#b12532]/40 bg-white px-4 py-3">
-          <p className="text-base text-slate-600">Atrasados</p>
+          <p className="text-base max-md:text-[12.5px] text-slate-600">Atrasados</p>
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>
       </div>
@@ -116,21 +116,21 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
           return (
             <div key={currentUnit} className="min-w-0">
-              <h3 className="ct-notice-scope text-lg">{unitLabel(currentUnit)} · {orders.length}</h3>
+              <h3 className="ct-notice-scope text-lg max-md:text-[14px]">{unitLabel(currentUnit)} · {orders.length}</h3>
               <div className="mt-2 grid gap-2">
                 {orders.map((order) => (
                   <div key={order.id} className={`flex items-start justify-between gap-3 rounded-xl border bg-white px-3 py-3 ${orderTone(order)}`}>
                     <div className="min-w-0">
-                      <strong className="block break-words text-lg text-[#182443]">{order.nome}</strong>
-                      <small className="block text-base text-slate-500">Enviado: {dateOnly(order.enviadoEm)}</small>
-                      <small className="block text-base text-slate-500">Data prevista: {order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "Sem data"}</small>
+                      <strong className="block break-words text-lg max-md:text-[14px] text-[#182443]">{order.nome}</strong>
+                      <small className="block text-base max-md:text-[12.5px] text-slate-500">Enviado: {dateOnly(order.enviadoEm)}</small>
+                      <small className="block text-base max-md:text-[12.5px] text-slate-500">Data prevista: {order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "Sem data"}</small>
                     </div>
                     {isLate(order) ? <span className="ct-notice-stamp ct-stamp-late shrink-0">Atrasado</span> : !order.previsaoEntrega ? <span className="ct-notice-stamp ct-stamp-nodate shrink-0">Sem data</span> : null}
                   </div>
                 ))}
               </div>
-              {!loading && !orders.length && <p className="mt-2 text-base text-slate-500">Nenhum pedido enviado.</p>}
-              {loading && <p className="mt-2 text-base text-slate-500">Atualizando...</p>}
+              {!loading && !orders.length && <p className="mt-2 text-base max-md:text-[12.5px] text-slate-500">Nenhum pedido enviado.</p>}
+              {loading && <p className="mt-2 text-base max-md:text-[12.5px] text-slate-500">Atualizando...</p>}
             </div>
           );
         })}

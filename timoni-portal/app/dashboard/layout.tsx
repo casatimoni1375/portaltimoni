@@ -32,7 +32,7 @@ export default async function DashboardLayout({
           {reunioes && <Link href="/dashboard/reunioes">Reuniões</Link>}
           {estoque && <Link href="/dashboard/estoque">Estoque</Link>}
           {chat && <Link href="/dashboard/chat">Chat</Link>}
-          <span className="text-sm sm:ml-auto">{access.name} · {access.unit}</span>
+          <span className="text-sm max-md:text-[11px] sm:ml-auto">{access.name} · {access.unit}</span>
         </nav>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6">{children}</main>

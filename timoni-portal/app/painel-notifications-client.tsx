@@ -160,11 +160,11 @@ export default function PainelNotificationsClient({ email }: { email: string }) 
         type="button"
         onClick={() => setOpen(true)}
         aria-label={unreadCount ? unreadCount + " notificações não lidas" : "Abrir histórico de notificações"}
-        className="relative z-50 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white text-xl shadow-sm transition hover:bg-blue-50"
+        className="relative z-50 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white text-xl max-md:text-[15px] shadow-sm transition hover:bg-blue-50"
       >
         <span aria-hidden="true">🔔</span>
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1.5 py-0.5 text-center text-xs font-bold text-white">
+          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1.5 py-0.5 text-center text-xs max-md:text-[10px] font-bold text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -175,19 +175,19 @@ export default function PainelNotificationsClient({ email }: { email: string }) 
           <section className="max-h-[85vh] w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl">
             <header className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Central de novidades</p>
-                <h2 id="notification-title" className="mt-1 text-2xl font-semibold text-slate-950">
+                <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Central de novidades</p>
+                <h2 id="notification-title" className="mt-1 text-2xl max-md:text-[20px] font-semibold text-slate-950">
                   {unreadCount
                     ? unreadCount + (unreadCount === 1 ? " aviso não lido" : " avisos não lidos")
                     : "Nenhum aviso novo"}
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">Histórico recente: {items.length}</p>
+                <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Histórico recente: {items.length}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Fechar central de novidades"
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600"
+                className="rounded-full border border-slate-200 px-3 py-1.5 text-sm max-md:text-[11px] font-semibold text-slate-600"
               >
                 Fechar
               </button>
@@ -195,7 +195,7 @@ export default function PainelNotificationsClient({ email }: { email: string }) 
 
             <div className="max-h-[58vh] space-y-3 overflow-y-auto p-5">
               {items.length === 0 ? (
-                <p className="rounded-2xl bg-slate-50 p-5 text-center text-sm text-slate-500">Ainda não há novidades no histórico.</p>
+                <p className="rounded-2xl bg-slate-50 p-5 text-center text-sm max-md:text-[11px] text-slate-500">Ainda não há novidades no histórico.</p>
               ) : (
                 items.map((item) => {
                   const unread = unreadIds.has(item.id);
@@ -211,12 +211,12 @@ export default function PainelNotificationsClient({ email }: { email: string }) 
                           : "border-slate-200 bg-slate-50 hover:bg-slate-100")
                       }
                     >
-                      <span className={"text-xs font-semibold uppercase tracking-wider " + (unread ? "text-blue-700" : "text-slate-500")}>
+                      <span className={"text-xs max-md:text-[10px] font-semibold uppercase tracking-wider " + (unread ? "text-blue-700" : "text-slate-500")}>
                         {typeLabel(item.type)} · {unread ? "Novo" : "Lido"}
                       </span>
-                      <strong className="mt-1 block text-base text-slate-950">{item.title}</strong>
-                      <span className="mt-1 block text-sm leading-5 text-slate-700">{item.body}</span>
-                      <span className="mt-3 block text-xs font-semibold text-blue-800">Abrir →</span>
+                      <strong className="mt-1 block text-base max-md:text-[12.5px] text-slate-950">{item.title}</strong>
+                      <span className="mt-1 block text-sm max-md:text-[11px] leading-5 text-slate-700">{item.body}</span>
+                      <span className="mt-3 block text-xs max-md:text-[10px] font-semibold text-blue-800">Abrir →</span>
                     </button>
                   );
                 })
@@ -225,7 +225,7 @@ export default function PainelNotificationsClient({ email }: { email: string }) 
 
             {unreadCount > 0 && (
               <footer className="flex justify-end border-t border-slate-200 p-4">
-                <button type="button" onClick={markAllRead} className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white">
+                <button type="button" onClick={markAllRead} className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm max-md:text-[11px] font-semibold text-white">
                   Marcar novidades como lidas
                 </button>
               </footer>
