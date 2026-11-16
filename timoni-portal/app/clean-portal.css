@@ -542,5 +542,13 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
 
 /* Celular: zoom do Portal reduzido (fontes, boxes e campos menores em todas as páginas) */
 @media (max-width: 767px) {
-  html { zoom: 0.85; }
+  html { zoom: 0.8; }
+}
+
+/* Celular (todo o site): títulos de página sem contorno, para ganhar espaço */
+@media (max-width: 767px) {
+  html body main section:has(> h1), html body main article:has(> h1), html body main div:has(> h1),
+  html body main .ct-clean-today-heading, html body main header:has(> h1) {
+    border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 0 0 4px !important;
+  }
 }
