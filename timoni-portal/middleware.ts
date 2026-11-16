@@ -77,6 +77,10 @@ export default auth((request) => {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  if (pathname === "/colaboradores" || pathname.startsWith("/colaboradores/") || pathname.startsWith("/espaco-equipe")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   // Pedidos de Compra validates current saved permissions in its server page.
   // The JWT may still contain the permissions from before the last edit.
   if (pathname === "/agenda" && ["agenda", "agenda-ct", "reunioes"].some(module=>hasModuleAccess(request.auth?.user?.email,module as PortalModule,configuredUser))) return NextResponse.next();

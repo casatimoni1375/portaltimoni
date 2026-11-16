@@ -11,7 +11,6 @@ export function cleanNavigation(user: PortalUser): CleanNavItem[] {
     {href:"/agenda",label:"Agenda",key:"agenda",visible:has("agenda")||has("agenda-ct")},
     {href:"/dashboard/reunioes",label:"Reuniões",key:"reunioes",visible:has("reunioes")},
     {href:"/dashboard/leads",label:"Vendas Internas",key:"comercial",visible:has("leads")},
-    {href:"/colaboradores",label:"Equipe",key:"equipe",visible:has("painel")},
   ].filter(item=>item.visible).map(({href,label,key})=>({href,label,key}));
 }
 export function activeNavigation(path: string) {
@@ -21,6 +20,5 @@ export function activeNavigation(path: string) {
   if(path.startsWith("/dashboard/reunioes"))return "reunioes";
   if(path.startsWith("/agenda"))return "agenda";
   if(path.startsWith("/dashboard/leads"))return "comercial";
-  if(path.startsWith("/colaboradores")||path.startsWith("/espaco-equipe"))return "equipe";
   return "hoje";
 }

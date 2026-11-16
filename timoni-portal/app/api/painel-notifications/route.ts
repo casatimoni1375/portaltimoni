@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
           type: "comunicado",
           title: notice.title,
           body: notice.message.slice(0, 140),
-          url: "/colaboradores",
+          url: "/dashboard",
         });
       }
     } catch (error) {
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
           type: "mensagem",
           title: "Nova mensagem no Painel Timoni",
           body: message.message.slice(0, 120),
-          url: "/colaboradores",
+          url: "/dashboard",
         });
       }
     } catch (error) {

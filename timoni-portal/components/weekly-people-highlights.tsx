@@ -70,7 +70,7 @@ export function WeeklyPeopleCards({ events, now = new Date(), unavailable = fals
       {loading ? <p className="ct-weekly-empty" role="status">Carregando informações da semana…</p> : unavailable ? <p className="ct-weekly-empty" role="status">Não foi possível carregar agora. Tente novamente em instantes.</p> : group.events.length ? <ul>{group.events.map(event => <li key={`${event.calendarKey}-${event.id}`}>
         <div><strong>{clean(event.summary)}</strong><small>{group.vacations ? `${format(event.start)} a ${format(event.end)}` : format(event.start)}</small></div>
         <span className={group.vacations ? "ct-people-badge ct-people-vacations" : "ct-people-badge"}>{group.vacations ? "Em férias" : "Nesta semana"}</span>
-      </li>)}</ul> : <p className="ct-weekly-empty">Nenhum registro nesta semana. <a className="font-medium text-[#14038D] underline" href="/colaboradores#proximas-datas">Ver próximos registros</a></p>}
+      </li>)}</ul> : <p className="ct-weekly-empty">Nenhum registro nesta semana. <a className="font-medium text-[#14038D] underline" href="/dashboard">Ver próximos registros</a></p>}
     </article>)}
   </section>;
 }

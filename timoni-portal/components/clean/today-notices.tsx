@@ -1,5 +1,6 @@
 "use client";
-import Link from "next/link";
+import ComunicadosAdmin from "@/app/colaboradores/comunicados-admin";
+import "@/app/colaboradores/panel-modern.css";
 import {useCallback,useEffect,useMemo,useState} from "react";
 function splitNoticeTitle(raw:string):string[]{const parts=raw.split(/\s+-\s+/).map(p=>p.trim()).filter(Boolean);return parts.map((p,i)=>i===0?p.toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):p.replace(/\.$/,"").toLowerCase());}
 
@@ -21,7 +22,7 @@ function withinEnd(value:string,now=Date.now()){if(!value)return true;const date
  */
 export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{store:Unit;isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]}){
  const [items,setItems]=useState<Notice[]>([]),[completed,setCompleted]=useState<string[]>([]),[unsigned,setUnsigned]=useState<string[]>([]),[readers,setReaders]=useState<Record<string,Reader[]>>({});
- const [open,setOpen]=useState(""),[employee,setEmployee]=useState(""),[busy,setBusy]=useState(""),[feedback,setFeedback]=useState<{id:string;text:string;ok:boolean}|null>(null),[error,setError]=useState(""),[showArchived,setShowArchived]=useState(false),[loaded,setLoaded]=useState(false),[image,setImage]=useState("");
+ const [manage,setManage]=useState(false),[open,setOpen]=useState(""),[employee,setEmployee]=useState(""),[busy,setBusy]=useState(""),[feedback,setFeedback]=useState<{id:string;text:string;ok:boolean}|null>(null),[error,setError]=useState(""),[showArchived,setShowArchived]=useState(false),[loaded,setLoaded]=useState(false),[image,setImage]=useState("");
 
  const load=useCallback(async()=>{try{
   const [noticesResponse,readsResponse]=await Promise.all([fetch("/api/comunicados",{cache:"no-store"}),fetch("/api/avisos-leituras",{cache:"no-store"})]);
@@ -75,8 +76,8 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
     {isAdmin&&<details className="ct-notice-admin"><summary>Quem leu ({list.length}) e opções</summary>
      {list.length?<ul>{list.map(reader=><li key={`${reader.unit}-${reader.employee}`}><b>{reader.employee}</b> · {reader.unit} · {fmtDateTime(reader.readAt)}</li>)}</ul>:<p className="ct-clean-muted">Ninguém confirmou ainda.</p>}
      <div className="ct-notice-admin-actions">
-      <Link href="/colaboradores#comunicados">Editar</Link>
-      {inArchive?(item.status==="arquivado"&&withinEnd(item.expiresAt)?<button type="button" disabled={busy===item.id} onClick={()=>void changeStatus(item.id,true)}>Reativar</button>:<Link href="/colaboradores#comunicados">Reativar (ajustar prazo)</Link>)
+      <button type="button" onClick={()=>setManage(true)}>Editar</button>
+      {inArchive?(item.status==="arquivado"&&withinEnd(item.expiresAt)?<button type="button" disabled={busy===item.id} onClick={()=>void changeStatus(item.id,true)}>Reativar</button>:<button type="button" onClick={()=>setManage(true)}>Reativar (ajustar prazo)</button>)
        :<button type="button" disabled={busy===item.id} onClick={()=>void changeStatus(item.id,false)}>Arquivar</button>}
      </div>
     </details>}
@@ -85,10 +86,11 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   </li>;};
 
  return <section className="ct-clean-card ct-today-notices ct-tone-card ct-tone-red ct-m-order-2" aria-label="Comunicados">
-  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<Link href="/colaboradores#comunicados">+ Novo</Link>}</div>
+  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<button type="button" onClick={()=>setManage(v=>!v)}>{manage?"Fechar":"+ Novo"}</button>}</div>
   {error&&<p className="ct-notice-error">{error}</p>}
   {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}
   {isAdmin&&archived.length>0&&<div className="ct-notice-archive"><button type="button" onClick={()=>setShowArchived(value=>!value)} aria-expanded={showArchived}>{showArchived?"Ocultar arquivados":`Arquivados (${archived.length})`}</button>{showArchived&&<ul>{archived.map(item=>row(item,true))}</ul>}</div>}
+  {isAdmin&&manage&&<div className="ct-notice-manage"><ComunicadosAdmin/></div>}
   {image&&<div className="ct-notice-lightbox" onClick={()=>setImage("")}><button type="button" aria-label="Fechar imagem" onClick={()=>setImage("")}>✕</button><img src={image} alt="Imagem do comunicado ampliada" onClick={event=>event.stopPropagation()}/></div>}
  </section>;
 }

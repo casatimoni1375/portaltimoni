@@ -118,7 +118,16 @@ export async function GET() {
       isWithinDisplayEndDate(item.expiresAt, now) &&
       (isCicaAccess(context.email) || canViewComunicado(item, context.email, unit))
     );
-    const activeCount = activeItems.filter((item) => {
+    // Mesma regra da Hoje: só o comunicado mais recente de cada destino é exibido e pode ser confirmado.
+    const newestPerUnit = new Set<string>();
+    const shownItems = [...activeItems]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .filter((item) => {
+        if (newestPerUnit.has(item.unit)) return false;
+        newestPerUnit.add(item.unit);
+        return true;
+      });
+    const activeCount = shownItems.filter((item) => {
       const membersForNotice = requiredMembers.filter((member) =>
         item.unit === "geral" ||
         (item.unit === "araras" && member.unit === "Araras") ||
