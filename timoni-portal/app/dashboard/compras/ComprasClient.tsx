@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BrazilianDateInput } from "@/components/ui/brazilian-date-input";
 
 const DRIVE_URL = "https://drive.google.com/drive/u/0/folders/1P7Nb1FwfSQ6e7TA9Wkgizyy53tGGQajk";
+// Espelha TRELLO_BOARD_URL de lib/trello.ts (não importar: lib/trello.ts é só servidor).
+const TRELLO_BOARD_URL = "https://trello.com/b/UfPrTr1H/compras";
 const STORAGE_KEY = "timoni_compras_portal_v4";
 
 type Unit = "rio_claro" | "araras";
@@ -302,14 +304,24 @@ export default function ComprasClient() {
               <h2 className="mt-2 text-base max-md:text-[12.5px] font-semibold text-slate-950">Pedidos pendentes</h2>
               <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => void loadTrello()}
-              disabled={loadingTrello}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800 disabled:opacity-50"
-            >
-              Atualizar
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={TRELLO_BOARD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800"
+              >
+                Abrir Trello
+              </a>
+              <button
+                type="button"
+                onClick={() => void loadTrello()}
+                disabled={loadingTrello}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800 disabled:opacity-50"
+              >
+                Atualizar
+              </button>
+            </div>
           </div>
 
           {trello.configured && (
