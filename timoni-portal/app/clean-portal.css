@@ -406,3 +406,13 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body .ct-clean-today-heading { margin-bottom: 10px !important; }
   html body .ct-clean-spacer { height: 52px !important; }
 }
+
+/* Hoje no celular: papéis exatos do Fluxo (título 20/500, seções 15/500, links 12, nomes 12.5/600) */
+@media (max-width: 767px) {
+  html body .ct-user-compact main .ct-clean-today-heading h1,
+  html body main section h1,
+  html body main h1 { font-size: 20px !important; font-weight: 500 !important; }
+  html body main section h2, html body main .ct-clean-card-heading h2 { font-size: 15px !important; font-weight: 500 !important; }
+  html body main section a, html body main .ct-clean-card a { font-size: 12px !important; font-weight: 500 !important; }
+  html body main section strong, html body main .ct-clean-card strong { font-size: 12.5px !important; font-weight: 600 !important; }
+}
