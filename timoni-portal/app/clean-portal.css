@@ -606,3 +606,10 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   html body .ct-notice-headline, html body .ct-notice-title { font-size: 15px !important; font-weight: 500 !important; line-height: 1.3 !important; }
   html body .ct-notice-subline { font-size: 13.5px !important; font-weight: 400 !important; }
 }
+
+/* Celular (todo o site): títulos de página iguais ao "Bom dia, Ciça." (20px, peso 500) */
+@media (max-width: 767px) {
+  html body main h1, html body main h1.text-3xl, html body main h1.text-2xl, html body main h1.text-4xl, html body .ct-clean-today-heading h1 {
+    font-size: 20px !important; font-weight: 500 !important; line-height: 1.25 !important;
+  }
+}
