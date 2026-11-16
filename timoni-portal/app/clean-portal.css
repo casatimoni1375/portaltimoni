@@ -579,3 +579,11 @@ main .ct-clean-card .text-3xl{font-size:28px!important;line-height:1.2!important
   }
   html body main section button, html body main article button { font-size: 12px !important; font-weight: 600 !important; }
 }
+
+/* Celular (todo o site): títulos de página no padrão da página Hoje aprovada (16px, peso 500) */
+@media (max-width: 767px) {
+  html body main h1, html body main h1.text-3xl, html body main h1.text-2xl, html body main h1.text-xl, html body main h1.text-4xl,
+  html body main header h1, html body main section h1 {
+    font-size: 16px !important; font-weight: 500 !important; line-height: 1.25 !important;
+  }
+}
