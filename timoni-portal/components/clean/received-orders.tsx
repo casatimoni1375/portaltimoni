@@ -19,7 +19,7 @@ export default function ReceivedOrders(){
    .catch(caught=>{if(!controller.signal.aborted)setError(caught.message);});
   return()=>controller.abort();
  },[]);
- return <section className="ct-clean-card">
+ return <section className="ct-compras-tab ct-clean-card">
   <div className="ct-clean-card-heading"><h2>Pedidos recebidos</h2><span className="text-base max-md:text-[12.5px] text-slate-500">Últimos 7 dias</span></div>
   {error&&<p role="status" className="ct-notice-error">{error}</p>}
   {!orders&&!error&&<p role="status" className="text-base max-md:text-[12.5px] text-slate-500">Carregando recebidos…</p>}
@@ -29,9 +29,9 @@ export default function ReceivedOrders(){
     return <div key={column.key} className="min-w-0">
      <h3 className={`text-lg max-md:text-[14px] font-semibold ${column.ink}`}>{column.label} · {list.length}</h3>
      <div className="mt-2 grid gap-2">
-      {list.map(order=><div key={order.id} className={`rounded-xl border bg-white px-3 py-3 ${column.band}`}>
+      {list.map(order=><div key={order.id} className={`ct-row rounded-xl border bg-white px-3 py-3 md:flex md:items-center md:justify-between md:gap-3 ${column.band}`}>
        <strong className="block break-words text-lg max-md:text-[14px] text-[#182443]">{order.nome}</strong>
-       <small className="block text-base max-md:text-[12.5px] text-slate-500">Concluído em {order.data?new Date(order.data).toLocaleDateString("pt-BR"):"data não informada"}</small>
+       <small className="ct-row-line2 block shrink-0 text-base max-md:text-[12.5px] text-slate-500">Concluído em {order.data?new Date(order.data).toLocaleDateString("pt-BR"):"data não informada"}</small>
       </div>)}
      </div>
      {list.length===0&&<p className="mt-2 text-base max-md:text-[12.5px] text-slate-500">Nenhum pedido recebido nos últimos 7 dias.</p>}

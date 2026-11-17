@@ -84,24 +84,24 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   // Araras à esquerda, Rio Claro à direita (desktop); no celular, uma coluna depois da outra.
   const columnUnits = (["araras", "rio_claro"] as const).filter((unit) => visibleUnits.includes(unit));
   return (
-    <section className="ct-clean-card">
+    <section className="ct-compras-tab ct-clean-card">
       <div className="ct-clean-card-heading">
         <h2>Pedidos enviados</h2>
         <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="ct-clean-action">Atualizar lista</button>
       </div>
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
       <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-md">
-        <div className="rounded-xl border border-[#102a83]/40 bg-white px-4 py-3">
+        <div className="ct-sent-count rounded-xl border border-[#102a83]/40 bg-white px-4 py-3">
           <p className="text-base max-md:text-[12.5px] text-slate-600">Enviados</p>
           <strong className="ct-clean-counter text-[#102a83]">{visibleOrders.length}</strong>
         </div>
-        <div className="rounded-xl border border-[#b12532]/40 bg-white px-4 py-3">
+        <div className="ct-sent-count rounded-xl border border-[#b12532]/40 bg-white px-4 py-3">
           <p className="text-base max-md:text-[12.5px] text-slate-600">Atrasados</p>
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>
       </div>
       {!loading && exceptions.length > 0 && (
-        <div className="ct-clean-exceptions">
+        <div className="ct-clean-exceptions md:hidden">
           <strong>Pedidos que exigem atenção</strong>
           {exceptions.map((item) => (
             <div key={`${item.id}-${item.tipo}`}>
@@ -119,11 +119,12 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
               <h3 className="ct-notice-scope text-lg max-md:text-[14px]">{unitLabel(currentUnit)} · {orders.length}</h3>
               <div className="mt-2 grid gap-2">
                 {orders.map((order) => (
-                  <div key={order.id} className={`flex items-start justify-between gap-3 rounded-xl border bg-white px-3 py-3 ${orderTone(order)}`}>
+                  <div key={order.id} className={`ct-row flex items-start justify-between gap-3 rounded-xl border bg-white px-3 py-3 ${orderTone(order)}`}>
                     <div className="min-w-0">
                       <strong className="block break-words text-lg max-md:text-[14px] text-[#182443]">{order.nome}</strong>
-                      <small className="block text-base max-md:text-[12.5px] text-slate-500">Enviado: {dateOnly(order.enviadoEm)}</small>
-                      <small className="block text-base max-md:text-[12.5px] text-slate-500">Data prevista: {order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "Sem data"}</small>
+                      <small className="block text-base max-md:text-[12.5px] text-slate-500 md:hidden">Enviado: {dateOnly(order.enviadoEm)}</small>
+                      <small className="block text-base max-md:text-[12.5px] text-slate-500 md:hidden">Data prevista: {order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "Sem data"}</small>
+                      <small className="ct-row-line2 hidden md:block">Enviado {dateOnly(order.enviadoEm)} · previsto {order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "sem data"}</small>
                     </div>
                     {isLate(order) ? <span className="ct-notice-stamp ct-stamp-late shrink-0">Atrasado</span> : !order.previsaoEntrega ? <span className="ct-notice-stamp ct-stamp-nodate shrink-0">Sem data</span> : null}
                   </div>
