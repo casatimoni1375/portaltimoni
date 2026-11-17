@@ -735,3 +735,16 @@ html body .ct-today-azul .ct-meeting-card{background:#fff!important;border:1px s
 html body .ct-today-azul .ct-meeting-card>:first-child{margin:-16px -20px 12px!important;padding:12px 20px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
 html body .ct-today-azul .ct-meeting-card>:first-child+div>div{background:#fff!important;border:1px solid #e1e6f0;}
 }
+/* 17/11: padrão da opção A no portal todo (desktop): quadro branco e faixa azul clara só no título.
+   Vale para Hoje, Compras, Estoque, Agenda, Reuniões, Equipe, Vendas Internas, Rotativo e o quadro externo do Motorista.
+   Só visual. Cores já aprovadas dentro dos quadros não mudam. Faixa só quando o primeiro bloco tem o título e há conteúdo depois. */
+@media(min-width:768px){
+html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card){background:#fff!important;border:1px solid #c9d8f0!important;border-radius:12px!important;box-shadow:none!important;}
+html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):is(:has(> :is(h1,h2,h3):first-child),:has(> :first-child :is(h1,h2,h3)):has(> :first-child + *)){padding:16px 20px!important;overflow:hidden;}
+html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):is(:has(> :is(h1,h2,h3):first-child),:has(> :first-child :is(h1,h2,h3)):has(> :first-child + *))>:first-child{margin:-16px -20px 12px!important;padding:12px 20px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
+}
+@media(min-width:768px){
+html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first-child + :is(h1,h2,h3)){padding:16px 20px!important;overflow:hidden;}
+html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first-child + :is(h1,h2,h3))>p:first-child{margin:-16px -20px 0!important;padding:12px 20px 0!important;background:#eef5ff;}
+html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first-child + :is(h1,h2,h3))>p:first-child+:is(h1,h2,h3){margin:0 -20px 12px!important;padding:2px 20px 12px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
+}
