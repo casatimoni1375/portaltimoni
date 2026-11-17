@@ -129,7 +129,7 @@ function AgendaRow({
   return (
     <div
       className={clsx(
-        "relative flex min-w-0 items-center gap-3 rounded-xl border bg-white px-3 py-2",
+        "relative flex min-w-0 items-center gap-3 rounded-xl border bg-white px-3 py-2 md:border-0",
         concluido && "opacity-60"
       )}
       style={{ borderColor: color }}
@@ -140,9 +140,9 @@ function AgendaRow({
           {event.summary}
           {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        {!compact && <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
+        {!compact && <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none md:hidden" style={{ color }}>{event.calendarLabel}</span>}
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {compact && <span className="shrink-0 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span>}
+          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
