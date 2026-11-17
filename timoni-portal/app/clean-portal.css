@@ -713,3 +713,25 @@ html body .ct-estoque-page .ct-need-actions>button{min-height:32px;padding:4px 1
 html body .ct-estoque-page .ct-need-actions>button.ct-need-text{border:0!important;color:#475569!important;padding:4px 6px!important;}
 html body .ct-estoque-page .ct-need-actions>button.ct-need-danger{border:0!important;color:#b42318!important;padding:4px 6px!important;}
 }
+
+/* 17/11 (opção A): quadros brancos com faixa azul clara só no título. Desktop. */
+@media(min-width:768px){
+html body .ct-today-azul section.ct-clean-card,
+html body .ct-compras-module .ct-clean-purchases article:not(.ct-compras-count),
+html body .ct-compras-module .ct-clean-purchases>section.ct-clean-card:not(.ct-compras-header),
+html body .ct-compras-module .ct-compras-tab,
+html body .ct-estoque-page section.ct-clean-card:not(.ct-estoque-header){background:#fff!important;border:1px solid #c9d8f0!important;border-radius:12px!important;box-shadow:none!important;padding:16px 20px!important;overflow:hidden;}
+html body .ct-today-azul section.ct-clean-card>:first-child,
+html body .ct-compras-module .ct-clean-purchases article:not(.ct-compras-count)>:first-child,
+html body .ct-compras-module .ct-clean-purchases>section.ct-clean-card:not(.ct-compras-header)>:first-child,
+html body .ct-compras-module .ct-compras-tab>:first-child,
+html body .ct-estoque-page section.ct-clean-card:not(.ct-estoque-header)>:first-child{margin:-16px -20px 12px!important;padding:12px 20px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
+html body :is(.ct-compras-module,.ct-estoque-page) :is(.ct-compras-count,.ct-estoque-count,.ct-sent-count){background:#fff!important;border:1px solid #c9d8f0!important;}
+}
+@media(min-width:768px){
+html body .ct-today-azul section.ct-clean-card>.ct-clean-people-group{margin:0!important;padding:0!important;background:none!important;border:0!important;}
+html body .ct-today-azul section.ct-clean-card>.ct-clean-people-group>h2:first-child{margin:-16px -20px 12px!important;padding:12px 20px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
+html body .ct-today-azul .ct-meeting-card{background:#fff!important;border:1px solid #c9d8f0!important;border-radius:12px!important;box-shadow:none!important;padding:16px 20px!important;overflow:hidden;}
+html body .ct-today-azul .ct-meeting-card>:first-child{margin:-16px -20px 12px!important;padding:12px 20px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
+html body .ct-today-azul .ct-meeting-card>:first-child+div>div{background:#fff!important;border:1px solid #e1e6f0;}
+}
