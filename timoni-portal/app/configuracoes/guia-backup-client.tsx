@@ -63,7 +63,7 @@ export default function GuiaBackupClient() {
 
   return (
     <>
-      <section id="backup" className="mb-5 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+      <section id="backup" className="ct-std-card mb-5 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base max-md:text-[12.5px] font-semibold text-slate-950">Backup</h2>

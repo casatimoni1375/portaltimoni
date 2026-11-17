@@ -336,7 +336,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
       </header>
 
       {loading ? <p className="mt-5 text-sm max-md:text-[11px] text-slate-500">Carregando...</p> : (
-        <section className="rounded-2xl border border-blue-200 bg-white shadow-sm">
+        <section className="ct-std-card rounded-2xl border border-blue-200 bg-white shadow-sm">
           <div className="px-4 py-4">
             <label className="block text-xs max-md:text-[10px] font-semibold text-slate-600">
               E-mail de acesso
