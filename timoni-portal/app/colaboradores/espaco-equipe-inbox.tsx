@@ -1,4 +1,4 @@
-import EspacoEquipeDeleteButton from "@/app/colaboradores/espaco-equipe-delete-button";
+import EspacoEquipeActions from "@/app/colaboradores/espaco-equipe-actions";
 import { listTeamMessages, type TeamMessage } from "@/lib/espaco-equipe";
 
 function formatMessageDate(value: string) {
@@ -24,9 +24,16 @@ function MessageBox({ item, index, canDelete }: { item: TeamMessage; index: numb
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">
         {item.id ? <span>Mensagem #{item.id}</span> : null}
         <span>{formatMessageDate(item.date)}</span>
+        {["concluído", "concluido"].includes(item.status.trim().toLowerCase()) ? <span className="rounded bg-emerald-50 px-1.5 text-emerald-700 normal-case">OK</span> : item.reply ? <span className="rounded bg-[#eef5ff] px-1.5 text-[#102a83] normal-case">Respondida</span> : <span className="rounded bg-amber-50 px-1.5 text-amber-700 normal-case">Nova</span>}
       </div>
       <p className="mt-3 whitespace-pre-wrap text-sm max-md:text-[11px] leading-6 text-slate-700">{item.message}</p>
-      {canDelete && item.id ? <EspacoEquipeDeleteButton id={item.id} /> : null}
+      {item.reply ? (
+        <div className="mt-3 rounded-lg border border-[#c9d8f0] bg-[#eef5ff] px-3 py-2">
+          <p className="text-[13px] font-semibold text-[#102a83]">Resposta da gestão{item.repliedAt ? ` · ${formatMessageDate(item.repliedAt)}` : ""}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm max-md:text-[11px] leading-6 text-slate-700">{item.reply}</p>
+        </div>
+      ) : null}
+      {canDelete && item.id ? <EspacoEquipeActions id={item.id} status={item.status} canAct={canDelete} /> : null}
     </article>
   );
 }
