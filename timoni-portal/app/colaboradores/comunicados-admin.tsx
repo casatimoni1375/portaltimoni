@@ -57,7 +57,7 @@ function unitLabel(unit: Comunicado["unit"]) {
   return "Geral";
 }
 
-export default function ComunicadosAdmin() {
+export default function ComunicadosAdmin({variant}:{variant?:"hoje"}={}) {
   const [items, setItems] = useState<Comunicado[]>([]);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -189,8 +189,8 @@ export default function ComunicadosAdmin() {
   }
 
   return (
-    <section className="mt-6 rounded-3xl border border-blue-200 bg-white p-6 shadow-sm lg:p-8">
-      <div className="flex flex-wrap items-start justify-between gap-3 lg:items-center">
+    <section className={variant==="hoje"?"rounded-3xl border border-blue-200 bg-blue-50 p-0 shadow-none":"mt-6 rounded-3xl border border-blue-200 bg-white p-6 shadow-sm lg:p-8"}>
+      <div className={variant==="hoje"?"hidden":"flex flex-wrap items-start justify-between gap-3 lg:items-center"}>
         <div>
           <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Gerenciar avisos</p>
           <h2 className="mt-2 text-2xl max-md:text-[20px] font-semibold text-slate-950">Avisos do Painel</h2>

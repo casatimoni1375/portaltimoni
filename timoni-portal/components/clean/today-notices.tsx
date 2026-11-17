@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import {useCallback,useEffect,useMemo,useState} from "react";
+import ComunicadosAdmin from "@/app/colaboradores/comunicados-admin";
 function splitNoticeTitle(raw:string):string[]{const parts=raw.split(/\s+-\s+/).map(p=>p.trim()).filter(Boolean);return parts.map((p,i)=>i===0?p.toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):p.replace(/\.$/,"").toLowerCase());}
 
 type Unit="geral"|"araras"|"rio claro";
@@ -21,7 +22,7 @@ function withinEnd(value:string,now=Date.now()){if(!value)return true;const date
  */
 export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{store:Unit;isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]}){
  const [items,setItems]=useState<Notice[]>([]),[completed,setCompleted]=useState<string[]>([]),[unsigned,setUnsigned]=useState<string[]>([]),[readers,setReaders]=useState<Record<string,Reader[]>>({});
- const [open,setOpen]=useState(""),[employee,setEmployee]=useState(""),[busy,setBusy]=useState(""),[feedback,setFeedback]=useState<{id:string;text:string;ok:boolean}|null>(null),[error,setError]=useState(""),[showArchived,setShowArchived]=useState(false),[loaded,setLoaded]=useState(false),[image,setImage]=useState("");
+ const [open,setOpen]=useState(""),[employee,setEmployee]=useState(""),[busy,setBusy]=useState(""),[feedback,setFeedback]=useState<{id:string;text:string;ok:boolean}|null>(null),[error,setError]=useState(""),[showArchived,setShowArchived]=useState(false),[loaded,setLoaded]=useState(false),[image,setImage]=useState(""),[creating,setCreating]=useState(false);
 
  const load=useCallback(async()=>{try{
   const [noticesResponse,readsResponse]=await Promise.all([fetch("/api/comunicados",{cache:"no-store"}),fetch("/api/avisos-leituras",{cache:"no-store"})]);
@@ -85,7 +86,8 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   </li>;};
 
  return <section className="ct-clean-card ct-today-notices ct-tone-card ct-tone-red ct-m-order-2" aria-label="Comunicados">
-  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<Link href="/colaboradores#comunicados">+ Novo</Link>}</div>
+  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<button type="button" className="ct-clean-action" aria-expanded={creating} onClick={()=>setCreating(value=>!value)}>{creating?"Fechar":"+ Novo"}</button>}</div>
+  {isAdmin&&creating&&<ComunicadosAdmin variant="hoje"/>}
   {error&&<p className="ct-notice-error">{error}</p>}
   {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}
   {isAdmin&&archived.length>0&&<div className="ct-notice-archive"><button type="button" onClick={()=>setShowArchived(value=>!value)} aria-expanded={showArchived}>{showArchived?"Ocultar arquivados":`Arquivados (${archived.length})`}</button>{showArchived&&<ul>{archived.map(item=>row(item,true))}</ul>}</div>}
