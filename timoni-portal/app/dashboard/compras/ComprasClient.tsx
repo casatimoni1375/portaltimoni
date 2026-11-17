@@ -296,8 +296,8 @@ export default function ComprasClient() {
         </section>
       )}
 
-      <section className="grid items-start gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-        <article className="ct-clean-card ct-tone-card ct-tone-blue">
+      <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <article className="ct-compras-supplier ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">1. Fornecedor</p>
@@ -317,7 +317,7 @@ export default function ComprasClient() {
           </div>
 
           {trello.configured && (
-            <div className="mt-4 max-h-96 overflow-y-auto rounded-2xl border border-slate-200">
+            <div className="ct-compras-list mt-4 max-h-96 overflow-y-auto rounded-2xl border border-slate-200">
               {suppliers.length ? (
                 suppliers.map((supplier) => {
                   const selected = selectedId === supplier.id;
