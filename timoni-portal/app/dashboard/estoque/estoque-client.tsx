@@ -435,19 +435,20 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
     const draft = responseDrafts[need.id] ?? need.observacao ?? "";
 
     return (
-      <article className={"rounded-2xl border bg-white p-4 shadow-sm " + (isNew ? "border-[#13038D] ring-2 ring-blue-100" : "border-slate-200")}>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
+      <article className={"ct-need-card rounded-2xl border bg-white p-4 shadow-sm " + (isNew ? "border-[#13038D] ring-2 ring-blue-100" : "border-slate-200")}>
+        <div className="flex flex-wrap items-start justify-between gap-2 md:flex-nowrap">
+          <div className="min-w-0">
             {isNew && <span className="mb-2 inline-block rounded-full bg-[#D40C0D] px-3 py-1 text-xs max-md:text-[10px] font-bold text-white">Novo</span>}
-            <p className="font-semibold text-slate-950"><span className="text-blue-700">{need.codigo}</span> {need.descricao}</p>
-            <p className="mt-1 text-xs max-md:text-[10px] text-slate-500">{unitLabel(need.unidade)} · {need.vendedor} · Qtd. {need.quantidade || "—"}</p>
+            <p className="ct-need-line1 font-semibold text-slate-950"><span className="text-blue-700">{need.codigo}</span> {need.descricao}</p>
+            <p className="mt-1 text-xs max-md:text-[10px] text-slate-500 md:hidden">{unitLabel(need.unidade)} · {need.vendedor} · Qtd. {need.quantidade || "—"}</p>
+            <p className="ct-need-line2 hidden md:block">{need.vendedor} · Qtd. {need.quantidade || "—"}{need.notaVendedor ? ` · ${need.notaVendedor}` : ""} · {date(need.criadoEm)}</p>
           </div>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs max-md:text-[10px] font-semibold">{label(need.status)}</span>
         </div>
-        {need.notaVendedor && <p className="mt-3 text-sm max-md:text-[11px] text-slate-600">{need.notaVendedor}</p>}
+        {need.notaVendedor && <p className="mt-3 text-sm max-md:text-[11px] text-slate-600 md:hidden">{need.notaVendedor}</p>}
         {need.observacao && <p className="mt-3 text-sm max-md:text-[11px] font-medium text-amber-700">{need.observacao}</p>}
         {need.status === "pedido_existente" && <p className="mt-3 text-sm max-md:text-[11px]">Pedido <strong>{need.numeroPedido}</strong> · previsão {need.previsaoEntrega || "não informada"}</p>}
-        <p className="mt-3 text-xs max-md:text-[10px] text-slate-400">{date(need.criadoEm)}</p>
+        <p className="mt-3 text-xs max-md:text-[10px] text-slate-400 md:hidden">{date(need.criadoEm)}</p>
         {need.status !== "chegou" && isManager && canRespond && (
           <div className="mt-4 space-y-3">
             {(showManagerResponseField || !need.observacao || editingResponseIds.has(need.id)) && (
@@ -462,13 +463,14 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
                 />
               </label>
             )}
-            <div className="flex flex-wrap gap-2">
+            <div className="ct-need-actions flex flex-wrap gap-2">
               {["pendente", "observacao"].includes(need.status) && <button disabled={disabled} onClick={() => void markAsConsultation(need)} className="rounded-lg bg-slate-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Consulta</button>}
               {["pendente", "observacao", "consulta"].includes(need.status) && <button disabled={disabled} onClick={() => void post({ action: "em_compra", id: need.id }, need.id)} className="rounded-lg bg-blue-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Relação de compra</button>}
               {["pendente", "em_compra", "observacao", "consulta"].includes(need.status) && <button disabled={disabled} onClick={() => void order(need)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Pedido feito</button>}
               {(["pendente", "em_compra", "observacao", "consulta"].includes(need.status) || editingResponseIds.has(need.id)) && <button disabled={disabled} onClick={() => void observe(need)} className="rounded-lg border px-3 py-2 text-xs max-md:text-[10px] font-semibold disabled:opacity-50">{editingResponseIds.has(need.id) ? "Salvar edição" : "Salvar observação"}</button>}
               {need.status === "pedido_existente" && <button disabled={disabled} onClick={() => void arrived(need)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Produto chegou</button>}
-              {canDelete && <button disabled={disabled} onClick={() => void remove(need)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50">Excluir</button>}
+              {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className="ct-need-text hidden md:inline-flex">Editar</button>}
+              {canDelete && <button disabled={disabled} onClick={() => void remove(need)} className="ct-need-danger rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50">Excluir</button>}
             </div>
           </div>
         )}
@@ -492,7 +494,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
             </button>
           </div>
         )}
-        {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-amber-800 disabled:opacity-50">Editar</button>}
+        {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className={"mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-amber-800 disabled:opacity-50" + (need.status !== "chegou" && isManager && canRespond ? " md:hidden" : "")}>Editar</button>}
         {need.status === "chegou" && canEdit && <button type="button" disabled={disabled} onClick={() => void reopen(need)} className="ml-2 mt-4 rounded-lg bg-blue-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Reabrir</button>}
         {need.status === "chegou" && canDelete && (
           <div className="mt-4">
@@ -508,8 +510,8 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
       <section className="ct-clean-card">
         <h2 className="text-lg max-md:text-[14px] font-semibold text-[#102a83]">Consultar</h2>
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <a href="#estoque-solicitar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm max-md:text-[11px] font-semibold">Produto</a>
-          <a href="/dashboard/compras?aba=acompanhar" style={{color:"#fff"}} className="rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm max-md:text-[11px] font-semibold">Pedido enviado</a>
+          <a href="#estoque-solicitar" style={{color:"#fff"}} className="ct-estoque-btn rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm max-md:text-[11px] font-semibold"><span className="hidden md:inline">Consultar produto</span><span className="md:hidden">Produto</span></a>
+          <a href="/dashboard/compras?aba=acompanhar" style={{color:"#fff"}} className="ct-estoque-btn rounded-xl bg-[#102a83] px-4 py-3 text-center text-sm max-md:text-[11px] font-semibold"><span className="hidden md:inline">Consultar pedido enviado</span><span className="md:hidden">Pedido enviado</span></a>
         </div>
       </section>
     );
@@ -550,7 +552,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
           <input ref={noteInputRef} value={note} onChange={(event) => setNote(event.target.value)} onKeyDown={handleNoteKeyDown} placeholder="Observação" className={input + " md:col-span-2 xl:col-span-5"} />
         </div>
         <label className="mt-4 flex items-center gap-2 text-sm max-md:text-[11px]"><input ref={waitingInputRef} type="checkbox" checked={waiting} onChange={(event) => setWaiting(event.target.checked)} onKeyDown={handleWaitingKeyDown} /> Cliente aguardando</label>
-        <button ref={registerButtonRef} onClick={() => void create()} disabled={busy === "geral"} className={primary + " mt-4"}>Registrar solicitação</button>
+        <button ref={registerButtonRef} onClick={() => void create()} disabled={busy === "geral"} className={primary + " ct-estoque-btn mt-4"}>Registrar solicitação</button>
       </section>
     );
   }
@@ -581,7 +583,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
 
     return (
       <>
-        {statusSections.map(({ title, items, empty }, index) => (
+        {statusSections.map(({ title, items, empty }, index) => index > 0 ? null : (
           <section key={title} id={`estoque-etapa-${index}`} className="scroll-mt-24 ct-clean-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl max-md:text-[15px] font-semibold">{title}</h2>
@@ -591,21 +593,33 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
                 </div>
               )}
             </div>
-            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <div className="mt-4 grid gap-3 lg:grid-cols-2 md:!grid-cols-1">
               {items.map((need) => <div key={need.id}>{NeedCard({ need })}</div>)}
               {!loading && !items.length && <p className="rounded-xl bg-slate-50 p-4 text-sm max-md:text-[11px] text-slate-500 lg:col-span-2">{empty}</p>}
             </div>
           </section>
         ))}
+        {/* Desktop: Relação de compra, A caminho e Chegou lado a lado. Celular: um embaixo do outro. */}
+        <div className="ct-estoque-trio grid gap-4 md:grid-cols-3">
+          {statusSections.map(({ title, items, empty }, index) => index === 0 ? null : (
+            <section key={title} id={`estoque-etapa-${index}`} className="scroll-mt-24 ct-clean-card !mt-0">
+              <h2 className="text-xl max-md:text-[15px] font-semibold">{title}</h2>
+              <div className="mt-4 grid gap-3">
+                {items.map((need) => <div key={need.id}>{NeedCard({ need })}</div>)}
+                {!loading && !items.length && <p className="rounded-xl bg-slate-50 p-4 text-sm max-md:text-[11px] text-slate-500">{empty}</p>}
+              </div>
+            </section>
+          ))}
+        </div>
       </>
     );
   }
 
 
   return (
-    <div ref={stockRoot} className="ct-modern-workspace pb-10">
+    <div ref={stockRoot} className="ct-estoque-page ct-modern-workspace pb-10">
       {isManager && (
-        <section className="ct-clean-card ct-tone-card ct-tone-blue">
+        <section className="ct-estoque-header ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Módulo Estoque</p>
@@ -613,11 +627,11 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
               <p className="mt-1 text-xs max-md:text-[10px] text-slate-500">Uso direto no Portal Timoni · notificações com o Portal aberto.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => void refresh()} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Atualizar informações</button>
-              <button onClick={() => void requestNotifications()} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs max-md:text-[10px] font-semibold text-slate-700">
+              <button onClick={() => void refresh()} className="ct-estoque-btn rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Atualizar informações</button>
+              <button onClick={() => void requestNotifications()} className="ct-estoque-btn rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs max-md:text-[10px] font-semibold text-slate-700">
                 {notificationPermission === "granted" ? "Notificações ativadas" : "Ativar notificações"}
               </button>
-              <a href={SHEET_URL} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-xs max-md:text-[10px] font-semibold text-slate-700">Abrir planilha</a>
+              <a href={SHEET_URL} target="_blank" rel="noreferrer" className="ct-estoque-btn rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-xs max-md:text-[10px] font-semibold text-slate-700">Abrir planilha</a>
             </div>
           </div>
         </section>
@@ -629,7 +643,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
 
       <nav aria-label="Resumo do Estoque" className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[{ title: "Em aberto", count: openNeeds.length }, { title: "Relação de compra", count: purchaseNeeds.length }, { title: "A caminho", count: onWay.length }, { title: "Chegou", count: history.length }].map((item, index) => (
-          <a key={item.title} href={`#estoque-etapa-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-400 focus-visible:outline-2 focus-visible:outline-blue-700">
+          <a key={item.title} href={`#estoque-etapa-${index}`} className="ct-estoque-count rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-400 focus-visible:outline-2 focus-visible:outline-blue-700">
             <span className="block text-2xl max-md:text-[20px] font-semibold text-slate-950">{item.count}</span>
             <span className="mt-1 block text-sm max-md:text-[11px] text-blue-800">{item.title}</span>
           </a>
