@@ -357,7 +357,7 @@ export default function ComprasClient() {
             </div>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="ct-compras-links mt-4 flex flex-wrap gap-3">
             <a
               href={DRIVE_URL}
               target="_blank"

@@ -677,3 +677,4 @@ html body .ct-compras-module .ct-clean-purchases .ct-compras-btn:hover{backgroun
 html body .ct-compras-module .ct-clean-purchases .ct-compras-btn:disabled{background:#cbd5e1!important;color:#fff!important;cursor:not-allowed;}
 }
 @media(min-width:768px){html body .ct-compras-module .ct-clean-purchases article.ct-clean-card{padding:16px 20px!important;}}
+@media(min-width:768px){html body .ct-compras-module .ct-clean-purchases .ct-compras-links{display:grid!important;grid-template-columns:1fr 1fr;gap:12px;}html body .ct-compras-module .ct-clean-purchases .ct-compras-links>.ct-compras-btn{width:100%;}}
