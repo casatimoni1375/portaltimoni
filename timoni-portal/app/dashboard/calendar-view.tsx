@@ -425,7 +425,7 @@ export function CalendarView({
           <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => setPeriodOffset((offset) => offset - 1)}>
             {previousLabel}
           </Button>
-          <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => setPeriodOffset(0)}>
+          <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => { setView("dia"); setPeriodOffset(0); }}>
             Hoje
           </Button>
           <Button className="text-base max-md:text-[12.5px]" variant="secondary" onClick={() => setPeriodOffset((offset) => offset + 1)}>
@@ -468,7 +468,7 @@ export function CalendarView({
 
       {!isSearching && view === "semana" && (
         // Celular: dias empilhados em lista. Desktop (lg+): sete colunas lado a lado, uso de mesa.
-        <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white lg:grid lg:grid-cols-7 lg:overflow-visible lg:border-0 lg:bg-transparent lg:gap-2">
+        <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white">
           {weekKeys.map((dayKey, index) => {
             const dayEvents = eventsByDate.get(dayKey) ?? [];
             const isToday = dayKey === todayKey;
@@ -476,20 +476,23 @@ export function CalendarView({
               <div
                 key={dayKey}
                 className={clsx(
-                  "border-t border-[#edf0f6] first:border-t-0 lg:min-h-[320px] lg:rounded-xl lg:border lg:border-[#e1e6f0] lg:first:border-t lg:bg-white",
-                  isToday && "bg-[#eef1fa] lg:bg-[#eef1fa]"
+                  "border-t border-[#edf0f6] first:border-t-0",
+                  isToday && "bg-[#eef1fa]"
                 )}
               >
-                <div className="flex items-baseline gap-2 px-3 py-3 lg:flex-col lg:items-start lg:gap-0 lg:border-b lg:border-[#edf0f6]">
+                <div className="flex items-baseline gap-2 px-3 py-3">
                   <p className="text-sm max-md:text-[11px] font-semibold uppercase text-slate-500">{WEEK_DAY_LABELS[index]}</p>
                   <p className={clsx("text-2xl max-md:text-[20px] font-semibold", isToday ? "text-[#102a83]" : "text-[#182443]")}>{format(dateFromKey(dayKey), "d")}</p>
-                  {isToday && <p className="ml-auto text-xs max-md:text-[10px] font-semibold text-[#102a83] lg:ml-0">Hoje</p>}
+                  {isToday && <p className="ml-auto text-xs max-md:text-[10px] font-semibold text-[#102a83]">Hoje</p>}
                 </div>
                 <div className="min-w-0 divide-y divide-[#edf0f6]">
                   {dayEvents.length === 0 ? (
                     <p className="px-3 py-3 text-base max-md:text-[12.5px] text-slate-400">Sem compromissos</p>
                   ) : (
-                    renderRows(dayEvents, true)
+                    <>
+                      <div className="divide-y divide-[#edf0f6] lg:hidden">{renderRows(dayEvents, true)}</div>
+                      <div className="hidden divide-y divide-[#edf0f6] lg:block">{renderRows(dayEvents)}</div>
+                    </>
                   )}
                 </div>
               </div>
