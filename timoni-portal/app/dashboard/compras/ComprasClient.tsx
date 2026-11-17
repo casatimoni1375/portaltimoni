@@ -252,7 +252,7 @@ export default function ComprasClient() {
 
   return (
     <div className="ct-clean-purchases space-y-5">
-      <section className="ct-clean-card ct-tone-card ct-tone-blue">
+      <section className="ct-compras-header ct-clean-card ct-tone-card ct-tone-blue">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">Módulo operacional</p>
@@ -267,14 +267,14 @@ export default function ComprasClient() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="ct-compras-counts grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           ["Pedidos para fazer", summary?.pedidosParaFazer ?? (trello.configured && trello.suppliers ? suppliers.length : undefined)],
           ["Urgentes", summary?.urgentes ?? (trello.configured && trello.suppliers ? suppliers.filter(item => item.urgent).length : undefined)],
           ["Enviados — Rio Claro", summary?.enviadosRioClaro],
           ["Enviados — Araras", summary?.enviadosAraras],
         ].map(([label, value]) => (
-          <article key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <article key={String(label)} className={`ct-compras-count rounded-2xl border border-slate-200 bg-white p-5 shadow-sm${label === "Urgentes" && Number(value) > 0 ? " is-urgent" : ""}`}>
             <p className="text-3xl max-md:text-[20px] font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
             <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">{label}</p>
           </article>
@@ -296,7 +296,7 @@ export default function ComprasClient() {
         </section>
       )}
 
-      <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+      <section className="grid items-start gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <article className="ct-clean-card ct-tone-card ct-tone-blue">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -305,14 +305,6 @@ export default function ComprasClient() {
               <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <a
-                href={TRELLO_BOARD_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800"
-              >
-                Abrir Trello
-              </a>
               <button
                 type="button"
                 onClick={() => void loadTrello()}
@@ -370,10 +362,18 @@ export default function ComprasClient() {
               href={DRIVE_URL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm max-md:text-[11px] font-semibold text-white"
+              className="ct-compras-btn inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm max-md:text-[11px] font-semibold text-white"
               style={{color:"#fff",textDecoration:"none"}}
             >
               Abrir pasta de fornecedores
+            </a>
+            <a
+              href={TRELLO_BOARD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ct-compras-btn inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm max-md:text-[11px] font-semibold text-blue-800"
+            >
+              Abrir Trello
             </a>
           </div>
         </article>
@@ -446,7 +446,7 @@ export default function ComprasClient() {
             type="button"
             onClick={() => void extractItems()}
             disabled={busy}
-            className="mt-4 min-h-12 rounded-xl bg-blue-700 px-6 text-sm max-md:text-[11px] font-semibold text-white hover:bg-blue-800 disabled:bg-slate-300"
+            className="ct-compras-btn mt-4 min-h-12 rounded-xl bg-blue-700 px-6 text-sm max-md:text-[11px] font-semibold text-white hover:bg-blue-800 disabled:bg-slate-300"
           >
             {busy ? "Filtrando..." : "Filtrar itens do pedido"}
           </button>
@@ -587,7 +587,7 @@ export default function ComprasClient() {
           type="button"
           onClick={() => void finalizePurchase()}
           disabled={busy || !canFinalize}
-          className="mt-4 min-h-12 rounded-xl bg-emerald-700 px-6 text-sm max-md:text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="ct-compras-btn mt-4 min-h-12 rounded-xl bg-emerald-700 px-6 text-sm max-md:text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {busy ? "Atualizando..." : "Atualizar Trello"}
         </button>
