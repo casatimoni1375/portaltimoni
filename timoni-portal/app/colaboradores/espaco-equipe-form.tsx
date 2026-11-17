@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function EspacoEquipeForm() {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [feedback, setFeedback] = useState("");
@@ -34,6 +36,7 @@ export default function EspacoEquipeForm() {
       setStatus("success");
       setFeedback("Mensagem registrada. Obrigada pela contribuição.");
       setMessage("");
+      router.refresh();
     } catch (error) {
       setStatus("error");
       setFeedback(error instanceof Error ? error.message : "Não foi possível registrar.");
@@ -47,6 +50,9 @@ export default function EspacoEquipeForm() {
         <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
         <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
           Use este espaço para enviar sugestões, reclamações, dificuldades ou ideias de melhoria.
+        </p>
+        <p className="mt-1 text-sm max-md:text-[11px] leading-6 text-slate-600">
+          A gestão vê de qual acesso veio a mensagem e pode responder. A resposta aparece aqui, em Suas mensagens.
         </p>
       </div>
 

@@ -1,7 +1,7 @@
 import { MANAGEMENT_EMAILS as MANAGEMENT_IDENTITIES, isCicaAccess } from "@/lib/access-control";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { appendTeamMessage, deleteTeamMessage, listTeamMessages } from "@/lib/espaco-equipe";
+import { appendTeamMessage, deleteTeamMessage, listTeamMessages, markTeamMessageOk, replyTeamMessage } from "@/lib/espaco-equipe";
 
 const GESTAO_EMAILS = MANAGEMENT_IDENTITIES;
 const FINAL_STATUSES = new Set(["concluido", "concluído", "resolvido", "feito", "finalizado"]);
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "A mensagem deve ter no máximo 2.500 caracteres." }, { status: 400 });
     }
 
-    await appendTeamMessage({ message });
+    await appendTeamMessage({ message, senderEmail: session.user.email });
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof Error) {
@@ -87,5 +87,39 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json({ error: "Não foi possível excluir a mensagem." }, { status: 500 });
+  }
+}
+
+// Resposta e OK da gestão (mesma regra do Excluir: acesso da Ciça).
+export async function PATCH(request: Request) {
+  const session = await auth();
+  const email = session?.user?.email?.trim().toLowerCase() ?? "";
+
+  if (!isCicaAccess(email)) {
+    return NextResponse.json({ error: "Ação exclusiva do acesso da Ciça." }, { status: 403 });
+  }
+
+  try {
+    const body = await request.json();
+    const id = String(body?.id ?? "").trim();
+    const action = String(body?.action ?? "");
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json({ error: "Mensagem inválida." }, { status: 400 });
+    }
+    if (action === "ok") {
+      await markTeamMessageOk(id);
+      return NextResponse.json({ ok: true });
+    }
+    if (action === "responder") {
+      const reply = String(body?.reply ?? "").trim();
+      if (reply.length < 1) return NextResponse.json({ error: "Escreva a resposta." }, { status: 400 });
+      if (reply.length > 2500) return NextResponse.json({ error: "A resposta deve ter no máximo 2.500 caracteres." }, { status: 400 });
+      await replyTeamMessage(id, reply);
+      return NextResponse.json({ ok: true });
+    }
+    return NextResponse.json({ error: "Ação inválida." }, { status: 400 });
+  } catch (error) {
+    console.error(`[Painel Timoni] Espaço Equipe / resposta: ${error instanceof Error ? error.message : "falha desconhecida"}`);
+    return NextResponse.json({ error: "Não foi possível salvar agora." }, { status: 500 });
   }
 }
