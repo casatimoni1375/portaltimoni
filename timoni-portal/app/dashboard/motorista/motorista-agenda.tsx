@@ -350,7 +350,7 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
   const lojaMin = loja.toLocaleLowerCase("pt-BR");
   const ehCasaTimoni = lojaMin === "casa timoni" || lojaMin === "araras";
   const rotuloEmpresa = ehCasaTimoni ? "Casa Timoni" : lojaMin === "rio_claro" ? "Rio Claro" : loja;
-  const base = "rounded-full px-2.5 py-0.5 text-sm max-md:text-[11px]";
+  const base = "rounded-full px-2.5 py-0.5 text-sm";
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
       {tipo === "Retirada"
@@ -611,11 +611,11 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   // Erro junto do campo obrigatório, mostrado depois de tentar salvar.
   function mensagemCampo(name: keyof FormState) {
     if (!invalidos.has(name)) return null;
-    return <span className="mt-1 block text-xs max-md:text-[10px] font-normal text-red-600">Preencha este campo.</span>;
+    return <span className="mt-1 block text-sm font-normal text-red-600">Preencha este campo.</span>;
   }
 
   function fieldClass(name: keyof FormState) {
-    return `mt-1 w-full min-w-0 rounded-xl border bg-white px-3 py-2.5 text-base max-md:text-[12.5px] md:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${invalidos.has(name) ? "border-red-500" : "border-slate-300"}`;
+    return `mt-1 w-full min-w-0 rounded-xl border bg-white px-3 py-2.5 text-base md:text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 ${invalidos.has(name) ? "border-red-500" : "border-slate-300"}`;
   }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -791,46 +791,46 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
       <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            {canCreate && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
-            <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm max-md:text-[11px] font-medium ${modo === "dia" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
-            <button type="button" onClick={() => setModo("semana")} className={`rounded-lg px-3 py-2 text-sm max-md:text-[11px] font-medium ${modo === "semana" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Semana</button>
-            <button type="button" onClick={() => setModo("mes")} className={`rounded-lg px-3 py-2 text-sm max-md:text-[11px] font-medium ${modo === "mes" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Mês</button>
+            {canCreate && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
+            <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "dia" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
+            <button type="button" onClick={() => setModo("semana")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "semana" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Semana</button>
+            <button type="button" onClick={() => setModo("mes")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "mes" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Mês</button>
           </div>
 
           {modo === "dia" ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">Agenda do dia</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">Agenda do dia</p>
                 <p className="mt-1 text-lg max-md:text-[14px] font-semibold text-slate-950">{dataSelecionada.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</p>
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setSelecionado(localDateString(new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate() - 1)))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">← Dia anterior</button>
-                <button type="button" onClick={() => setSelecionado(hoje)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">Hoje</button>
-                <button type="button" onClick={() => setSelecionado(localDateString(new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate() + 1)))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">Próximo dia →</button>
+                <button type="button" onClick={() => setSelecionado(localDateString(new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate() - 1)))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">← Dia anterior</button>
+                <button type="button" onClick={() => setSelecionado(hoje)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Hoje</button>
+                <button type="button" onClick={() => setSelecionado(localDateString(new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate() + 1)))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Próximo dia →</button>
               </div>
             </div>
           ) : modo === "semana" ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">Agenda da semana</p>
-                <p className="mt-1 text-sm max-md:text-[11px] text-slate-600">{selecionado === hoje ? "A partir de hoje" : "A partir do dia selecionado"} · sem sábado e domingo</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">Agenda da semana</p>
+                <p className="mt-1 text-sm text-slate-600">{selecionado === hoje ? "A partir de hoje" : "A partir do dia selecionado"} · sem sábado e domingo</p>
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => { const d = dateFromString(selecionado); d.setDate(d.getDate() - 7); setSelecionado(localDateString(d)); }} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">− 7 dias</button>
-                <button type="button" onClick={() => setSelecionado(hoje)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">Hoje</button>
-                <button type="button" onClick={() => { const d = dateFromString(selecionado); d.setDate(d.getDate() + 7); setSelecionado(localDateString(d)); }} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">+ 7 dias</button>
+                <button type="button" onClick={() => { const d = dateFromString(selecionado); d.setDate(d.getDate() - 7); setSelecionado(localDateString(d)); }} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">− 7 dias</button>
+                <button type="button" onClick={() => setSelecionado(hoje)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Hoje</button>
+                <button type="button" onClick={() => { const d = dateFromString(selecionado); d.setDate(d.getDate() + 7); setSelecionado(localDateString(d)); }} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">+ 7 dias</button>
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between gap-3">
-              <button type="button" onClick={() => setMesBase((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">←</button>
+              <button type="button" onClick={() => setMesBase((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">←</button>
               <p className="text-lg max-md:text-[14px] font-semibold capitalize text-slate-950">{mesBase.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</p>
-              <button type="button" onClick={() => setMesBase((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm max-md:text-[11px] text-slate-700">→</button>
+              <button type="button" onClick={() => setMesBase((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">→</button>
             </div>
           )}
         </div>
 
-        {erro && !modal && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm max-md:text-[11px] text-red-700">{erro}</p>}
+        {erro && !modal && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
 
         {modo === "semana" ? (
           <div className="mt-4 space-y-4">
@@ -840,15 +840,15 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               return (
                 <section key={data} className={`rounded-xl border bg-white p-4 ${data === hoje ? "border-[#102a83]" : "border-[#e1e6f0]"}`}>
                   <button type="button" onClick={() => selecionarDia(data)} className="w-full text-left">
-                    <p className="text-xs max-md:text-[10px] font-semibold uppercase text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
+                    <p className="text-sm font-semibold uppercase text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
                     <p className="mt-1 flex items-center gap-2 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}{data === hoje && <Carimbo>Hoje</Carimbo>}</p>
                   </button>
                   <div className="mt-3 space-y-2">
-                    {loading ? <p className="text-sm max-md:text-[11px] text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm max-md:text-[11px] text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
+                    {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
                       <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl border p-3">
                         <EtiquetasViagem v={v} />
-                        <p style={estiloLinhaPrincipal(v)} className={`text-sm max-md:text-[11px] ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
-                        <p className="mt-2 text-sm max-md:text-[11px] font-bold uppercase text-slate-900">
+                        <p style={estiloLinhaPrincipal(v)} className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
+                        <p className="mt-2 text-sm font-bold uppercase text-slate-900">
                           {documentoTexto(v.numeroPedido)}
                           {documentoTexto(v.numeroPedido) && v.clienteFornecedor ? " | " : ""}
                           {v.clienteFornecedor ? <>{v.contatoNome ? "CLIENTE " : ""}{v.clienteFornecedor.toUpperCase()}</> : null}
@@ -856,16 +856,16 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                           {v.contatoNome ? <>A/C: {v.contatoNome.toUpperCase()}</> : null}
                           {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
                         </p>
-                        {v.contatoNome && v.volumes && <p className="mt-1 text-sm max-md:text-[11px] font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
-                        {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm max-md:text-[11px] text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                        {v.info && <p className="mt-1 text-sm max-md:text-[11px] text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
-                        <p className="mt-1 text-xs max-md:text-[10px] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                        {v.contatoNome && v.volumes && <p className="mt-1 text-sm font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
+                        {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
+                        {v.info && <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
+                        <p className="mt-1 text-sm text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
-                          <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs max-md:text-[10px] font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
-                          {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs max-md:text-[10px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
+                          <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
+                          {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
-                        {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-xs max-md:text-[10px] text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
+                        {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-sm text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
                       </article>
                     ))}
                   </div>
@@ -875,7 +875,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           </div>
         ) : modo === "dia" ? (
           <div className="mt-4 space-y-3">
-            {loading ? <p className="text-sm max-md:text-[11px] text-slate-400">Carregando...</p> : itensDia.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm max-md:text-[11px] text-slate-400">Sem viagens neste dia.</p> : itensDia.map((v, index) => (
+            {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itensDia.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-400">Sem viagens neste dia.</p> : itensDia.map((v, index) => (
               <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -896,8 +896,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
                     {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
-                    <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
-                    {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm max-md:text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
+                    <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
+                    {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                   </div>}
                 </div>
               </article>
@@ -905,15 +905,15 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           </div>
         ) : (
           <div className="mt-4">
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-slate-400"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+            <div className="grid grid-cols-7 gap-1 text-center text-sm font-semibold uppercase text-slate-400"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
             <div className="mt-1 grid grid-cols-7 gap-1">
               {diasMes.map((d) => {
                 const data = localDateString(d);
                 const itens = viagens[data] || [];
                 const fora = d.getMonth() !== mesBase.getMonth();
                 return <button key={data} type="button" onClick={() => selecionarDia(data)} className={`min-h-24 rounded-xl border p-2 text-left ${fora ? "border-slate-100 bg-slate-50 text-slate-300" : data === hoje ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"}`}>
-                  <p className="text-sm max-md:text-[11px] font-semibold">{d.getDate()}</p>
-                  <div className="mt-1 space-y-1">{itens.slice(0, 3).map((v) => <p key={v.id} className="truncate text-[10px] text-slate-600">{horaCurta(v.horario)} {v.clienteFornecedor || v.tipoHorario}</p>)}{itens.length > 3 && <p className="text-[10px] text-slate-400">+{itens.length - 3}</p>}</div>
+                  <p className="text-sm font-semibold">{d.getDate()}</p>
+                  <div className="mt-1 space-y-1">{itens.slice(0, 3).map((v) => <p key={v.id} className="truncate text-sm text-slate-600">{horaCurta(v.horario)} {v.clienteFornecedor || v.tipoHorario}</p>)}{itens.length > 3 && <p className="text-sm text-slate-400">+{itens.length - 3}</p>}</div>
                 </button>;
               })}
             </div>
@@ -930,58 +930,58 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             className="motorista-form my-4 w-full max-w-4xl rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           >
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
-              <div><p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">Motorista</p><h2 className="mt-1 text-xl max-md:text-[15px] font-semibold text-slate-950">{editandoId ? "Editar agendamento" : "Nova viagem"}</h2><p className="mt-1 text-xs max-md:text-[10px] text-slate-500">Campos com * são obrigatórios.</p></div>
-              <button type="button" onClick={() => setModal(false)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm max-md:text-[11px] text-slate-600">Fechar</button>
+              <div><p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">Motorista</p><h2 className="mt-1 text-xl max-md:text-[15px] font-semibold text-slate-950">{editandoId ? "Editar agendamento" : "Nova viagem"}</h2><p className="mt-1 text-sm text-slate-500">Campos com * são obrigatórios.</p></div>
+              <button type="button" onClick={() => setModal(false)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600">Fechar</button>
             </div>
 
             <div style={colunasFormulario("repeat(4, minmax(0, 1fr))")} className="mt-5 grid gap-4">
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select>{mensagemCampo("tipo")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("loja")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required />{mensagemCampo("data")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !RESPONSAVEIS.includes(form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{RESPONSAVEIS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("vendedor")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Tipo<select value={form.tipo} onChange={(e) => set("tipo", e.target.value as "Entrega" | "Retirada")} className={fieldClass("tipo")}><option value="Entrega">Entrega</option><option value="Retirada">Coleta</option></select>{mensagemCampo("tipo")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Empresa<select value={form.loja} onChange={(e) => set("loja", e.target.value)} className={fieldClass("loja")}>{empresas.length !== 1 && <option value="">Selecione</option>}{form.loja && !empresas.includes(form.loja) && <option value={form.loja}>{form.loja} (já registrada)</option>}{empresas.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("loja")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Data<BrazilianDateInput value={form.data} onChange={(value) => set("data", value)} className={fieldClass("data")} required />{mensagemCampo("data")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Vendedor<select value={form.vendedor} onChange={(e) => set("vendedor", e.target.value)} className={fieldClass("vendedor")} required><option value="">Selecione</option>{form.vendedor && !RESPONSAVEIS.includes(form.vendedor) && <option value={form.vendedor}>{form.vendedor} (já registrado)</option>}{RESPONSAVEIS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{mensagemCampo("vendedor")}</label>
             </div>
 
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <label className="flex items-center gap-2 text-sm max-md:text-[11px] font-semibold text-slate-800"><input type="checkbox" checked={form.bloquear} onChange={(e) => set("bloquear", e.target.checked)} />Bloqueio</label>
-              {form.bloquear && <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-3 grid gap-3"><label className="text-sm max-md:text-[11px] text-slate-700">Início<input type="time" value={form.bloqueioInicio} onChange={(e) => set("bloqueioInicio", e.target.value)} className={fieldClass("bloqueioInicio")} /></label><label className="text-sm max-md:text-[11px] text-slate-700">Fim<input type="time" value={form.bloqueioFim} onChange={(e) => set("bloqueioFim", e.target.value)} className={fieldClass("bloqueioFim")} /></label></div>}
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-800"><input type="checkbox" checked={form.bloquear} onChange={(e) => set("bloquear", e.target.checked)} />Bloqueio</label>
+              {form.bloquear && <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-3 grid gap-3"><label className="text-sm text-slate-700">Início<input type="time" value={form.bloqueioInicio} onChange={(e) => set("bloqueioInicio", e.target.value)} className={fieldClass("bloqueioInicio")} /></label><label className="text-sm text-slate-700">Fim<input type="time" value={form.bloqueioFim} onChange={(e) => set("bloqueioFim", e.target.value)} className={fieldClass("bloqueioFim")} /></label></div>}
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Nota Fiscal/Pedido<input value={form.numeroPedido} onChange={(e) => set("numeroPedido", e.target.value)} className={fieldClass("numeroPedido")} />{mensagemCampo("numeroPedido")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Cliente/Fornecedor<input value={form.clienteFornecedor} onChange={(e) => set("clienteFornecedor", e.target.value.toUpperCase())} className={fieldClass("clienteFornecedor")} />{mensagemCampo("clienteFornecedor")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">A/C<input value={form.contatoNome} onChange={(e) => set("contatoNome", e.target.value)} className={fieldClass("contatoNome")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Nota Fiscal/Pedido<input value={form.numeroPedido} onChange={(e) => set("numeroPedido", e.target.value)} className={fieldClass("numeroPedido")} />{mensagemCampo("numeroPedido")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Cliente/Fornecedor<input value={form.clienteFornecedor} onChange={(e) => set("clienteFornecedor", e.target.value.toUpperCase())} className={fieldClass("clienteFornecedor")} />{mensagemCampo("clienteFornecedor")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">A/C<input value={form.contatoNome} onChange={(e) => set("contatoNome", e.target.value)} className={fieldClass("contatoNome")} /></label>
             </div>
 
             <div style={colunasFormulario("220px 160px minmax(0, 1fr)")} className="mt-4 grid gap-4 items-end">
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">CEP<input value={form.cep} onChange={(e) => { const cepDigitado = formatarCep(e.target.value); set("cep", cepDigitado); if (cepDigitado.replace(/\D/g, "").length === 8) void buscarCep(cepDigitado); }} inputMode="numeric" placeholder="00000-000" className={fieldClass("cep")} /></label>
-              <button type="button" onClick={() => void buscarCep()} className="h-[42px] rounded-lg border border-slate-300 bg-white px-4 text-sm max-md:text-[11px] font-semibold text-slate-700 hover:bg-slate-50">Buscar CEP</button>
-              <div className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Link do endereço<div className="mt-1 flex h-[42px] items-center">{linkMapsFormulario ? <a href={linkMapsFormulario} target="_blank" rel="noreferrer" className="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800">Google Maps</a> : <span className="text-sm max-md:text-[11px] text-slate-400">Gerado após informar o número</span>}</div></div>
+              <label className="min-w-0 text-sm font-medium text-slate-700">CEP<input value={form.cep} onChange={(e) => { const cepDigitado = formatarCep(e.target.value); set("cep", cepDigitado); if (cepDigitado.replace(/\D/g, "").length === 8) void buscarCep(cepDigitado); }} inputMode="numeric" placeholder="00000-000" className={fieldClass("cep")} /></label>
+              <button type="button" onClick={() => void buscarCep()} className="h-[42px] rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Buscar CEP</button>
+              <div className="min-w-0 text-sm font-medium text-slate-700">Link do endereço<div className="mt-1 flex h-[42px] items-center">{linkMapsFormulario ? <a href={linkMapsFormulario} target="_blank" rel="noreferrer" className="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-800">Google Maps</a> : <span className="text-sm text-slate-400">Gerado após informar o número</span>}</div></div>
             </div>
 
             <div style={colunasFormulario("minmax(0, 1fr) 180px")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} />{mensagemCampo("endereco")}</label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} />{mensagemCampo("numeroEndereco")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Endereço <span className="font-normal text-slate-400">(Rua / Av. / Rodovia)</span><input value={form.endereco} onChange={(e) => { set("endereco", e.target.value); set("linkEndereco", ""); }} className={fieldClass("endereco")} />{mensagemCampo("endereco")}</label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Número<input ref={numeroRef} value={form.numeroEndereco} onChange={(e) => { const numero = e.target.value; set("numeroEndereco", numero); const destino = [form.endereco, numero, form.bairro, form.cidade].filter(Boolean).join(", "); set("linkEndereco", destino ? `https://maps.google.com/?q=${encodeURIComponent(destino)}` : ""); }} className={fieldClass("numeroEndereco")} />{mensagemCampo("numeroEndereco")}</label>
             </div>
 
             <div style={colunasFormulario("repeat(3, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Bairro<input value={form.bairro} onChange={(e) => { set("bairro", e.target.value); set("linkEndereco", ""); }} className={fieldClass("bairro")} /></label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Cidade<input value={form.cidade} onChange={(e) => { set("cidade", e.target.value); set("linkEndereco", ""); }} className={fieldClass("cidade")} /></label>
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Referência<input value={form.referencia} onChange={(e) => set("referencia", e.target.value)} placeholder="Ex.: portão lateral" className={fieldClass("referencia")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">Bairro<input value={form.bairro} onChange={(e) => { set("bairro", e.target.value); set("linkEndereco", ""); }} className={fieldClass("bairro")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">Cidade<input value={form.cidade} onChange={(e) => { set("cidade", e.target.value); set("linkEndereco", ""); }} className={fieldClass("cidade")} /></label>
+              <label className="min-w-0 text-sm font-medium text-slate-700">Referência<input value={form.referencia} onChange={(e) => set("referencia", e.target.value)} placeholder="Ex.: portão lateral" className={fieldClass("referencia")} /></label>
             </div>
 
             <div style={colunasFormulario("180px minmax(0, 1fr)")} className="mt-4 grid gap-4">
-              <label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} />{mensagemCampo("volumes")}</label>
-              <div className="min-w-0"><label className="min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-xs max-md:text-[10px] font-semibold text-blue-800 underline underline-offset-2">Repetir última discriminação</button></div>
+              <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} />{mensagemCampo("volumes")}</label>
+              <div className="min-w-0"><label className="min-w-0 text-sm font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-sm font-semibold text-blue-800 underline underline-offset-2">Repetir última discriminação</button></div>
             </div>
 
             <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-4 grid gap-4">
-              <label className="block min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Preenchido por:{actorName ? <input readOnly value={editandoId ? form.preenchidoPor : actorName} className={fieldClass("preenchidoPor")} /> : <select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && !RESPONSAVEIS.includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}{RESPONSAVEIS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>}</label>
-              <label className="block min-w-0 text-sm max-md:text-[11px] font-medium text-slate-700">Forma de pagamento:<select value={form.pagamento} onChange={(e) => set("pagamento", e.target.value as FormState["pagamento"])} className={fieldClass("pagamento")}><option value="">Selecione</option><option value="Boleto">Boleto</option><option value="Debite">Debite</option><option value="Pago">Pago</option><option value="Receber">Receber</option></select></label>
+              <label className="block min-w-0 text-sm font-medium text-slate-700">Preenchido por:{actorName ? <input readOnly value={editandoId ? form.preenchidoPor : actorName} className={fieldClass("preenchidoPor")} /> : <select value={form.preenchidoPor} onChange={(e) => set("preenchidoPor", e.target.value)} className={fieldClass("preenchidoPor")}><option value="">Selecione</option>{form.preenchidoPor && !RESPONSAVEIS.includes(form.preenchidoPor) && <option value={form.preenchidoPor} disabled>{form.preenchidoPor} (já registrado)</option>}{RESPONSAVEIS.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>}</label>
+              <label className="block min-w-0 text-sm font-medium text-slate-700">Forma de pagamento:<select value={form.pagamento} onChange={(e) => set("pagamento", e.target.value as FormState["pagamento"])} className={fieldClass("pagamento")}><option value="">Selecione</option><option value="Boleto">Boleto</option><option value="Debite">Debite</option><option value="Pago">Pago</option><option value="Receber">Receber</option></select></label>
             </div>
 
-            {aviso && <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm max-md:text-[11px] text-emerald-700">{aviso}</p>}
-            {erro && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm max-md:text-[11px] text-red-700">{erro}</p>}
-            <div className="mt-5 flex justify-end gap-2 border-t border-slate-200 pt-4"><button type="button" onClick={() => setModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm max-md:text-[11px] font-medium text-slate-700">Cancelar</button><button type="submit" disabled={saving} className="rounded-lg bg-blue-800 px-5 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-60">{saving ? "Salvando..." : editandoId ? "Salvar alterações" : "Salvar viagem"}</button></div>
+            {aviso && <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{aviso}</p>}
+            {erro && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
+            <div className="mt-5 flex justify-end gap-2 border-t border-slate-200 pt-4"><button type="button" onClick={() => setModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">Cancelar</button><button type="submit" disabled={saving} className="rounded-lg bg-blue-800 px-5 py-2 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Salvando..." : editandoId ? "Salvar alterações" : "Salvar viagem"}</button></div>
           </form>
         </div>
       )}

@@ -1,4 +1,5 @@
 "use client";
+import type {ReactNode} from "react";
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useSearchParams} from "next/navigation";
@@ -34,7 +35,7 @@ const formatTime=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"Amer
 const addDays=(day:string,days:number)=>{const date=new Date(`${day}T12:00:00-03:00`);date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10);};
 
 export type TodayNoticesConfig={store:"geral"|"araras"|"rio claro";isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]};
-export default function Today({name,email,capabilities,defaultUnit,notices=null}:{name:string;email?:string;capabilities:TodayCapabilities;defaultUnit:string;notices?:TodayNoticesConfig|null}){
+export default function Today({name,email,capabilities,defaultUnit,notices=null,meetingCards=null}:{name:string;email?:string;capabilities:TodayCapabilities;defaultUnit:string;notices?:TodayNoticesConfig|null;meetingCards?:ReactNode}){
  const params=useSearchParams();const requested=params.get("unidade");
  const unit=defaultUnit==="todas"&&["rio_claro","araras","todas"].includes(requested||"")?requested!:defaultUnit;
  const [data,setData]=useState<Source>({}),[errors,setErrors]=useState<Record<string,string>>({});
@@ -113,7 +114,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
  const shortcuts=shortcutItems.length>0&&<nav className="ct-today-shortcuts" aria-label="Atalhos">{shortcutItems.map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>;
  const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||pending.length>0||events.length>0;
 
- return <div className="ct-clean-today">
+ return <div className="ct-clean-today ct-today-azul">
   <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p>{/* Acessos compartilhados de vendedores: saudação sem nome. */}<h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}{name?`, ${name}.`:"!"}</h1>{email&&<small className="ct-clean-today-email">{email}</small>}</header>
   {operational?<>
    <div className={`ct-today-op-top${notices?"":" no-notices"}`}>
@@ -146,6 +147,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null}
    </aside>
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
+   {meetingCards}
    {pedidosAtrasados.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAtrasados.length})</Link></div>
     {pedidosAtrasados.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
