@@ -678,3 +678,5 @@ html body .ct-compras-module .ct-clean-purchases .ct-compras-btn:disabled{backgr
 }
 @media(min-width:768px){html body .ct-compras-module .ct-clean-purchases article.ct-clean-card{padding:16px 20px!important;}}
 @media(min-width:768px){html body .ct-compras-module .ct-clean-purchases .ct-compras-links{display:grid!important;grid-template-columns:1fr 1fr;gap:12px;}html body .ct-compras-module .ct-clean-purchases .ct-compras-links>.ct-compras-btn{width:100%;}}
+/* Compras (desktop): quadro de Pedidos pendentes da mesma altura da Planilha do pedido; lista ocupa o espaço e botões no rodapé. */
+@media(min-width:768px){html body .ct-compras-module .ct-clean-purchases .ct-compras-supplier{display:flex!important;flex-direction:column;}html body .ct-compras-module .ct-clean-purchases .ct-compras-list{flex:1 1 auto;max-height:560px!important;background:#fff;}html body .ct-compras-module .ct-clean-purchases .ct-compras-supplier .ct-compras-links{margin-top:16px;}}
