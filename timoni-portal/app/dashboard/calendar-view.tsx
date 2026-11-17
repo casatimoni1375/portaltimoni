@@ -158,6 +158,53 @@ function AgendaRow({
   );
 }
 
+// Desktop (semana): linha do compromisso dentro do quadro do dia, sem contorno próprio.
+// Horário | nome e (agenda · local) | Editar (contorno) e Cancelar (texto vermelho).
+function DesktopEventRow({
+  event,
+  now,
+  deleting,
+  onEdit,
+  onDelete,
+}: {
+  event: CalendarEventDTO;
+  now: number;
+  deleting: boolean;
+  onEdit: (event: CalendarEventDTO) => void;
+  onDelete: (event: CalendarEventDTO) => void;
+}) {
+  const isAllDay = !event.start.includes("T");
+  const color = CALENDAR_COLOR_FALLBACKS[event.calendarKey];
+  const passou = new Date(event.end).getTime() < now;
+  const concluido = Boolean(event.completed) || (passou && !event.edited);
+  const time = isAllDay
+    ? "Dia todo"
+    : `${format(new Date(event.start), "HH:mm", { locale: ptBR })}–${format(new Date(event.end), "HH:mm", { locale: ptBR })}`;
+  return (
+    <div className={clsx("grid grid-cols-[110px_minmax(0,1fr)_auto] items-center gap-3 border-t border-[#edf0f6] px-4 py-2.5 first:border-t-0", concluido && "opacity-60")}>
+      <span className="text-[14px] tabular-nums text-slate-600">{time}</span>
+      <div className="min-w-0">
+        <p className="truncate text-[16px] text-[#182443]">
+          {event.summary}
+          {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
+        </p>
+        <p className="truncate text-[14px] text-slate-500">
+          <span className="font-semibold" style={{ color }}>{event.calendarLabel}</span>
+          {event.location ? ` · ${event.location}` : ""}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => onEdit(event)} className="rounded-lg border border-[#c9d8f0] bg-white px-3 py-1 text-[14px] text-[#102a83] hover:bg-[#f5f8fe]">
+          Editar
+        </button>
+        <button type="button" disabled={deleting} onClick={() => onDelete(event)} className="px-2 py-1 text-[14px] text-[#b42318] hover:underline disabled:opacity-50">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function CalendarView({
   initialEvents,
   initialError,
@@ -468,7 +515,37 @@ export function CalendarView({
 
       {!isSearching && view === "semana" && (
         // Celular: dias empilhados em lista. Desktop (lg+): sete colunas lado a lado, uso de mesa.
-        <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white">
+        <>
+        {/* Desktop: um quadro por dia com compromisso (faixa azul clara com o dia). Dias sem compromisso não aparecem. */}
+        <div className="mt-5 hidden space-y-3 md:block">
+          {weekKeys.filter((dayKey) => (eventsByDate.get(dayKey) ?? []).length > 0).map((dayKey) => {
+            const index = weekKeys.indexOf(dayKey);
+            const isToday = dayKey === todayKey;
+            return (
+              <div key={dayKey} className="overflow-hidden rounded-xl border border-[#c9d8f0] bg-white">
+                <div className="flex items-baseline gap-2 border-b border-[#c9d8f0] bg-[#eef5ff] px-4 py-2">
+                  <span className="text-[14px] text-slate-600">{WEEK_DAY_LABELS[index]}</span>
+                  <span className="text-[20px] font-semibold text-[#102a83]">{format(dateFromKey(dayKey), "d")}</span>
+                  {isToday && <span className="ml-auto self-center rounded-md bg-[#102a83] px-2 py-0.5 text-[13px] font-semibold text-white">Hoje</span>}
+                </div>
+                {(eventsByDate.get(dayKey) ?? []).map((event) => (
+                  <DesktopEventRow
+                    key={`${event.calendarKey}-${event.id}`}
+                    event={event}
+                    now={now}
+                    deleting={deletingId === event.id}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            );
+          })}
+          {weekKeys.every((dayKey) => (eventsByDate.get(dayKey) ?? []).length === 0) && (
+            <p className="rounded-xl border border-[#c9d8f0] bg-white px-4 py-3 text-[14px] text-slate-500">Nenhum compromisso nesta semana.</p>
+          )}
+        </div>
+        <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white md:hidden">
           {weekKeys.map((dayKey, index) => {
             const dayEvents = eventsByDate.get(dayKey) ?? [];
             const isToday = dayKey === todayKey;
@@ -499,6 +576,7 @@ export function CalendarView({
             );
           })}
         </section>
+        </>
       )}
 
       {!isSearching && view === "mes" && (
