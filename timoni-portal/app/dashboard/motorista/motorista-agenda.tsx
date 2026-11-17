@@ -343,7 +343,7 @@ function estiloBoxViagem(_v: Viagem) {
   return { backgroundColor: "#f5f6fb", borderWidth: 0 };
 }
 
-// Etiquetas preenchidas: tipo (Entrega, Coleta) e empresa (Rodini e MCR = mesma cor; Casa Timoni = outra).
+// Etiquetas preenchidas (17/11/2026): Entrega azul, Coleta vermelho; Casa Timoni verde, Rodini amarelo, MCR laranja.
 function EtiquetasViagem({ v }: { v: Viagem }) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
   const loja = String(v.loja || "").trim();
@@ -354,11 +354,15 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
       {tipo === "Retirada"
-        ? <span className={base} style={{ background: "#FFF1B8", color: "#7A5A00" }}>Coleta</span>
+        ? <span className={base} style={{ background: "#FCEBEB", color: "#A32D2D" }}>Coleta</span>
         : <span className={base} style={{ background: "#E3EEFB", color: "#185FA5" }}>Entrega</span>}
       {rotuloEmpresa && (ehCasaTimoni
         ? <span className={base} style={{ background: "#DDF1EE", color: "#0F6E56" }}>{rotuloEmpresa}</span>
-        : <span className={base} style={{ background: "#EDEDEA", color: "#444441" }}>{rotuloEmpresa}</span>)}
+        : lojaMin === "rodini"
+          ? <span className={base} style={{ background: "#FAEEDA", color: "#854F0B" }}>{rotuloEmpresa}</span>
+          : lojaMin === "mcr"
+            ? <span className={base} style={{ background: "#FCE4D2", color: "#9A3412" }}>{rotuloEmpresa}</span>
+            : <span className={base} style={{ background: "#EDEDEA", color: "#444441" }}>{rotuloEmpresa}</span>)}
     </div>
   );
 }
