@@ -101,7 +101,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         </div>
       </div>
       {!loading && exceptions.length > 0 && (
-        <div className="ct-clean-exceptions md:hidden">
+        <div className="ct-clean-exceptions md:!hidden">
           <strong>Pedidos que exigem atenção</strong>
           {exceptions.map((item) => (
             <div key={`${item.id}-${item.tipo}`}>

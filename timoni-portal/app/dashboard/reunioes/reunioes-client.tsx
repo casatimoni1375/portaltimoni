@@ -118,7 +118,7 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
 
 function DataDaReuniao({ rotulo, data, hora }: { rotulo: string; data: string; hora: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-[#f8fbff] p-4">
+    <div className="min-w-0 rounded-lg bg-[#f8fbff] p-4 md:border md:border-[#e1e6f0] md:bg-white">
       <p className="text-[13px] font-semibold uppercase text-[#65718a]">{rotulo}</p>
       {data ? (
         <p className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{formatDate(data)}</p>
