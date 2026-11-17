@@ -17,6 +17,7 @@ type Company = "MCR" | "ROD" | "CT";
 interface Summary {
   pedidosParaFazer: number;
   urgentes: number;
+  atrasados?: number;
   enviadosRioClaro: number;
   enviadosAraras: number;
 }
@@ -270,11 +271,11 @@ export default function ComprasClient() {
       <section className="ct-compras-counts grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
           ["Pedidos para fazer", summary?.pedidosParaFazer ?? (trello.configured && trello.suppliers ? suppliers.length : undefined)],
-          ["Urgentes", summary?.urgentes ?? (trello.configured && trello.suppliers ? suppliers.filter(item => item.urgent).length : undefined)],
+          ["Atrasados", summary?.atrasados],
           ["Enviados — Rio Claro", summary?.enviadosRioClaro],
           ["Enviados — Araras", summary?.enviadosAraras],
         ].map(([label, value]) => (
-          <article key={String(label)} className={`ct-compras-count rounded-2xl border border-slate-200 bg-white p-5 shadow-sm${label === "Urgentes" && Number(value) > 0 ? " is-urgent" : ""}`}>
+          <article key={String(label)} className={`ct-compras-count rounded-2xl border border-slate-200 bg-white p-5 shadow-sm${label === "Atrasados" && Number(value) > 0 ? " is-urgent" : ""}`}>
             <p className="text-3xl max-md:text-[20px] font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
             <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">{label}</p>
           </article>
