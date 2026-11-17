@@ -365,7 +365,7 @@ export default function ComprasClient() {
               className="ct-compras-btn inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-4 text-sm max-md:text-[11px] font-semibold text-white"
               style={{color:"#fff",textDecoration:"none"}}
             >
-              Abrir pasta de fornecedores
+              Fornecedores
             </a>
             <a
               href={TRELLO_BOARD_URL}
@@ -373,7 +373,7 @@ export default function ComprasClient() {
               rel="noopener noreferrer"
               className="ct-compras-btn inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm max-md:text-[11px] font-semibold text-blue-800"
             >
-              Abrir Trello
+              Trello
             </a>
           </div>
         </article>
