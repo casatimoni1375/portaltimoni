@@ -118,9 +118,13 @@ function upcomingMeeting(meeting: Meeting): Meeting | null {
 
 function DataDaReuniao({ rotulo, data, hora }: { rotulo: string; data: string; hora: string }) {
   return (
-    <div className="min-w-0">
-      <p className="text-[13px] font-semibold text-[#65718a]">{rotulo}</p>
-      <p className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{data ? formatDate(data) : "A definir"}</p>
+    <div className="min-w-0 rounded-lg bg-[#f8fbff] p-4">
+      <p className="text-[13px] font-semibold uppercase text-[#65718a]">{rotulo}</p>
+      {data ? (
+        <p className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{formatDate(data)}</p>
+      ) : (
+        <p className="mt-1 text-base max-md:text-[12.5px] text-[#65718a]">A definir</p>
+      )}
       {data && hora && <p className="text-xs max-md:text-[10px] text-[#65718a]">{formatTime(hora)}</p>}
     </div>
   );
@@ -141,13 +145,16 @@ function MeetingCard({
   ];
 
   return (
-    <article className="rounded-xl border border-[#e1e6f0] bg-white p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h3 className="text-base max-md:text-[12.5px] font-bold text-[#182443]">{meeting.unit}</h3>
-        <span className="text-xs max-md:text-[10px] text-[#65718a]">{meeting.frequency}</span>
+    <article className="rounded-xl border border-[#c9d8f0] bg-[#eef5ff] p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold uppercase text-[#65718a]">Próximas reuniões</p>
+          <h3 className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{meeting.unit}</h3>
+        </div>
+        <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs max-md:text-[10px] font-semibold text-[#182443]">{meeting.frequency}</span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-4">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <DataDaReuniao rotulo="Próxima" data={meeting.date} hora={meeting.time} />
         <DataDaReuniao rotulo="Seguinte" data={meeting.secondDate} hora={meeting.secondTime} />
       </div>
