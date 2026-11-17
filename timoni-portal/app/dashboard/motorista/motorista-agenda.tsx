@@ -64,17 +64,22 @@ type Modo = "dia" | "semana" | "mes";
 // Antes eram duas listas diferentes: Preenchido por era fixa e separada em Rio Claro e
 // Araras; Vendedor vinha do cadastro de colaboradores e nao batia com ela.
 const RESPONSAVEIS: string[] = [
+  "Adriel",
   "Bruna",
-  "Carol",
+  "Carina",
   "Ciça",
+  "Davi",
   "Jaqueline",
   "Jeovana",
+  "João",
+  "José Roberto",
   "Lyra",
   "Marcelo",
   "Margareth",
   "Paulo",
   "Reginaldo",
   "Reinaldo",
+  "San",
   "Yan",
 ];
 
