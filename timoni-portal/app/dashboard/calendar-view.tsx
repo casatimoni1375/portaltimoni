@@ -468,7 +468,7 @@ export function CalendarView({
 
       {!isSearching && view === "semana" && (
         // Celular: dias empilhados em lista. Desktop (lg+): sete colunas lado a lado, uso de mesa.
-        <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white">
+        <section className="ct-std-card mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white">
           {weekKeys.map((dayKey, index) => {
             const dayEvents = eventsByDate.get(dayKey) ?? [];
             const isToday = dayKey === todayKey;

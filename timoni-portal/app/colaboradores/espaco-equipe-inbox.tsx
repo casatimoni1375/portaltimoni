@@ -47,7 +47,7 @@ export default async function EspacoEquipeInbox({
   }
 
   return (
-    <section className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
+    <section className="ct-std-card mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
       <div className="max-w-3xl">
         <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
         <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>

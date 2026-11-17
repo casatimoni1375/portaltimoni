@@ -145,7 +145,7 @@ function MeetingCard({
   ];
 
   return (
-    <article className="rounded-xl border border-[#c9d8f0] bg-[#eef5ff] p-5">
+    <article className="ct-std-card rounded-xl border border-[#c9d8f0] bg-[#eef5ff] p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-semibold uppercase text-[#65718a]">Próximas reuniões</p>
