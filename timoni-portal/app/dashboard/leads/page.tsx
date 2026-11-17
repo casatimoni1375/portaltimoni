@@ -233,7 +233,7 @@ export default function LeadsPage() {
     </section>
 
     {showReports && !reportData && <p role="status">{reportError || "Carregando relatório completo…"}</p>}
-    {showReports&&reportData&&<section className="mt-5 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+    {showReports&&reportData&&<section className="ct-std-card mt-5 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-[.16em] text-blue-700">Relatórios</p><h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Avanço comercial</h2><p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Acompanhe o realizado e o que ainda precisa de ação.</p></div><button onClick={()=>void generateGoogleReport()} disabled={generatingReport||!data} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50">{generatingReport?"Gerando...":"Gerar no Google Planilhas"}</button></div>
       <div className="mt-4 flex flex-wrap gap-2"><select value={reportPreset} onChange={event=>setReportPreset(event.target.value as typeof reportPreset)} className="rounded-xl border bg-white px-3 py-2 text-sm max-md:text-[11px] font-semibold"><option value="atual">Semana atual</option><option value="anterior">Semana anterior</option><option value="30dias">Últimos 30 dias</option><option value="personalizado">Período personalizado</option></select>{reportPreset==="personalizado"&&<><label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs max-md:text-[10px] font-semibold">De <input type="date" value={reportStart} onChange={event=>setReportStart(event.target.value)} className="bg-transparent"/></label><label className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs max-md:text-[10px] font-semibold">Até <input type="date" value={reportEnd} onChange={event=>setReportEnd(event.target.value)} className="bg-transparent"/></label></>}</div>
       {reportError&&<div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm max-md:text-[11px] text-red-700">{reportError}</div>}
@@ -260,7 +260,7 @@ export default function LeadsPage() {
     </div>
 
     <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
-      <section id="leads-followup" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <section id="leads-followup" className="ct-std-card min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">1. Acompanhamento</p><h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Follow up</h2><p className="mt-1 text-sm max-md:text-[11px] text-slate-500">{data?.pagination?.leadTotal??leads.length} empresa(s) nesta lista</p></div>
           <button onClick={()=>setFilter("todos")} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm max-md:text-[11px] font-semibold text-slate-700">Ver todos</button>
@@ -279,7 +279,7 @@ export default function LeadsPage() {
         </div>
       </section>
 
-      <section id="leads-prospectar" className="min-w-0 scroll-mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <section id="leads-prospectar" className="ct-std-card min-w-0 scroll-mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-blue-700">2. Prospecção</p><h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Prospecção</h2><p className="mt-1 text-sm max-md:text-[11px] text-slate-500">{data?.pagination?.prospectTotal??prospects.length} empresa(s) nesta lista</p></div></div>
         <div className="mt-4"><label htmlFor="prospect-company-search" className="mb-1 block text-xs max-md:text-[10px] font-semibold text-slate-600">Pesquisar</label><input id="prospect-company-search" type="search" value={prospectSearch} onChange={e=>setProspectSearch(e.target.value)} placeholder="Pesquisar empresa cadastrada..." className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm max-md:text-[11px]"/></div>
         <div className="mt-4 max-h-[70vh] space-y-3 overflow-y-auto pr-1">
