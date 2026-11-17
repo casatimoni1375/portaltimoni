@@ -199,6 +199,13 @@ export async function GET(request: Request) {
         summary: {
           pedidosParaFazer: pendingCards.length,
           urgentes: suppliers.filter((supplier) => supplier.urgent).length,
+          // Pedidos enviados com data prevista já vencida (mesma regra da aba Pedidos enviados).
+          atrasados: (() => {
+            const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+            const late = (list: typeof sentRioClaro) => list.filter((card) => Boolean(card.due) && String(card.due).slice(0, 10) < today).length;
+            return (enviadosOnly || canReadUnit(central.current.user, "compras", "rio_claro") ? late(sentRioClaro) : 0)
+              + (enviadosOnly || canReadUnit(central.current.user, "compras", "araras") ? late(sentAraras) : 0);
+          })(),
           enviadosRioClaro: enviadosOnly || canReadUnit(central.current.user, "compras", "rio_claro") ? sentRioClaro.length : 0,
           enviadosAraras: enviadosOnly || canReadUnit(central.current.user, "compras", "araras") ? sentAraras.length : 0,
         },
