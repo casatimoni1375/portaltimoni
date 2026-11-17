@@ -664,7 +664,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   function repetirUltimaDiscriminacao() {
     const cliente = form.clienteFornecedor.trim().toUpperCase();
     if (!cliente) {
-      setErro("Preencha Cliente/Fornecedor para repetir a última discriminação.");
+      setErro("Preencha Cliente/Fornecedor para repetir a última observação.");
       return;
     }
     const anterior = Object.keys(viagens)
@@ -730,7 +730,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
         numero: form.numeroEndereco,
         complemento: form.referencia,
         itens: "",
-        info: form.discriminacao,
+        // Planilha lê texto que começa com = + - @ como fórmula (aparece #ERROR!). O apóstrofo força texto e não aparece.
+        info: /^[=+\-@]/.test(form.discriminacao.trim()) ? `'${form.discriminacao.trim()}` : form.discriminacao,
         preenchidoPor: form.preenchidoPor,
         dividir: "0",
         notasJson: notasComMetaMotorista(form.notasJson, {
@@ -858,7 +859,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         </p>
                         {v.contatoNome && v.volumes && <p className="mt-1 text-sm font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
                         {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                        {v.info && <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
+                        {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-sm text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
                         <p className="mt-1 text-sm text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
@@ -891,7 +892,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     </p>
                     {v.contatoNome && v.volumes && <p className="mt-1 font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
                     {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                    {v.info && <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
+                    {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
                     <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
@@ -971,7 +972,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
 
             <div style={colunasFormulario("180px minmax(0, 1fr)")} className="mt-4 grid gap-4">
               <label className="min-w-0 text-sm font-medium text-slate-700">* Volume<input value={form.volumes} onChange={(e) => set("volumes", e.target.value)} placeholder="Ex.: 15" className={fieldClass("volumes")} />{mensagemCampo("volumes")}</label>
-              <div className="min-w-0"><label className="min-w-0 text-sm font-medium text-slate-700">Discriminação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-sm font-semibold text-blue-800 underline underline-offset-2">Repetir última discriminação</button></div>
+              <div className="min-w-0"><label className="min-w-0 text-sm font-medium text-slate-700">Observação<textarea value={form.discriminacao} onChange={(e) => set("discriminacao", e.target.value)} rows={4} placeholder={"Ex.:\n10 rolos de bolha\n5 sacos de Polifloc"} className={fieldClass("discriminacao")} /></label><button type="button" onClick={repetirUltimaDiscriminacao} className="mt-1 text-sm font-semibold text-blue-800 underline underline-offset-2">Repetir última observação</button></div>
             </div>
 
             <div style={colunasFormulario("repeat(2, minmax(0, 1fr))")} className="mt-4 grid gap-4">
