@@ -748,3 +748,5 @@ html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first
 html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first-child + :is(h1,h2,h3))>p:first-child{margin:-16px -20px 0!important;padding:12px 20px 0!important;background:#eef5ff;}
 html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first-child + :is(h1,h2,h3))>p:first-child+:is(h1,h2,h3){margin:0 -20px 12px!important;padding:2px 20px 12px!important;background:#eef5ff;border-bottom:1px solid #c9d8f0;}
 }
+/* Faixa do título ocupa a largura toda mesmo quando o bloco do título tem largura máxima (ex.: Equipe). */
+@media(min-width:768px){html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card)>:first-child{max-width:none!important;}}
