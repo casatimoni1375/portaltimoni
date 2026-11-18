@@ -71,7 +71,7 @@ export default async function MotoristaPage() {
           .motorista-agenda-controle .ct-mot-barra p.text-lg{font-size:20px;color:#102a83;}
           .motorista-agenda-controle .ct-mot-barra p.uppercase{text-transform:none;letter-spacing:0;font-size:14px;color:#65718a;}
           .motorista-agenda-controle section.ct-mot-dia{border-radius:12px;overflow:hidden;border-color:#c9d8f0;padding:0 20px 16px;}
-          .motorista-agenda-controle section.ct-mot-dia.border-\[\#102a83\]{border-color:#102a83;}
+          .motorista-agenda-controle section.ct-mot-dia.border-\\[\\#102a83\\]{border-color:#102a83;}
           .motorista-agenda-controle .ct-mot-dia-titulo{display:flex;align-items:center;gap:10px;margin:0 -20px;padding:12px 20px;width:calc(100% + 40px);background:#eef5ff;border-bottom:1px solid #c9d8f0;}
           .motorista-agenda-controle .ct-mot-dia-titulo p{margin:0;font-size:20px;font-weight:600;color:#102a83;text-transform:capitalize;}
           .motorista-agenda-controle .ct-mot-dia-titulo p + p{font-size:16px;font-weight:500;color:#182443;}
