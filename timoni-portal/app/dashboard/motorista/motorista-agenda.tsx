@@ -900,7 +900,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="font-[Arial] text-[11pt] leading-[1.35]">
+                  <div className="font-[Arial] text-[11pt] md:text-[calc(11pt+1px)] leading-[1.35]">
                     <p style={estiloLinhaPrincipal(v)} className={`hidden md:block ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
                     <div className="md:hidden">
                     <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>
@@ -916,7 +916,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     </div>
                     {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
                     {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
-                    <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                    <p className="mt-1 font-[Arial] text-[10pt] md:text-[calc(10pt+1px)] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
                     {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
