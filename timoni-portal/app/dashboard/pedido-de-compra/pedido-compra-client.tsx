@@ -29,6 +29,18 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [, setExceptions] = useState<PurchaseException[]>([]);
   const [selected, setSelected] = useState<{ id: string; nome: string } | null>(null);
   const [mobileStatus, setMobileStatus] = useState<"todos" | "enviados" | "atrasados">("todos");
+  // 18/11 (Ciça): todos os acessos de Compras veem três colunas — Enviados (no prazo) | Atrasados | Recebidos.
+  const singleUnit = true;
+  const multiUnit = (["rio_claro", "araras"] as const).filter((unit) => visibleUnits.includes(unit)).length > 1;
+  const [received, setReceived] = useState<Array<{ id: string; nome: string; unidade: string | null; data: string | null }> | null>(null);
+  useEffect(() => {
+    if (!singleUnit) return;
+    const controller = new AbortController();
+    void fetch("/api/compras/recebidos?unidade=todas", { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => { const data = await response.json(); if (response.ok) setReceived(data.orders || []); else setReceived([]); })
+      .catch(() => { if (!controller.signal.aborted) setReceived([]); });
+    return () => controller.abort();
+  }, [singleUnit]);
   const request = useRef<{ run: (options?: { urgent?: boolean; force?: boolean }) => Promise<void> } | null>(null);
   const unitKey = visibleUnits.join("|");
   useEffect(() => {
@@ -93,7 +105,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="ct-clean-action">Atualizar lista</button>
       </div>
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-md max-md:!hidden">
+      <div className={`mt-3 grid grid-cols-2 gap-3 sm:max-w-md max-md:!hidden${singleUnit ? " !hidden" : ""}`}>
         <div className="ct-sent-count rounded-xl border border-[#102a83]/40 bg-white px-4 py-3">
           <p className="text-base max-md:text-[12.5px] text-slate-600">Enviados</p>
           <strong className="ct-clean-counter text-[#102a83]">{visibleOrders.length}</strong>
@@ -135,7 +147,35 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         })()}
         {loading && <p className="ct-sent-empty">Atualizando...</p>}
       </div>
-      <div className="mt-4 grid gap-5 md:grid-cols-2 max-md:!hidden">
+      {singleUnit && (() => {
+        const mine = visibleOrders.filter((order) => columnUnits.some((unit) => unit === order.unidade));
+        const late = mine.filter(isLate);
+        const onTime = mine.filter((order) => !isLate(order));
+        const chosen = query.get("unidade");
+        const got = (received || []).filter((order) => columnUnits.some((unit) => unit === order.unidade) && (!chosen || chosen === "todas" || order.unidade === chosen));
+        const store = (value: string | null) => multiUnit && value ? `${value === "araras" ? "Araras" : "Rio Claro"} · ` : "";
+        const row = (key: string, name: string, line: string, onClick?: () => void) => (
+          <button type="button" key={key} onClick={onClick} className="ct-row block w-full rounded-xl border border-[#e1e6f0] bg-white px-3 py-2.5 text-left">
+            <strong className="block break-words text-[16px] text-[#182443]">{name}</strong>
+            <small className="ct-row-line2 block text-[14px] text-slate-500">{line}</small>
+          </button>
+        );
+        const column = (title: string, count: string | number, tone: string, items: import("react").ReactNode, empty: boolean) => (
+          <div className="min-w-0">
+            <div className={`ct-sent-count rounded-xl border bg-white px-4 py-3 ${tone}`}><p className="text-base">{title}</p><strong className="ct-clean-counter">{count}</strong></div>
+            <div className="mt-3 grid gap-2">{items}</div>
+            {empty && <p className="mt-2 text-[14px] text-slate-500">Nenhum pedido.</p>}
+          </div>
+        );
+        return (
+          <div className="ct-sent-three mt-3 grid gap-5 md:grid-cols-3 max-md:!hidden">
+            {column("Enviados", loading && !sentOrders.length ? "–" : onTime.length, "border-[#c9d8f0] text-[#102a83]", onTime.map((order) => row(order.id, order.nome, `${store(order.unidade)}Enviado ${dateOnly(order.enviadoEm)} · previsto ${order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "sem data"}`, () => setSelected(order))), !loading && !onTime.length)}
+            {column("Atrasados", loading && !sentOrders.length ? "–" : late.length, "is-late border-[#f4b9bc] text-[#b12532]", late.map((order) => row(order.id, order.nome, `${store(order.unidade)}Previsto ${dateOnly(order.previsaoEntrega)} · enviado ${dateOnly(order.enviadoEm)}`, () => setSelected(order))), !loading && !late.length)}
+            {column("Recebidos", received === null ? "–" : got.length, "border-[#c9d8f0] text-[#102a83]", got.map((order) => row(order.id, order.nome, `${store(order.unidade)}Recebido em ${order.data ? new Date(order.data).toLocaleDateString("pt-BR") : "data não informada"}`)), received !== null && !got.length)}
+          </div>
+        );
+      })()}
+      <div className={`mt-4 grid gap-5 md:grid-cols-2 max-md:!hidden${singleUnit ? " !hidden" : ""}`}>
         {columnUnits.map((currentUnit) => {
           const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
           return (
