@@ -128,3 +128,13 @@ html:root:root body main .ct-today-boxes .ct-metric-link > span { white-space: n
 }
 /* A lista de viagens fica no box Motorista (o box leva à agenda do motorista). */
 html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
+
+/* 18/11 — Pedidos de compra (desktop): etiquetas de empresa e loja nas linhas. */
+@media (min-width: 768px) {
+  html:root:root body main .ct-row-tagged .ct-sent-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  html:root:root body main .ct-row-tagged .ct-sent-tag { font-size: 12px; line-height: 1.5; padding: 1px 8px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
+  html:root:root body main .ct-row-tagged .ct-sent-tag.is-store { border: 1px solid #c9d8f0; color: #102a83; background: #fff; }
+  html:root:root body main .ct-row-tagged .ct-sent-tag.is-ct { background: #e7f6ec; color: #166534; }
+  html:root:root body main .ct-row-tagged .ct-sent-tag.is-rod { background: #fff4c2; color: #854f0b; }
+  html:root:root body main .ct-row-tagged .ct-sent-tag.is-mcr { background: #ffe6d1; color: #9a4a0b; }
+}
