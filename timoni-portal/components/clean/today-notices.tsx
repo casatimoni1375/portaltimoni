@@ -92,7 +92,8 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   {isAdmin&&creating&&<ComunicadosAdmin variant="hoje"/>}
   {error&&<p className="ct-notice-error">{error}</p>}
   {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum aviso.</p>}
-  {isAdmin&&archived.length>0&&<div className="ct-notice-archive"><button type="button" onClick={()=>setShowArchived(value=>!value)} aria-expanded={showArchived}>{showArchived?"Ocultar arquivados":`Arquivados (${archived.length})`}</button>{showArchived&&<ul>{archived.map(item=>row(item,true))}</ul>}</div>}
+  {/* 18/11: Arquivados saem da tela Hoje e ficam junto do formulário (botão Novo). */}
+  {isAdmin&&creating&&archived.length>0&&<div className="ct-notice-archive"><button type="button" onClick={()=>setShowArchived(value=>!value)} aria-expanded={showArchived}>{showArchived?"Ocultar arquivados":`Arquivados (${archived.length})`}</button>{showArchived&&<ul>{archived.map(item=>row(item,true))}</ul>}</div>}
   {image&&<div className="ct-notice-lightbox" onClick={()=>setImage("")}><button type="button" aria-label="Fechar imagem" onClick={()=>setImage("")}>✕</button><img src={image} alt="Imagem do aviso ampliada" onClick={event=>event.stopPropagation()}/></div>}
  </section>;
 }
