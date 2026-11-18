@@ -312,6 +312,9 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
 
 /* 4.5 Rotativo: escala do Fluxo */
 @media (max-width: 767px) {
+  /* Botões: nada de preto — ação/aba escolhida em azul do portal; secundários brancos com contorno fino azul */
+  :root:root body main :is(button, a):is(.bg-slate-900, .bg-slate-950, .bg-black, .bg-blue-800, .bg-blue-900) { background-color: #102a83 !important; color: #fff !important; border-color: #102a83 !important; }
+  :root:root body main :is(button, a).border-slate-300:not([class*="bg-"]) { border-color: #c9d8f0 !important; color: #102a83 !important; background: #fff !important; }
   /* contadores sem altura fixa (eram 112 px) */
   :root:root body main .ct-clean-metric { min-height: 0 !important; padding: 10px 14px !important; border-radius: 12px !important; border-color: #c9d8f0 !important; box-shadow: none !important; }
   :root:root body main .ct-clean-metric > span { font-size: 11px !important; }
