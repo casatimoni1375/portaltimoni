@@ -53,7 +53,7 @@
   html body main :is(.ct-clean-counter, .ct-clean-metric strong, .ct-estoque-count > span:first-child, .ct-compras-count strong, .ct-sent-count strong) { font-size: 16px !important; line-height: 1.1 !important; color: #102a83 !important; }
 }
 
-/* 1. Menu inferior: fixo em todas as páginas, 5% menor em 18/11 — letra 13,3, ícone 21, altura 55 */
+/* 1. Menu inferior: fixo em todas as páginas, 10% menor em 18/11 — letra 12,6, ícone 20, altura 52 */
 @media (max-width: 767px) {
   :root:root body .ct-clean-navigation .ct-clean-bottom {
     display: flex !important;
@@ -62,15 +62,15 @@
     padding: 4px 4px max(8px, env(safe-area-inset-bottom)) !important;
   }
   html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link {
-    min-height: 55px !important; gap: 4px !important; padding: 4px 2px !important;
+    min-height: 52px !important; gap: 3px !important; padding: 4px 2px !important;
     flex-direction: column !important; justify-content: center;
-    font-size: 13.3px !important; font-weight: 500 !important; line-height: 1.2 !important;
+    font-size: 12.6px !important; font-weight: 500 !important; line-height: 1.2 !important;
     color: #65718a; border-radius: 10px;
   }
   html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link[aria-current=page] {
     background: #eef1fa; color: #102a83; font-weight: 600 !important;
   }
-  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link svg { width: 21px !important; height: 21px !important; }
+  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link svg { width: 20px !important; height: 20px !important; }
   html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link > small { font-size: 11px !important; top: 2px; right: 8px; }
   html body:has(.ct-clean-navigation) { padding-bottom: 80px !important; }
 }
