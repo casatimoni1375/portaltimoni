@@ -230,7 +230,18 @@ const readCollaboratorsCached = (accessToken: string) => unstable_cache(
   { revalidate: 30, tags: [PORTAL_CONFIG_CACHE_TAG] },
 )();
 
-const readCollaborators = cache(async (accessToken: string) => readCollaboratorsCached(accessToken));
+// 18/11: mesma proteção do cadastro — falha do Google (429) usa a última lista boa por até 10 minutos.
+let lastGoodCollaborators: { list: ConfiguredCollaborator[]; at: number } | null = null;
+const readCollaborators = cache(async (accessToken: string) => {
+  try {
+    const list = await readCollaboratorsCached(accessToken);
+    lastGoodCollaborators = { list, at: Date.now() };
+    return list;
+  } catch (error) {
+    if (lastGoodCollaborators && Date.now() - lastGoodCollaborators.at <= USERS_FALLBACK_MAX_AGE_MS) return lastGoodCollaborators.list;
+    throw error;
+  }
+});
 
 // Identificação de acesso não usa lista histórica, migração automática nem cache entre requisições.
 export const getOfficialCollaboratorsForAccess = cache(async (accessToken: string) => {
