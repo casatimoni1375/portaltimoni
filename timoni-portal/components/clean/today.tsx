@@ -121,25 +121,27 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
   <header className="ct-clean-today-heading"><p>{new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"long",day:"numeric",month:"long"}).format(new Date())}</p>{/* Acessos compartilhados de vendedores: saudação sem nome. */}<h1>{hour<12?"Bom dia":hour<18?"Boa tarde":"Boa noite"}{name?`, ${name}.`:"!"}</h1>{email&&<small className="ct-clean-today-email">{email}</small>}</header>
   {operational?<>
    <div className={`ct-today-op-top${notices?"":" no-notices"}`}>
-    <div className="ct-today-op-cards">{tripsCard}{agendaCard}</div>
+    <div className="ct-today-op-cards">{tripsCard}{agendaCard}{capabilities.shortcuts?.estoque&&<Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"–":stockCount}</strong><span>Estoque</span></Link>}</div>
     {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
    </div>
    {shortcuts}
+   {/* 18/11: Reuniões também no Hoje dos acessos operacionais (ex.: Caixa). */}
+   {meetingCards}
    <div className="ct-today-layout">
     <div className="ct-today-main">{tripsList}</div>
     <aside className="ct-today-side">{peopleBlock}</aside>
    </div>
   </>:<>
-  {capabilities.shortcuts?.estoque&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Estoque"><Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"…":stockCount}</strong><span>Estoque</span></Link></section>}
   {false&&<section className="ct-clean-metrics ct-today-v2-metrics" aria-label="Prioridades do dia">{cards.map(card=><Link key={card.label} href={card.href} className={`ct-clean-metric ct-clean-${card.tone}`}><strong>{waiting("purchases")?"…":card.value}</strong><span>{card.label}</span></Link>)}{capabilities.shortcuts?.estoque&&<Link href="/dashboard/estoque" className="ct-clean-metric ct-clean-normal"><strong>→</strong><span>Estoque</span></Link>}</section>}
   {shortcuts}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
   {/* 18/11: boxes no padrão dos contadores — Motorista | Pedidos enviados | Pedidos atrasados, conforme a permissão. */}
-  {(capabilities.trips||capabilities.orders)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
+  {(capabilities.trips||capabilities.orders||capabilities.shortcuts?.estoque)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
    {tripsCard}
    {capabilities.orders&&allOrders&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
    {capabilities.orders&&<Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`} className={`ct-clean-metric ${lateOrders.length?"ct-clean-late":"ct-clean-normal"}`}><strong>{waiting("orders")?"–":lateOrders.length}</strong><span>Pedidos atrasados</span></Link>}
+   {capabilities.shortcuts?.estoque&&<Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"–":stockCount}</strong><span>Estoque</span></Link>}
   </section>}
   {/* Duas colunas independentes: cada bloco sobe logo abaixo do anterior, sem espaço vazio. */}
   {/* Tela Hoje v2: esquerda = Agenda + Aniversários/Férias; direita = Comunicados + Pedidos pendentes. */}

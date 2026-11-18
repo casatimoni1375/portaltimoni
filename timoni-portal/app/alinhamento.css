@@ -100,7 +100,8 @@ html:root:root body .ct-notice-stamp.is-pending { background: #fff4e1 !important
    no padrão dos contadores do portal — lado a lado, mesma largura, texto numa linha só,
    e o botão Agendar como botão pequeno à direita (sem ficar por cima do número). */
 html:root:root body main .ct-today-op-top { grid-template-columns: minmax(0, 1fr) !important; gap: 20px !important; align-items: stretch !important; }
-html:root:root body main .ct-today-op-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 20px !important; }
+html:root:root body main .ct-today-op-cards { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important; gap: 20px !important; }
+html:root:root body main .ct-today-op-top + * .ct-today-meetings, html:root:root body main .ct-clean-today > .ct-today-meetings { margin: 0 0 20px !important; gap: 20px !important; }
 html:root:root body main .ct-today-op-cards > .ct-clean-metric { min-height: 0 !important; }
 html:root:root body main .ct-today-op-cards .ct-clean-metric > span,
 html:root:root body main .ct-today-op-cards .ct-metric-link > span { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
@@ -122,7 +123,7 @@ html:root:root body main .ct-today-boxes .ct-metric-link > span { white-space: n
   html:root:root:root body main .ct-today-layout.ct-today-v2.ct-no-side > .ct-today-main > * { grid-column: 1 / -1 !important; }
 }
 @media (max-width: 767px) {
-  html:root:root body main .ct-today-boxes { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 16px !important; }
+  html:root:root body main .ct-today-boxes { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 16px !important; }
   html:root:root body main .ct-today-boxes .ct-metric-with-action { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; }
 }
 /* A lista de viagens fica no box Motorista (o box leva à agenda do motorista). */
