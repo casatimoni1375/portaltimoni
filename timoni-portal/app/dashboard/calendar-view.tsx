@@ -292,10 +292,10 @@ export function CalendarView({
     };
   }, [title]);
 
-  // Ao trocar de visão, o dia selecionado acompanha o período.
+  // Ao trocar de visão, o dia selecionado acompanha o período. No período atual, sempre o dia de hoje (18/11).
   useEffect(() => {
-    setSelectedDateKey(view === "mes" && periodOffset !== 0 ? monthStartKey(anchorKey) : anchorKey);
-  }, [view, periodOffset, anchorKey]);
+    setSelectedDateKey(periodOffset === 0 ? todayKey : view === "mes" ? monthStartKey(anchorKey) : anchorKey);
+  }, [view, periodOffset, anchorKey, todayKey]);
 
   const eventsByDate = useMemo(() => {
     const grouped = new Map<string, CalendarEventDTO[]>();
