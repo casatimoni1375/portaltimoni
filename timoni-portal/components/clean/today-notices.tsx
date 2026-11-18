@@ -26,12 +26,12 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
 
  const load=useCallback(async()=>{try{
   const [noticesResponse,readsResponse]=await Promise.all([fetch("/api/comunicados",{cache:"no-store"}),fetch("/api/avisos-leituras",{cache:"no-store"})]);
-  const notices=await noticesResponse.json();if(!noticesResponse.ok)throw Error(notices?.error||"Não foi possível carregar os comunicados.");
+  const notices=await noticesResponse.json();if(!noticesResponse.ok)throw Error(notices?.error||"Não foi possível carregar os avisos.");
   setItems(Array.isArray(notices.items)?notices.items:[]);
   const reads=await readsResponse.json().catch(()=>({}));
   if(readsResponse.ok){setCompleted(Array.isArray(reads.completedAvisoIds)?reads.completedAvisoIds:[]);setUnsigned(Array.isArray(reads.noAudienceAvisoIds)?reads.noAudienceAvisoIds:[]);setReaders(reads.readersByAviso||{});}
   setError("");
- }catch(err){setError(err instanceof Error?err.message:"Não foi possível carregar os comunicados.");}finally{setLoaded(true);}},[]);
+ }catch(err){setError(err instanceof Error?err.message:"Não foi possível carregar os avisos.");}finally{setLoaded(true);}},[]);
  useEffect(()=>{void load();const refresh=()=>void load();window.addEventListener("comunicados:changed",refresh);window.addEventListener("avisos:read-changed",refresh);return()=>{window.removeEventListener("comunicados:changed",refresh);window.removeEventListener("avisos:read-changed",refresh);};},[load]);
 
  const now=Date.now();
@@ -61,12 +61,14 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   return <li key={item.id} className={`ct-notice${isOpen?" is-open":""}`}>
    <button type="button" className="ct-notice-row" aria-expanded={isOpen} onClick={()=>toggle(key)}>
     <span className="ct-notice-date">{fmtDate(item.createdAt)}</span>
-    <span className="ct-notice-title"><small className="ct-notice-scope">{SCOPE_LABEL[item.unit]}</small>{splitNoticeTitle(item.title).map((part,i)=><span key={i} className={i===0?"ct-notice-headline":"ct-notice-subline"}>{part}</span>)}</span>
-    {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}
+    <span className="ct-notice-title">{splitNoticeTitle(item.title).map((part,i)=><span key={i} className={i===0?"ct-notice-headline":"ct-notice-subline"}>{part}</span>)}</span>
+    {/* 18/11: loja em etiquetas no canto superior direito; Pendente logo abaixo. */}
+    <span className="ct-notice-side"><span className="ct-notice-tags" aria-label={SCOPE_LABEL[item.unit]}>{(item.unit==="geral"?["araras","rio claro"]:[item.unit]).map(unit=><span key={unit} className={`ct-notice-tag ${unit==="araras"?"is-araras":"is-rio-claro"}`}>{unit==="araras"?"Araras":"Rio Claro"}</span>)}</span>
+    {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}</span>
    </button>
    {isOpen&&<div className="ct-notice-body">
     <p>{item.message}</p>
-    {item.imageDataUrl&&<button type="button" className="ct-notice-image" onClick={()=>setImage(item.imageDataUrl!)} aria-label="Ampliar imagem"><img src={item.imageDataUrl} alt={`Imagem do comunicado ${item.title}`}/></button>}
+    {item.imageDataUrl&&<button type="button" className="ct-notice-image" onClick={()=>setImage(item.imageDataUrl!)} aria-label="Ampliar imagem"><img src={item.imageDataUrl} alt={`Imagem do aviso ${item.title}`}/></button>}
     {item.expiresAt&&<small className="ct-clean-muted">Prazo final: {fmtDate(item.expiresAt)}</small>}
     {!inArchive&&canConfirmRead&&pool.length>0&&<div className="ct-notice-confirm">
      {pool.length>1&&<label>Seu nome<select value={employee} onChange={event=>setEmployee(event.target.value)}><option value="">Selecione</option>{pool.map(member=><option key={`${member.unit}-${member.name}`} value={`${member.unit}::${member.name}`}>{member.name}</option>)}</select></label>}
@@ -85,12 +87,12 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
    </div>}
   </li>;};
 
- return <section className="ct-clean-card ct-today-notices ct-tone-card ct-tone-red ct-m-order-2" aria-label="Comunicados">
-  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<button type="button" className="ct-clean-action" aria-expanded={creating} onClick={()=>setCreating(value=>!value)}>{creating?"Fechar":"+ Novo"}</button>}</div>
+ return <section className="ct-clean-card ct-today-notices ct-tone-card ct-tone-red ct-m-order-2" aria-label="Avisos">
+  <div className="ct-clean-card-heading"><h2>Avisos</h2>{isAdmin&&<button type="button" className="ct-clean-action" aria-expanded={creating} onClick={()=>setCreating(value=>!value)}>{creating?"Fechar":"Novo"}</button>}</div>
   {isAdmin&&creating&&<ComunicadosAdmin variant="hoje"/>}
   {error&&<p className="ct-notice-error">{error}</p>}
-  {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}
+  {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum aviso.</p>}
   {isAdmin&&archived.length>0&&<div className="ct-notice-archive"><button type="button" onClick={()=>setShowArchived(value=>!value)} aria-expanded={showArchived}>{showArchived?"Ocultar arquivados":`Arquivados (${archived.length})`}</button>{showArchived&&<ul>{archived.map(item=>row(item,true))}</ul>}</div>}
-  {image&&<div className="ct-notice-lightbox" onClick={()=>setImage("")}><button type="button" aria-label="Fechar imagem" onClick={()=>setImage("")}>✕</button><img src={image} alt="Imagem do comunicado ampliada" onClick={event=>event.stopPropagation()}/></div>}
+  {image&&<div className="ct-notice-lightbox" onClick={()=>setImage("")}><button type="button" aria-label="Fechar imagem" onClick={()=>setImage("")}>✕</button><img src={image} alt="Imagem do aviso ampliada" onClick={event=>event.stopPropagation()}/></div>}
  </section>;
 }

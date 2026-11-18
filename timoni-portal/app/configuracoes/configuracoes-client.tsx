@@ -344,7 +344,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 {accessOptions.map((user) => (
                   <option key={user.email} value={normalizeEmail(user.email)}>{user.email}</option>
                 ))}
-                {canAdministerPermissions && <option value={NEW_ACCESS}>+ Novo e-mail de acesso</option>}
+                {canAdministerPermissions && <option value={NEW_ACCESS}>Novo e-mail de acesso</option>}
               </select>
             </label>
 
@@ -375,7 +375,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                     {index < linkedMembers.length - 1 ? ", " : ". "}
                   </span>
                 ))}
-                <button type="button" onClick={() => { setMemberDraft(emptyMember(selected)); setError(""); setMessage(""); }} className="ml-1 rounded-md border border-slate-300 px-2 py-0.5 text-xs max-md:text-[10px] font-semibold text-slate-700">+ Colaborador</button>
+                <button type="button" onClick={() => { setMemberDraft(emptyMember(selected)); setError(""); setMessage(""); }} className="ml-1 rounded-md border border-slate-300 px-2 py-0.5 text-xs max-md:text-[10px] font-semibold text-slate-700">Colaborador</button>
               </p>
             )}
 
@@ -461,7 +461,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 Padrão pelas permissões
               </label>
             </div>
-            <p className="mt-1 text-[11px] text-slate-500">Blocos da tela inicial. Comunicados aparecem sempre. Um bloco só aparece se o módulo estiver liberado em Personalização.</p>
+            <p className="mt-1 text-[11px] text-slate-500">Blocos da tela inicial. Avisos aparecem sempre. Um bloco só aparece se o módulo estiver liberado em Personalização.</p>
             <div className={GRID}>
               {TODAY_BLOCKS.map((block) => {
                 const enabled = block.modules.some((module) => perm.modules.includes(module)) && perm.todayBlocks !== null;

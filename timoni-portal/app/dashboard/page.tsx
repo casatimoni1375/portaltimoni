@@ -34,13 +34,13 @@ export default async function DashboardPage(){
  const want=(id:string)=>wantsTodayBlock(blocks,id,has);
  const ordersAll=want("pedidos");
  const capabilities={orders:ordersAll||want("pedidos-atrasados"),ordersMode:(ordersAll?"todos":"atrasados") as "todos"|"atrasados",purchases:want("compras"),comprasEnviadosTodas:COMPRAS_ENVIADOS_SOMENTE_EMAILS.has(user.email.trim().toLowerCase()),trips:want("viagens"),tripsCreate:want("viagens")&&canModuleOperation(user,"motorista","criar"),people:want("aniversarios"),agenda:!want("agenda")?null:isCicaAccess(user.email)?(has("agenda-ct")?"timoni" as const:has("agenda")?"principal" as const:null):(has("agenda-ct")?"timoni" as const:null),shortcuts:{estoque:want("atalho-estoque"),equipe:want("atalho-equipe"),vendas:want("atalho-vendas")}};
- // Reuniões na Hoje (desktop): mesmo card aprovado do Painel, somente leitura.
+ // Reuniões na Hoje (desktop e celular, 18/11): mesmo card aprovado do Painel, somente leitura.
  let meetingCards:ReactNode=null;
  if(has("painel")&&session?.accessToken&&session.error!=="RefreshAccessTokenError"){
   const items=await listMeetings(session.accessToken).catch(()=>[] as Meeting[]);const now=new Date();const todas=user.unit==="Geral"||isManagementEmail(user.email);
   const lojas:Array<["rio claro"|"araras",string]>=[["rio claro","Rio Claro"],["araras","Araras"]];
   const visiveis=lojas.filter(([store])=>todas||(user.unit==="Araras")===(store==="araras"));
-  meetingCards=<div className="hidden md:grid md:grid-cols-2 gap-4 mt-4">{visiveis.map(([store,title])=><MeetingSummaryCard key={store} title={title} list={meetings(items,now,store)}/>)}</div>;
+  meetingCards=<div className="ct-today-meetings grid md:grid-cols-2 gap-4 mt-4">{visiveis.map(([store,title])=><MeetingSummaryCard key={store} title={title} list={meetings(items,now,store)}/>)}</div>;
  }
  return <Suspense fallback={<p role="status">Abrindo Hoje…</p>}><Today meetingCards={meetingCards} email={user.email} name={isCicaAccess(user.email)?"Ciça":sharedAccess||/^vendedores\b/i.test((user.accessLabel||user.name||"").trim())?"":user.name.split(" ")[0]} defaultUnit={user.unit==="Geral"?"todas":user.unit==="Araras"?"araras":"rio_claro"} capabilities={capabilities} notices={notices}/></Suspense>;
 }

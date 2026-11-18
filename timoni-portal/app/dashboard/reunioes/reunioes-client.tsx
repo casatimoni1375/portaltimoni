@@ -358,7 +358,7 @@ export default function ReunioesClient({
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className={BOTAO_SECUNDARIO}>Abrir pasta oficial</a>
-          {canCreate && <button onClick={startNew} className={BOTAO_PRIMARIO}>+ Nova reunião</button>}
+          {canCreate && <button onClick={startNew} className={BOTAO_PRIMARIO}>Nova reunião</button>}
         </div>
       </header>
 
@@ -410,7 +410,7 @@ export default function ReunioesClient({
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => setField("additionalDates", [...form.additionalDates, { date: "", time: "" }])} className={`${BOTAO_TEXTO} mt-3`}>+ Adicionar outra data</button>
+          <button type="button" onClick={() => setField("additionalDates", [...form.additionalDates, { date: "", time: "" }])} className={`${BOTAO_TEXTO} mt-3`}>Adicionar outra data</button>
 
           <div className="mt-5 grid gap-4 border-t border-[#e1e6f0] pt-5 md:grid-cols-3">
             <label className={LABEL}>Link da pauta

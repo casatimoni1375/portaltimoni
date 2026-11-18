@@ -432,7 +432,7 @@ export function CalendarView({
               setFormOpen(true);
             }}
           >
-            + Novo evento
+            Novo evento
           </Button>
         </div>
       </div>
