@@ -312,7 +312,9 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
 
 /* 4.5 Rotativo: escala do Fluxo */
 @media (max-width: 767px) {
-  :root:root body .ct-rt-back { font-size: 11px !important; min-height: 30px !important; }
+  /* contadores sem altura fixa (eram 112 px) */
+  :root:root body main .ct-clean-metric { min-height: 0 !important; padding: 10px 14px !important; border-radius: 12px !important; border-color: #c9d8f0 !important; box-shadow: none !important; }
+  :root:root body main .ct-clean-metric > span { font-size: 11px !important; }
   :root:root body .ct-rt-heading > p, :root:root body .ct-rt-help, :root:root body .ct-rt-step, :root:root body .ct-rt-alert { font-size: 11px !important; }
   :root:root body .ct-rt-flow > li { font-size: 11px !important; padding: 6px 10px !important; border-radius: 8px !important; }
   :root:root body .ct-rt-summary { font-size: 15px !important; min-height: 34px !important; }
