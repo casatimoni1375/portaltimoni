@@ -1045,7 +1045,7 @@ export default function EstoqueRotativoClient() {
         </section>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-5">{/* 18/11: Estoque atualizado na largura toda, igual aos demais quadros. */}
       {data ? (
         <section className="ct-rt-card order-2">
           <div>
