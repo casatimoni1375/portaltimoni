@@ -55,14 +55,11 @@ export default async function EspacoEquipeInbox({
 
   return (
     <section className="ct-std-card mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
-      <div className="max-w-3xl">
-        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
-        <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
-      </div>
+      {/* 18/11: padrão do portal — título "Equipe" na página; quadro "Mensagens recebidas". */}
 
-      <div className="mt-5 border-t border-blue-200 pt-4">
+      <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Mensagens recebidas</p>
+          <h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Mensagens recebidas</h2>
           <a
             href="/api/espaco-equipe/planilha"
             className="inline-flex min-h-10 items-center justify-center rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm max-md:text-[11px] font-semibold text-blue-800 shadow-sm transition hover:bg-blue-50"

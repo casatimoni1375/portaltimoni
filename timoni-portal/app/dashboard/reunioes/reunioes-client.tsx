@@ -148,8 +148,7 @@ function MeetingCard({
     <article className="ct-std-card flex flex-col rounded-xl border border-[#c9d8f0] bg-[#eef5ff] p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold uppercase text-[#65718a]">Próximas reuniões</p>
-          <h3 className="mt-1 text-base max-md:text-[12.5px] font-bold text-[#182443]">{meeting.unit}</h3>
+          <h3 className="text-base max-md:text-[12.5px] font-bold text-[#182443]">Reunião {meeting.unit}</h3>
         </div>
         {/* 18/11: sem a etiqueta Mensal (reuniões são sempre mensais). */}
       </div>
