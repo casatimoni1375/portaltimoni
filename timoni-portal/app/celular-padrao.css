@@ -53,7 +53,7 @@
   html body main :is(.ct-clean-counter, .ct-clean-metric strong, .ct-estoque-count > span:first-child, .ct-compras-count strong, .ct-sent-count strong) { font-size: 16px !important; line-height: 1.1 !important; color: #102a83 !important; }
 }
 
-/* 1. Menu inferior: fixo em todas as páginas, letra 14, ícone 22, altura 58 */
+/* 1. Menu inferior: fixo em todas as páginas, 10% menor em 18/11 — letra 12,6, ícone 20, altura 52 */
 @media (max-width: 767px) {
   :root:root body .ct-clean-navigation .ct-clean-bottom {
     display: flex !important;
@@ -62,15 +62,15 @@
     padding: 4px 4px max(8px, env(safe-area-inset-bottom)) !important;
   }
   html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link {
-    min-height: 58px !important; gap: 4px !important; padding: 4px 2px !important;
+    min-height: 52px !important; gap: 3px !important; padding: 4px 2px !important;
     flex-direction: column !important; justify-content: center;
-    font-size: 14px !important; font-weight: 500 !important; line-height: 1.2 !important;
+    font-size: 12.6px !important; font-weight: 500 !important; line-height: 1.2 !important;
     color: #65718a; border-radius: 10px;
   }
   html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link[aria-current=page] {
     background: #eef1fa; color: #102a83; font-weight: 600 !important;
   }
-  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link svg { width: 22px !important; height: 22px !important; }
+  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link svg { width: 20px !important; height: 20px !important; }
   html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link > small { font-size: 11px !important; top: 2px; right: 8px; }
   html body:has(.ct-clean-navigation) { padding-bottom: 80px !important; }
 }
@@ -284,25 +284,79 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
   :root:root body .ct-sent-mobile { margin-top: 4px; }
   :root:root body .ct-sent-mobile .ct-sent-mobile-filter {
     display: block; margin: 0 0 8px auto; width: auto !important; min-height: 30px !important; padding: 2px 26px 2px 10px !important;
-    font-size: 12px !important; color: #102a83; border: 1px solid #c9d8f0 !important; border-radius: 8px !important; background-color: #fff;
+    font-size: 11px !important; color: #102a83; border: 1px solid #c9d8f0 !important; border-radius: 8px !important; background-color: #fff;
   }
   :root:root body .ct-sent-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  :root:root body .ct-sent-cols h3 { margin: 0 0 5px !important; font-size: 12px !important; font-weight: 600 !important; color: #102a83 !important; }
+  :root:root body .ct-sent-cols.is-single { grid-template-columns: 1fr; }
+  :root:root body .ct-sent-mobile-filters { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 8px; }
+  :root:root body .ct-sent-mobile-filters .ct-sent-mobile-filter { margin: 0 !important; }
+  :root:root body .ct-sent-cols h3 { margin: 0 0 5px !important; font-size: 10px !important; font-weight: 600 !important; color: #102a83 !important; }
   :root:root body .ct-sent-cols h3.is-late { color: #b12532 !important; }
   :root:root body .ct-sent-card {
     display: block; width: 100%; text-align: left; margin: 0 0 5px; padding: 5px 7px !important; min-height: 0 !important;
     background: #fff !important; border: 1px solid #e1e6f0 !important; border-radius: 8px !important; white-space: normal !important; font-weight: 400 !important;
   }
   :root:root body .ct-sent-card.is-late { border-color: #f1c4c8 !important; }
-  :root:root body .ct-sent-card b { display: block; font-size: 10.5px; font-weight: 500; line-height: 1.3; color: #182443; overflow-wrap: anywhere; }
+  :root:root body .ct-sent-card b { display: block; font-size: 9px; font-weight: 500; line-height: 1.3; color: #182443; overflow-wrap: anywhere; }
   :root:root body .ct-sent-tags { display: flex; flex-wrap: wrap; gap: 3px; margin: 3px 0 2px; }
-  :root:root body .ct-sent-tag { font-size: 9px; line-height: 1.6; padding: 0 5px; border-radius: 999px; }
+  :root:root body .ct-sent-tag { font-size: 7.5px; line-height: 1.6; padding: 0 5px; border-radius: 999px; }
   :root:root body .ct-sent-tag.is-store { border: 1px solid #c9d8f0; color: #102a83; }
   :root:root body .ct-sent-tag.is-ct { background: #e7f6ec; color: #166534; }
   :root:root body .ct-sent-tag.is-rod { background: #fff4c2; color: #854f0b; }
   :root:root body .ct-sent-tag.is-mcr { background: #ffe6d1; color: #9a4a0b; }
   :root:root body .ct-sent-tag.is-late { background: #fde8ea; color: #b12532; }
   :root:root body .ct-sent-tag.is-nodate { background: #fff4c2; color: #854f0b; }
-  :root:root body .ct-sent-card small { display: block; font-size: 9.5px; color: #65718a; }
+  :root:root body .ct-sent-card small { display: block; font-size: 8.5px; color: #65718a; }
   :root:root body .ct-sent-empty { font-size: 12px !important; color: #65718a; }
+}
+
+/* 4.5 Rotativo: escala do Fluxo */
+@media (max-width: 767px) {
+  /* Botões: nada de preto — ação/aba escolhida em azul do portal; secundários brancos com contorno fino azul */
+  :root:root body main :is(button, a):is(.bg-slate-900, .bg-slate-950, .bg-black, .bg-blue-800, .bg-blue-900) { background-color: #102a83 !important; color: #fff !important; border-color: #102a83 !important; }
+  :root:root body main :is(button, a).border-slate-300:not([class*="bg-"]) { border-color: #c9d8f0 !important; color: #102a83 !important; background: #fff !important; }
+  /* contadores sem altura fixa (eram 112 px) */
+  :root:root body main .ct-clean-metric { min-height: 0 !important; padding: 10px 14px !important; border-radius: 12px !important; border-color: #c9d8f0 !important; box-shadow: none !important; }
+  :root:root body main .ct-clean-metric > span { font-size: 11px !important; }
+  :root:root body .ct-rt-heading > p, :root:root body .ct-rt-help, :root:root body .ct-rt-step, :root:root body .ct-rt-alert { font-size: 11px !important; }
+  :root:root body .ct-rt-flow > li { font-size: 11px !important; padding: 6px 10px !important; border-radius: 8px !important; }
+  :root:root body .ct-rt-summary { font-size: 15px !important; min-height: 34px !important; }
+  :root:root body .ct-rt-primary { font-size: 11px !important; min-height: 30px !important; padding: 4px 12px !important; border-radius: 8px !important; }
+  :root:root body .ct-rt-erp-head strong { font-size: 12px !important; }
+  :root:root body .ct-rt-erp-head small { font-size: 10px !important; }
+  :root:root body :is(.ct-rt-card, .ct-std-card) :is(p, li, td, th, span, small, label) { font-size: 11px; }
+}
+
+/* 5. Motorista (só visual, só tela do celular): o cartão da viagem usava Arial 11pt/10pt.
+   Passa para Roboto na escala do Fluxo. O agendamento e o conteúdo não mudam; a impressão não é afetada. */
+@media screen and (max-width: 767px) {
+  :root:root body main .font-\[Arial\] { font-family: inherit !important; font-size: 11px !important; line-height: 1.4 !important; }
+  :root:root body main .font-\[Arial\] > p:first-child { font-size: 12px !important; font-weight: 600 !important; }
+  :root:root body main .font-\[Arial\] :is(p, span, strong, b, a) { font-size: inherit !important; }
+  :root:root body main .font-\[Arial\] > p:first-child { font-size: 12px !important; }
+  :root:root body main p.font-\[Arial\], :root:root body main .font-\[Arial\] p.font-\[Arial\] { font-size: 10px !important; }
+}
+
+/* 6. Agenda: escala do Fluxo */
+@media (max-width: 767px) {
+  :root:root body main p.text-2xl.max-md\:text-\[20px\] { font-size: 16px !important; }
+  :root:root body main p.truncate.text-\[17px\] { font-size: 11px !important; font-weight: 500 !important; }
+  :root:root body main p.capitalize.text-base { font-size: 11px !important; text-transform: none !important; }
+  :root:root body main p.capitalize.text-base::first-letter { text-transform: uppercase; }
+  :root:root body main button.min-h-11 { min-height: 30px !important; }
+  :root:root body main :is(button, a):is([class*="Editar"], .ct-agenda-action) { min-height: 26px !important; }
+}
+
+/* Agenda (celular): etiquetas do compromisso lado a lado e botões compactos */
+@media (max-width: 767px) {
+  :root:root body .ct-agenda-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 1px; }
+  :root:root body .ct-agenda-tag { font-size: 8px !important; font-weight: 600; line-height: 1.5 !important; padding: 0 6px !important; border: 1px solid; border-radius: 999px; background: #fff; white-space: nowrap; }
+  :root:root body .ct-agenda-tag.is-done { color: #166534; border-color: #bfe3cb; background: #e7f6ec; }
+  :root:root body .ct-clean-agenda .ct-agenda-side :is(button, a)[class*="min-h-11"] { min-height: 22px !important; padding: 1px 7px !important; font-size: 9px !important; border-radius: 6px !important; }
+  :root:root body .ct-clean-agenda .ct-agenda-side > div { gap: 4px !important; }
+  :root:root body .ct-clean-agenda .ct-agenda-tags { margin: 0 !important; justify-content: flex-end; }
+  /* cartão do compromisso mais largo: menos margem interna */
+  :root:root body .ct-clean-agenda div.relative.flex.rounded-xl { padding: 6px 8px !important; gap: 8px !important; }
+  :root:root body .ct-clean-agenda div.relative.flex.rounded-xl p.flex { font-size: 10px !important; }
+  :root:root body .ct-clean-agenda section, :root:root body .ct-clean-agenda .rounded-2xl { padding-left: 6px !important; padding-right: 6px !important; }
 }

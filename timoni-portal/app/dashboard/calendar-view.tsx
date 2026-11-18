@@ -136,23 +136,29 @@ function AgendaRow({
     >
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
-        <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "pr-24")}>
+        <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
           {event.summary}
-          {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
+          {concluido && <span className="ml-2 align-middle max-md:hidden"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        {!compact && <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none md:hidden" style={{ color }}>{event.calendarLabel}</span>}
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
+          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
-      <div className={clsx("flex shrink-0 gap-2", compact && "flex-col")}>
-        <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
-          Editar
-        </Button>
-        <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="danger" disabled={deleting} onClick={() => onDelete(event)}>
-          Cancelar
-        </Button>
+      {/* Celular (18/11): coluna da direita com as etiquetas em cima e os botões menores embaixo. */}
+      <div className="ct-agenda-side flex shrink-0 flex-col items-end gap-1 md:contents">
+        <span className="ct-agenda-tags md:hidden">
+          <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
+          {concluido && <span className="ct-agenda-tag is-done">Concluído</span>}
+        </span>
+      <div className={clsx("flex shrink-0 gap-2", compact && "flex-col max-md:flex-row")}>
+          <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
+            Editar
+          </Button>
+          <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="danger" disabled={deleting} onClick={() => onDelete(event)}>
+            Cancelar
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -292,10 +298,10 @@ export function CalendarView({
     };
   }, [title]);
 
-  // Ao trocar de visão, o dia selecionado acompanha o período.
+  // Ao trocar de visão, o dia selecionado acompanha o período. No período atual, sempre o dia de hoje (18/11).
   useEffect(() => {
-    setSelectedDateKey(view === "mes" && periodOffset !== 0 ? monthStartKey(anchorKey) : anchorKey);
-  }, [view, periodOffset, anchorKey]);
+    setSelectedDateKey(periodOffset === 0 ? todayKey : view === "mes" ? monthStartKey(anchorKey) : anchorKey);
+  }, [view, periodOffset, anchorKey, todayKey]);
 
   const eventsByDate = useMemo(() => {
     const grouped = new Map<string, CalendarEventDTO[]>();

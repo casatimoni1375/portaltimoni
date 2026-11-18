@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {useSearchParams} from "next/navigation";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
+import { companyOf } from "@/lib/empresa-pedido";
 
 const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
 
@@ -11,14 +12,6 @@ type RequestUnit = "rio_claro" | "araras";
 type SentOrder = { id: string; nome: string; enviadoEm: string; previsaoEntrega: string; unidade: RequestUnit };
 type PurchaseException = { id: string; nome: string; unidade: RequestUnit; tipo: "sem_previsao" | "atrasado"; previsaoEntrega: string };
 function unitLabel(unit: RequestUnit) { return unit === "araras" ? "Araras" : "Rio Claro"; }
-// Empresa da compra pelo final do nome do pedido (CT, ROD/RODINI ou MCR).
-function companyOf(name: string): { label: string; tone: "ct" | "rod" | "mcr" } | null {
-  const end = name.trim().toUpperCase().replace(/[^A-Z]+$/, "").slice(-8);
-  if (/(^|[^A-Z])CT$/.test(end) || end.endsWith(" CT")) return { label: "Casa Timoni", tone: "ct" };
-  if (/(ROD|RODINI)$/.test(end)) return { label: "Rodini", tone: "rod" };
-  if (/MCR$/.test(end)) return { label: "MCR", tone: "mcr" };
-  return null;
-}
 function shortDate(value: string) { const full = dateOnly(value); return /^\d{2}\/\d{2}\/\d{4}$/.test(full) ? full.slice(0, 5) : full; }
 function dateOnly(value: string) {
   if (!value) return "Sem data";
@@ -33,9 +26,9 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
-  const [exceptions, setExceptions] = useState<PurchaseException[]>([]);
+  const [, setExceptions] = useState<PurchaseException[]>([]);
   const [selected, setSelected] = useState<{ id: string; nome: string } | null>(null);
-  const [mobileUnit, setMobileUnit] = useState<"todas" | RequestUnit>("todas");
+  const [mobileStatus, setMobileStatus] = useState<"todos" | "enviados" | "atrasados">("todos");
   const request = useRef<{ run: (options?: { urgent?: boolean; force?: boolean }) => Promise<void> } | null>(null);
   const unitKey = visibleUnits.join("|");
   useEffect(() => {
@@ -110,14 +103,18 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>
       </div>
+      {/* 18/11: bloco "Pedidos que exigem atenção" retirado a pedido da Ciça; atrasados ficam no filtro. */}
       {/* Celular (18/11): duas colunas — Enviados no prazo à esquerda, Atrasados à direita — com etiquetas de loja e empresa e filtro discreto de loja. */}
       <div className="ct-sent-mobile md:hidden">
-        {visibleUnits.length > 1 && <select className="ct-sent-mobile-filter" aria-label="Filtrar por loja" value={mobileUnit} onChange={event => setMobileUnit(event.target.value as "todas" | RequestUnit)}>
-          <option value="todas">Todas as lojas</option>
-          {visibleUnits.map(unit => <option key={unit} value={unit}>{unitLabel(unit)}</option>)}
-        </select>}
+        <div className="ct-sent-mobile-filters">
+          <select className="ct-sent-mobile-filter" aria-label="Filtrar enviados ou atrasados" value={mobileStatus} onChange={event => setMobileStatus(event.target.value as "todos" | "enviados" | "atrasados")}>
+            <option value="todos">Enviados e atrasados</option>
+            <option value="enviados">Só enviados</option>
+            <option value="atrasados">Só atrasados</option>
+          </select>
+        </div>
         {(() => {
-          const pool = visibleOrders.filter(order => mobileUnit === "todas" || order.unidade === mobileUnit);
+          const pool = visibleOrders;
           const late = pool.filter(isLate);
           const onTime = pool.filter(order => !isLate(order));
           const card = (order: SentOrder, lateCard: boolean) => { const company = companyOf(order.nome); return (
@@ -131,9 +128,9 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
               <small>Envio {shortDate(order.enviadoEm)} · Entrega {order.previsaoEntrega ? shortDate(order.previsaoEntrega) : "sem data"}</small>
             </button>
           ); };
-          return <div className="ct-sent-cols">
-            <div><h3>Enviados · {onTime.length}</h3>{onTime.map(order => card(order, false))}{!loading && !onTime.length && <p className="ct-sent-empty">Nenhum pedido.</p>}</div>
-            <div><h3 className="is-late">Atrasados · {late.length}</h3>{late.map(order => card(order, true))}{!loading && !late.length && <p className="ct-sent-empty">Nenhum atrasado.</p>}</div>
+          return <div className={`ct-sent-cols${mobileStatus !== "todos" ? " is-single" : ""}`}>
+            {mobileStatus !== "atrasados" && <div><h3>Enviados · {onTime.length}</h3>{onTime.map(order => card(order, false))}{!loading && !onTime.length && <p className="ct-sent-empty">Nenhum pedido.</p>}</div>}
+            {mobileStatus !== "enviados" && <div><h3 className="is-late">Atrasados · {late.length}</h3>{late.map(order => card(order, true))}{!loading && !late.length && <p className="ct-sent-empty">Nenhum atrasado.</p>}</div>}
           </div>;
         })()}
         {loading && <p className="ct-sent-empty">Atualizando...</p>}
