@@ -53,10 +53,8 @@ function addMonthsKey(key: string, months: number) {
 // Janela buscada no servidor para cada visão: inclui a grade completa do mês.
 function rangeFor(view: ViewMode, anchorKey: string) {
   if (view === "dia") return { startKey: anchorKey, endKey: addDaysKey(anchorKey, 1) };
-  if (view === "semana") {
-    const start = weekStartKey(anchorKey);
-    return { startKey: start, endKey: addDaysKey(start, 7) };
-  }
+  // 18/11/2026: a semana começa no dia de hoje (Hoje no topo) e mostra os 7 dias seguintes.
+  if (view === "semana") return { startKey: anchorKey, endKey: addDaysKey(anchorKey, 7) };
   const first = monthStartKey(anchorKey);
   const gridStart = weekStartKey(first);
   return { startKey: gridStart, endKey: addDaysKey(gridStart, 42) };
@@ -548,7 +546,7 @@ export function CalendarView({
             );
           })}
           {weekKeys.every((dayKey) => (eventsByDate.get(dayKey) ?? []).length === 0) && (
-            <p className="rounded-xl border border-[#c9d8f0] bg-white px-4 py-3 text-[14px] text-slate-500">Nenhum compromisso nesta semana.</p>
+            <p className="rounded-xl border border-[#c9d8f0] bg-white px-4 py-3 text-[14px] text-slate-500">Nenhum compromisso nestes 7 dias.</p>
           )}
         </div>
         <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white md:hidden">
