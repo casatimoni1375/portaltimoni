@@ -549,14 +549,19 @@ test("sessão e menu compartilham uma leitura na renderização; próxima requis
   nextRequest(); active = false;
   assert.equal(await config.getEffectivePortalUser("token", cica.email), null);
   assert.equal(reads, 2);
+  // 18/11/2026: falha do Google (ex.: cota 429) usa a última leitura boa (até 10 min), que já
+  // registra o bloqueio: continua sem acesso e sem derrubar a sessão como indisponível.
   nextRequest(); fail = true;
-  const unavailable = await config.getPortalUserSessionState("token", cica.email);
-  assert.equal(unavailable.user, null); assert.equal(unavailable.unavailable, true);
-  assert.equal(await config.getEffectivePortalUser("token", cica.email), null);
-  assert.equal(reads, 4); // uma nova tentativa na falha transitória
+  const blockedFallback = await config.getPortalUserSessionState("token", cica.email);
+  assert.equal(blockedFallback.user, null); assert.equal(blockedFallback.unavailable, false);
+  assert.equal(reads, 3); // sem nova tentativa: a última leitura boa basta
   nextRequest(); fail = false; active = true;
   assert.equal((await config.getEffectivePortalUser("token", cica.email)).email, cica.email);
-  assert.equal(reads, 5);
+  assert.equal(reads, 4);
+  // Acesso ativo + falha do Google: a sessão segue com a última leitura boa (sem "Reconectando").
+  nextRequest(); fail = true;
+  const activeFallback = await config.getPortalUserSessionState("token", cica.email);
+  assert.equal(activeFallback.user.email, cica.email); assert.equal(activeFallback.unavailable, false);
 });
 
 test("cadastro oficial por ID permite contato repetido e recusa ID duplicado sem semear ou gravar", async () => {

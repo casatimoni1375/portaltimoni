@@ -187,7 +187,23 @@ const readUsersCached = (accessToken: string) => unstable_cache(
   { revalidate: 30, tags: [PORTAL_CONFIG_CACHE_TAG] },
 )();
 
-const readUsers = cache(async (accessToken: string) => readUsersCached(accessToken));
+// 18/11/2026: última leitura boa do cadastro (por instância). Quando o Google Sheets recusa a leitura
+// (cota 429 ou falha momentânea), a sessão usa esta cópia por até 10 minutos em vez de derrubar o acesso
+// ("Reconectando", volta para o Hoje, tela vazia). Gravações feitas pelo portal continuam valendo na hora
+// (revalidateTag + leitura nova); só uma edição direta na planilha, durante uma falha do Google, demora mais.
+const USERS_FALLBACK_MAX_AGE_MS = 10 * 60 * 1000;
+let lastGoodUsers: { users: PortalUser[]; at: number } | null = null;
+
+const readUsers = cache(async (accessToken: string) => {
+  const users = await readUsersCached(accessToken);
+  lastGoodUsers = { users, at: Date.now() };
+  return users;
+});
+
+function recentUsersFallback(): PortalUser[] | null {
+  if (!lastGoodUsers || Date.now() - lastGoodUsers.at > USERS_FALLBACK_MAX_AGE_MS) return null;
+  return lastGoodUsers.users;
+}
 
 export async function listConfiguredPortalUsers(accessToken: string) {
   return readUsers(accessToken);
@@ -214,7 +230,18 @@ const readCollaboratorsCached = (accessToken: string) => unstable_cache(
   { revalidate: 30, tags: [PORTAL_CONFIG_CACHE_TAG] },
 )();
 
-const readCollaborators = cache(async (accessToken: string) => readCollaboratorsCached(accessToken));
+// 18/11: mesma proteção do cadastro — falha do Google (429) usa a última lista boa por até 10 minutos.
+let lastGoodCollaborators: { list: ConfiguredCollaborator[]; at: number } | null = null;
+const readCollaborators = cache(async (accessToken: string) => {
+  try {
+    const list = await readCollaboratorsCached(accessToken);
+    lastGoodCollaborators = { list, at: Date.now() };
+    return list;
+  } catch (error) {
+    if (lastGoodCollaborators && Date.now() - lastGoodCollaborators.at <= USERS_FALLBACK_MAX_AGE_MS) return lastGoodCollaborators.list;
+    throw error;
+  }
+});
 
 // Identificação de acesso não usa lista histórica, migração automática nem cache entre requisições.
 export const getOfficialCollaboratorsForAccess = cache(async (accessToken: string) => {
@@ -504,6 +531,11 @@ export const getPortalUserSessionState = cache(async (accessToken: string | unde
   const user = await resolveOfficialPortalUser(email, async () => {
     try { return await readUsers(accessToken); }
     catch (error) {
+      const fallback = recentUsersFallback();
+      if (fallback) {
+        console.warn("[portal-config] Cadastro indisponível no Google; usando a última leitura boa.", error instanceof Error ? error.message.slice(0, 80) : "");
+        return fallback;
+      }
       // Cota do Google Sheets estourada (429): repetir a leitura só aumenta o consumo da cota.
       if (error instanceof Error && error.message.includes("respondeu 429")) { unavailable = true; throw new Error("Cadastro temporariamente indisponível."); }
       // Nova tentativa direta na planilha: a leitura em cache da requisição já falhou.
@@ -544,15 +576,17 @@ export async function getEffectiveCollaborators(accessToken?: string) {
 
 export async function recordPortalAccess(accessToken: string, email: string) {
   try {
-    const users = await fetchUsers(accessToken);
-    const index = users.findIndex((user) => user.email === normalizeEmail(email));
+    // 18/11: linha calculada sobre a planilha crua (antes usava a lista filtrada e gravava a data
+    // na linha errada quando havia linhas em branco). Último acesso não invalida o cache do cadastro.
+    const response = await sheetsRequest<{ values?: string[][] }>(accessToken, sheetsUrl(`/values/${encodeURIComponent(`${USERS_SHEET}!A2:A500`)}`, { valueRenderOption: "FORMATTED_VALUE" }));
+    const index = (response.values || []).findIndex((row) => normalizeEmail(row[0]) === normalizeEmail(email));
     if (index < 0) return;
     const range = `${USERS_SHEET}!J${index + 2}`;
     await sheetsRequest(accessToken, sheetsUrl(`/values/${encodeURIComponent(range)}`, { valueInputOption: "RAW" }), {
       method: "PUT",
       body: JSON.stringify({ values: [[new Date().toISOString()]] }),
     });
-    revalidateTag(PORTAL_CONFIG_CACHE_TAG);
+    // sem revalidateTag: data de acesso não muda permissão.
   } catch (error) {
     console.warn("[portal-config] Não foi possível registrar o último acesso.", error);
   }
