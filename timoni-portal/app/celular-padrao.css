@@ -287,6 +287,9 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
     font-size: 11px !important; color: #102a83; border: 1px solid #c9d8f0 !important; border-radius: 8px !important; background-color: #fff;
   }
   :root:root body .ct-sent-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  :root:root body .ct-sent-cols.is-single { grid-template-columns: 1fr; }
+  :root:root body .ct-sent-mobile-filters { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 8px; }
+  :root:root body .ct-sent-mobile-filters .ct-sent-mobile-filter { margin: 0 !important; }
   :root:root body .ct-sent-cols h3 { margin: 0 0 5px !important; font-size: 10px !important; font-weight: 600 !important; color: #102a83 !important; }
   :root:root body .ct-sent-cols h3.is-late { color: #b12532 !important; }
   :root:root body .ct-sent-card {

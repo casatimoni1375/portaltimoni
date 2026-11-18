@@ -33,9 +33,10 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
-  const [exceptions, setExceptions] = useState<PurchaseException[]>([]);
+  const [, setExceptions] = useState<PurchaseException[]>([]);
   const [selected, setSelected] = useState<{ id: string; nome: string } | null>(null);
   const [mobileUnit, setMobileUnit] = useState<"todas" | RequestUnit>("todas");
+  const [mobileStatus, setMobileStatus] = useState<"todos" | "enviados" | "atrasados">("todos");
   const request = useRef<{ run: (options?: { urgent?: boolean; force?: boolean }) => Promise<void> } | null>(null);
   const unitKey = visibleUnits.join("|");
   useEffect(() => {
@@ -110,23 +111,20 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>
       </div>
-      {!loading && exceptions.length > 0 && (
-        <div className="ct-clean-exceptions hidden">
-          <strong>Pedidos que exigem atenção</strong>
-          {exceptions.map((item) => (
-            <div key={`${item.id}-${item.tipo}`}>
-              <button type="button" onClick={() => setSelected(item)} className="ct-link-button" style={{textDecoration:"none",color:"#182443",fontWeight:600}}>{item.nome} · {unitLabel(item.unidade)}</button>
-              <small className="text-red-700">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</small>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* 18/11: bloco "Pedidos que exigem atenção" retirado a pedido da Ciça; atrasados ficam no filtro. */}
       {/* Celular (18/11): duas colunas — Enviados no prazo à esquerda, Atrasados à direita — com etiquetas de loja e empresa e filtro discreto de loja. */}
       <div className="ct-sent-mobile md:hidden">
-        {visibleUnits.length > 1 && <select className="ct-sent-mobile-filter" aria-label="Filtrar por loja" value={mobileUnit} onChange={event => setMobileUnit(event.target.value as "todas" | RequestUnit)}>
-          <option value="todas">Todas as lojas</option>
-          {visibleUnits.map(unit => <option key={unit} value={unit}>{unitLabel(unit)}</option>)}
-        </select>}
+        <div className="ct-sent-mobile-filters">
+          <select className="ct-sent-mobile-filter" aria-label="Filtrar enviados ou atrasados" value={mobileStatus} onChange={event => setMobileStatus(event.target.value as "todos" | "enviados" | "atrasados")}>
+            <option value="todos">Enviados e atrasados</option>
+            <option value="enviados">Só enviados</option>
+            <option value="atrasados">Só atrasados</option>
+          </select>
+          {visibleUnits.length > 1 && <select className="ct-sent-mobile-filter" aria-label="Filtrar por loja" value={mobileUnit} onChange={event => setMobileUnit(event.target.value as "todas" | RequestUnit)}>
+            <option value="todas">Todas as lojas</option>
+            {visibleUnits.map(unit => <option key={unit} value={unit}>{unitLabel(unit)}</option>)}
+          </select>}
+        </div>
         {(() => {
           const pool = visibleOrders.filter(order => mobileUnit === "todas" || order.unidade === mobileUnit);
           const late = pool.filter(isLate);
@@ -142,9 +140,9 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
               <small>Envio {shortDate(order.enviadoEm)} · Entrega {order.previsaoEntrega ? shortDate(order.previsaoEntrega) : "sem data"}</small>
             </button>
           ); };
-          return <div className="ct-sent-cols">
-            <div><h3>Enviados · {onTime.length}</h3>{onTime.map(order => card(order, false))}{!loading && !onTime.length && <p className="ct-sent-empty">Nenhum pedido.</p>}</div>
-            <div><h3 className="is-late">Atrasados · {late.length}</h3>{late.map(order => card(order, true))}{!loading && !late.length && <p className="ct-sent-empty">Nenhum atrasado.</p>}</div>
+          return <div className={`ct-sent-cols${mobileStatus !== "todos" ? " is-single" : ""}`}>
+            {mobileStatus !== "atrasados" && <div><h3>Enviados · {onTime.length}</h3>{onTime.map(order => card(order, false))}{!loading && !onTime.length && <p className="ct-sent-empty">Nenhum pedido.</p>}</div>}
+            {mobileStatus !== "enviados" && <div><h3 className="is-late">Atrasados · {late.length}</h3>{late.map(order => card(order, true))}{!loading && !late.length && <p className="ct-sent-empty">Nenhum atrasado.</p>}</div>}
           </div>;
         })()}
         {loading && <p className="ct-sent-empty">Atualizando...</p>}
