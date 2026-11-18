@@ -45,12 +45,10 @@ export default function EspacoEquipeForm() {
 
   return (
     <section className="ct-std-card mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm sm:p-6">
-      <div className="max-w-3xl">
-        <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
-        <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
-      </div>
+      {/* 18/11: padrão do portal — título "Equipe" na página; quadro com título próprio. */}
+      <h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Nova mensagem</h2>
 
-      <form onSubmit={handleSubmit} className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+      <form onSubmit={handleSubmit} className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
         <label className="block">
           <span className="text-sm max-md:text-[11px] font-semibold text-slate-800">Mensagem</span>
           <textarea

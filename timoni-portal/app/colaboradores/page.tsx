@@ -7,5 +7,5 @@ import EspacoEquipeMinhas from "./espaco-equipe-minhas";
 export const dynamic="force-dynamic";
 export default async function EquipePage(){
  const session=await getPortalSession();const email=session?.user?.email||"";
- return <Suspense fallback={<p role="status">Carregando equipe…</p>}>{isManagementEmail(email)?<EspacoEquipeInbox accessToken={session?.accessToken} canDelete={isCicaAccess(email)}/>:<><EspacoEquipeForm/><EspacoEquipeMinhas email={email}/></>}</Suspense>;
+ return <><h1 className="text-3xl max-md:text-[20px] font-semibold text-[#102a83]">Equipe</h1><Suspense fallback={<p role="status">Carregando equipe…</p>}>{isManagementEmail(email)?<EspacoEquipeInbox accessToken={session?.accessToken} canDelete={isCicaAccess(email)}/>:<><EspacoEquipeForm/><EspacoEquipeMinhas email={email}/></>}</Suspense></>;
 }
