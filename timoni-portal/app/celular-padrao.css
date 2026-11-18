@@ -341,7 +341,8 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
 @media (max-width: 767px) {
   :root:root body main p.text-2xl.max-md\:text-\[20px\] { font-size: 16px !important; }
   :root:root body main p.truncate.text-\[17px\] { font-size: 12px !important; font-weight: 500 !important; }
-  :root:root body main p.capitalize.text-base { font-size: 11px !important; }
+  :root:root body main p.capitalize.text-base { font-size: 11px !important; text-transform: none !important; }
+  :root:root body main p.capitalize.text-base::first-letter { text-transform: uppercase; }
   :root:root body main button.min-h-11 { min-height: 30px !important; }
   :root:root body main :is(button, a):is([class*="Editar"], .ct-agenda-action) { min-height: 26px !important; }
 }
