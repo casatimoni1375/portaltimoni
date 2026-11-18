@@ -1,4 +1,4 @@
 import Link from "next/link";
 export default function PurchaseNeeds({canRotativo,canMontar}:{canRotativo:boolean;canMontar:boolean}){
- return <section className="ct-compras-tab ct-clean-card ct-tone-card ct-tone-blue"><h2>Estoque rotativo</h2><div className="ct-clean-action-row"><div><strong>Estoque rotativo</strong><small>Contagens, lista para lançar no Bessani e conferência das atualizações.</small></div>{canRotativo&&<Link className="ct-clean-action ct-compras-btn" href="/dashboard/estoque-rotativo">Abrir Rotativo</Link>}{canMontar&&<Link className="ct-clean-action ct-compras-btn" href="/dashboard/compras?aba=montar">Fazer pedido</Link>}</div></section>;
+ return <section className="ct-compras-tab ct-clean-card ct-tone-card ct-tone-blue"><h2>Estoque rotativo</h2><div className="ct-clean-action-row"><div><strong>Estoque rotativo</strong></div>{canRotativo&&<Link className="ct-clean-action ct-compras-btn" href="/dashboard/estoque-rotativo">Abrir Rotativo</Link>}{canMontar&&<Link className="ct-clean-action ct-compras-btn" href="/dashboard/compras?aba=montar">Fazer pedido</Link>}</div></section>;
 }

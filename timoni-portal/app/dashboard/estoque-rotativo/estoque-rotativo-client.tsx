@@ -629,7 +629,6 @@ export default function EstoqueRotativoClient() {
         <section className="ct-rt-card" aria-label="Lançar no Bessani">
           <p className="ct-rt-step">5. Lançar no Bessani</p>
           <h2 className="ct-rt-title">Itens que mudaram e ainda não foram lançados</h2>
-          <p className="ct-rt-help">Rodini recebe a quantidade contada; MCR fica zerada. Prazo: {ERP_DEADLINE_HOURS}h depois do aviso do Lucas.</p>
           {(() => {
             const late = erpGroups.filter(({ update }) => Date.now() - new Date(update.reported_at).getTime() > 30 * 24 * 60 * 60 * 1000).length;
             return late ? <p className="ct-rt-help">{late} atualização(ões) pendente(s) há mais de 30 dias.</p> : null;

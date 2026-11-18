@@ -67,7 +67,6 @@ export default function GuiaBackupClient() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base max-md:text-[12.5px] font-semibold text-slate-950">Backup</h2>
-            <p className="mt-0.5 text-xs max-md:text-[10px] text-slate-600">Gerar ou recuperar o backup do Portal Timoni.</p>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button type="button" onClick={() => void downloadBackup()} disabled={Boolean(busy)} className="min-h-10 rounded-xl bg-[#13038D] px-4 py-2 text-sm max-md:text-[11px] font-semibold text-white disabled:opacity-50">

@@ -134,7 +134,7 @@ export default function ChatColaboradores({ individual, historyAllowed }: { indi
       {historyAllowed && <button type="button" disabled={saving} onClick={() => selectTab(true)} aria-pressed={history} className={button}>Histórico antigo · consulta</button>}
       <button type="button" disabled={saving || olderLoading || historyLoading} onClick={() => { void overviewRequest.current?.run({ urgent: true }); void threadRequest.current?.run({ urgent: true }); }} className={button}>Atualizar</button>
     </div>
-    {history ? <p className="text-sm max-md:text-[11px] text-slate-600">Histórico reservado à Ciça até a revisão dos destinatários. As identidades antigas são apresentadas como registradas, sem atribuição a pessoas.</p> : <p className="text-sm max-md:text-[11px] text-slate-600">{me.name ? `Conectado como ${me.name}. ` : ""}Sua identidade é definida pelo login individual.</p>}
+    {history ? null : <p className="text-sm max-md:text-[11px] text-slate-600">{me.name ? `Conectado como ${me.name}. ` : ""}Sua identidade é definida pelo login individual.</p>}
     {error && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm max-md:text-[11px] text-amber-900">{error}</p>}
     <div className="grid gap-4 md:grid-cols-[16rem_1fr]">
       <nav aria-label={history ? "Conversas antigas" : "Colaboradores"} className="max-h-[65dvh] space-y-1 overflow-y-auto rounded-xl border bg-white p-2">

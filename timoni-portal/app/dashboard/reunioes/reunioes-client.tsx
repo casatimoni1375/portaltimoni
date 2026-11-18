@@ -354,7 +354,6 @@ export default function ReunioesClient({
       <header className="ct-clean-today-heading flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[length:var(--ct-font-page-title)] font-semibold text-[#102a83]">Reuniões{allowedUnits.length === 1 ? ` ${allowedUnits[0]}` : ""}</h1>
-          <p className="mt-1 text-base max-md:text-[12.5px] text-[#65718a]">Pautas, atas e apresentações.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="https://drive.google.com/drive/folders/1a90BS_9nnf_9_o9VZyNDICfPyAxxyYOg" target="_blank" rel="noreferrer" className={BOTAO_SECUNDARIO}>Abrir pasta oficial</a>
@@ -378,20 +377,16 @@ export default function ReunioesClient({
             </label>
             <label className={LABEL}>Periodicidade
               <input value={form.frequency} onChange={(e) => setField("frequency", e.target.value)} className={INPUT} required />
-              <span className={AJUDA}>Padrão: mensal</span>
             </label>
             <label className={LABEL}>Horário
               <input type="time" value={form.time} onChange={(e) => setField("time", e.target.value)} className={INPUT} required />
-              <span className={AJUDA}>Vem da última reunião da loja</span>
             </label>
             <label className={LABEL}>Próxima data
               <BrazilianDateInput value={form.date} onChange={(value) => setField("date", value)} className={INPUT} required />
-              <span className={AJUDA}>Mesmo dia da semana no mês seguinte</span>
             </label>
 
             <label className={LABEL}>Data seguinte
               <BrazilianDateInput value={form.secondDate} onChange={(value) => setField("secondDate", value)} className={INPUT} />
-              <span className={AJUDA}>Opcional. Pode ficar em &quot;A definir&quot;</span>
             </label>
             <label className={LABEL}>Horário da seguinte
               <input type="time" value={form.secondTime} onChange={(e) => setField("secondTime", e.target.value)} className={INPUT} />

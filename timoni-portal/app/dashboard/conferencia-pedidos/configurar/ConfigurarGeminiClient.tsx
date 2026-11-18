@@ -24,9 +24,7 @@ export default function ConfigurarGeminiClient() {
   }, [attempt]);
   return <section className="mx-auto max-w-2xl rounded-2xl border border-blue-200 bg-white p-6 shadow-sm">
     <h1 className="text-2xl max-md:text-[20px] font-semibold text-[#14038D]">Integração da Conferência de Preços</h1>
-    <p className="mt-3 text-sm max-md:text-[11px] text-slate-600">A configuração é centralizada no Portal. Não é necessário informar uma chave neste navegador.</p>
     {configured === true && <p role="status" className="mt-5 rounded-xl bg-emerald-50 p-4 text-emerald-900">Integração configurada no servidor.</p>}
-    {configured === false && <p role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-amber-900">A administração precisa concluir a configuração central. Depois disso, a mesma integração será usada pelos colaboradores autorizados.</p>}
     {configured === null && !error && <p role="status" className="mt-5">Verificando integração…</p>}
     {error && <div className="mt-5 space-y-3"><p role="alert">{error}</p><button type="button" onClick={() => setAttempt(value => value + 1)} className="min-h-11 rounded-lg border border-slate-300 px-4">Tentar novamente</button></div>}
     <Link href="/dashboard/conferencia-pedidos" className="mt-6 inline-block py-3 font-medium text-[#14038D]">Voltar para Conferência de Preços</Link>

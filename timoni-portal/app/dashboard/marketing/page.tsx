@@ -18,7 +18,6 @@ export default function MarketingPage() {
           <div>
             <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-pink-700">Módulo operacional</p>
             <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Marketing</h1>
-            <p className="mt-3 max-w-2xl text-sm max-md:text-[11px] leading-6 text-slate-600">Central de acesso para campanhas, conteúdo, materiais e comunicação da Casa Timoni.</p>
           </div>
           <span className="w-fit rounded-full bg-pink-100 px-3 py-1.5 text-xs max-md:text-[10px] font-semibold text-pink-800">Disponível</span>
         </div>
@@ -38,7 +37,6 @@ export default function MarketingPage() {
         <article className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
           <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Acompanhamento</p>
           <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-900">Bruno MKT</h2>
-          <p className="mt-3 text-sm max-md:text-[11px] leading-6 text-slate-600">Reuniões quinzenais e alinhamentos ficam registrados no Trello e no grupo oficial do WhatsApp.</p>
         </article>
       </section>
     </div>

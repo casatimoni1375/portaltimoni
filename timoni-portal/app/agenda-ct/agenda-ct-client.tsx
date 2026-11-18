@@ -35,9 +35,6 @@ export function AgendaCTClient() {
         <div className="mb-3 flex flex-col gap-3 px-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-xl max-md:text-[15px] font-semibold text-[#182443] sm:text-2xl">Agenda CT</h1>
-            <p className="mt-1 text-sm max-md:text-[11px] text-[#65718a]">
-              Calendário compartilhado da Casa Timoni. A agenda pessoal da Ciça permanece separada.
-            </p>
           </div>
 
           <div className="inline-flex w-fit rounded-lg border border-[#d7deeb] bg-white p-1" role="group" aria-label="Visualização da Agenda CT">

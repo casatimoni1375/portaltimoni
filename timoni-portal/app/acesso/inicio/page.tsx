@@ -25,7 +25,6 @@ export default async function IndividualAccessPage() {
     </header>
     <section className="rounded-2xl border border-slate-200 bg-white p-6">
       <h2 className="text-lg max-md:text-[14px] font-semibold">Seus acessos</h2>
-      <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">Os módulos abaixo podem ser abertos nesta prévia, conforme suas permissões. Os outros módulos continuam em adaptação.</p>
       {canCollaboratorAction(access, "motorista", "visualizar") && <Link href="/dashboard/motorista" className="mt-4 inline-block rounded-lg bg-[#14038D] px-4 py-2 font-medium text-white">Abrir Motorista</Link>}
       {canCollaboratorAction(access, "pedido-de-compra", "visualizar") && <Link href="/dashboard/pedido-de-compra" className="mt-4 inline-block rounded-lg bg-[#14038D] px-4 py-2 font-medium text-white">Abrir Pedidos de Compra</Link>}
       {canCollaboratorAction(access, "reunioes", "visualizar") && <Link href="/dashboard/reunioes" className="mt-4 inline-block rounded-lg bg-[#14038D] px-4 py-2 font-medium text-white">Abrir Reuniões</Link>}

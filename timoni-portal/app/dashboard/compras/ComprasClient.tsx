@@ -258,9 +258,6 @@ export default function ComprasClient() {
           <div>
             <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">Módulo operacional</p>
             <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Compras</h1>
-            <p className="mt-3 max-w-3xl text-sm max-md:text-[11px] leading-6 text-slate-600">
-              Selecione um fornecedor quando houver cartão pendente ou atualize diretamente criando um novo cartão no Trello.
-            </p>
           </div>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs max-md:text-[10px] font-semibold text-emerald-800">
             Fluxo rápido
@@ -285,9 +282,6 @@ export default function ComprasClient() {
       {!trello.configured && !loadingTrello && (
         <section className="ct-clean-card ct-tone-card ct-tone-blue">
           <h2 className="text-xl max-md:text-[15px] font-semibold text-slate-950">Conectar o Trello</h2>
-          <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-700">
-            A conexão será mantida pelo Portal e usada para ler, atualizar e mover os cartões.
-          </p>
           <Link
             href="/dashboard/compras/configurar"
             className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-blue-800 px-5 text-sm max-md:text-[11px] font-semibold text-white"
@@ -303,7 +297,6 @@ export default function ComprasClient() {
             <div>
               <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">1. Fornecedor</p>
               <h2 className="mt-2 text-base max-md:text-[12.5px] font-semibold text-slate-950">Pedidos pendentes</h2>
-              <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Opcional. Sem seleção, o Portal cria um novo cartão no Trello.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -384,9 +377,6 @@ export default function ComprasClient() {
           <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">2. Itens do pedido · opcional</p>
           <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Planilha do pedido</h2>
           </div>
-          <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
-            Funciona de forma independente. Preencha as colunas conforme a planilha do fornecedor.
-          </p>
 
           <label className="mt-4 block text-sm max-md:text-[11px] font-semibold text-slate-800">
             Link do Google Sheets
@@ -464,7 +454,6 @@ export default function ComprasClient() {
             <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">
               Total: {items.length} itens
             </h2>
-            <p className="mt-1 text-sm max-md:text-[11px] text-slate-500">Confira e ajuste manualmente quando necessário.</p>
           </div>
           <div className="ct-pedidos-lista mt-4 overflow-auto rounded-2xl border border-slate-200">
             <table className="w-full min-w-[760px] border-collapse text-sm max-md:text-[11px]">
@@ -522,9 +511,6 @@ export default function ComprasClient() {
         <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">3. Finalizar</p>
         <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Atualizar Trello</h2>
         </div>
-        <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">
-          Fornecedor e número do pedido são opcionais. Informe os dados disponíveis para atualizar o Trello.
-        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-sm max-md:text-[11px] font-semibold text-slate-800">
             Fornecedor <span className="font-normal text-slate-500">(opcional)</span>

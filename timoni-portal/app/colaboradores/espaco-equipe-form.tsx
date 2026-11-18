@@ -48,12 +48,6 @@ export default function EspacoEquipeForm() {
       <div className="max-w-3xl">
         <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
         <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
-        <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
-          Use este espaço para enviar sugestões, reclamações, dificuldades ou ideias de melhoria.
-        </p>
-        <p className="mt-1 text-sm max-md:text-[11px] leading-6 text-slate-600">
-          A gestão vê de qual acesso veio a mensagem e pode responder. A resposta aparece aqui, em Suas mensagens.
-        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">

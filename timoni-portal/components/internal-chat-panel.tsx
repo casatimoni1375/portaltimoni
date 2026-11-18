@@ -309,7 +309,6 @@ export default function InternalChatPanel({ open, onClose, onUnreadChange }: { o
           </div>
           {identities.length ? (
             <div className="mt-4">
-              <p className="text-sm max-md:text-[11px] text-slate-600">Selecione quem está usando este acesso. Apenas colaboradores com Chat liberado em Configurações aparecem aqui.</p>
               <div className="mt-3 space-y-2">
                 {identities.map((identity) => <button key={identity.id} type="button" onClick={() => { setActorId(identity.id); setSelected(null); setMessages([]); }} className="flex w-full items-center justify-between rounded-xl border border-blue-200 px-3 py-3 text-left text-sm max-md:text-[11px] font-semibold text-[#0F2D8F] hover:bg-blue-50"><span>{identity.name}</span><span className="text-xs max-md:text-[10px] font-normal text-slate-500">{identity.unit || ""}</span></button>)}
               </div>

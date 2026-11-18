@@ -955,7 +955,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             className="motorista-form my-4 w-full max-w-4xl rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
           >
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
-              <div><p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">Motorista</p><h2 className="mt-1 text-xl max-md:text-[15px] font-semibold text-slate-950">{editandoId ? "Editar agendamento" : "Nova viagem"}</h2><p className="mt-1 text-sm text-slate-500">Campos com * são obrigatórios.</p></div>
+              <div><p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">Motorista</p><h2 className="mt-1 text-xl max-md:text-[15px] font-semibold text-slate-950">{editandoId ? "Editar agendamento" : "Nova viagem"}</h2></div>
               <button type="button" onClick={() => setModal(false)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600">Fechar</button>
             </div>
 
