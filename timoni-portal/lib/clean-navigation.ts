@@ -1,4 +1,4 @@
-import { hasModuleAccess, type PortalUser } from "./access-control";
+import { hasModuleAccess, isCicaAccess, type PortalUser } from "./access-control";
 export type CleanNavItem = { href: string; label: string; key: string };
 export function cleanNavigation(user: PortalUser): CleanNavItem[] {
   if (user.active === false) return [];
@@ -6,7 +6,8 @@ export function cleanNavigation(user: PortalUser): CleanNavItem[] {
   return [
     // Ordem do menu definida pela Ciça em 18/11/2026.
     {href:"/dashboard",label:"Hoje",key:"hoje",visible:true},
-    {href:"/agenda",label:"Agenda",key:"agenda",visible:has("agenda")||has("agenda-ct")},
+    // 18/11: igual à página da Agenda (Loja = Agenda CT; Minha agenda só da Ciça) — sem item que volta para o Hoje.
+    {href:"/agenda",label:"Agenda",key:"agenda",visible:has("agenda-ct")||(has("agenda")&&isCicaAccess(user.email))},
     {href:"/dashboard/compras",label:"Compras",key:"compras",visible:has("compras")||has("pedido-de-compra")||has("estoque-rotativo")||has("conferencia")},
     {href:"/dashboard/motorista",label:"Motorista",key:"motorista",visible:has("motorista")},
     {href:"/dashboard/estoque",label:"Estoque",key:"estoque",visible:has("estoque")},
