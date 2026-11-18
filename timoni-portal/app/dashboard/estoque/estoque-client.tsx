@@ -494,7 +494,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
             </button>
           </div>
         )}
-        {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className={"mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-amber-800 disabled:opacity-50" + (need.status !== "chegou" && isManager && canRespond ? " md:hidden" : "")}>Editar</button>}
+        {canEdit && <button type="button" disabled={disabled} onClick={() => setEditingNeed({ ...need })} className={"ct-need-edit-mobile mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-amber-800 disabled:opacity-50" + (need.status !== "chegou" && isManager && canRespond ? " md:hidden" : "")}>Editar</button>}
         {need.status === "chegou" && canEdit && <button type="button" disabled={disabled} onClick={() => void reopen(need)} className="ml-2 mt-4 rounded-lg bg-blue-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Reabrir</button>}
         {need.status === "chegou" && canDelete && (
           <div className="mt-4">
