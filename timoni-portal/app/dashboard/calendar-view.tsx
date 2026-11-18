@@ -136,13 +136,17 @@ function AgendaRow({
     >
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
-        <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "pr-24")}>
+        <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
           {event.summary}
-          {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
+          {concluido && <span className="ml-2 align-middle max-md:hidden"><Carimbo>Concluído</Carimbo></span>}
         </p>
-        {!compact && <span className="absolute right-3 top-2 text-[10px] font-semibold leading-none md:hidden" style={{ color }}>{event.calendarLabel}</span>}
+        {/* Celular (18/11): etiquetas lado a lado embaixo do título — agenda e concluído — sem sobrepor os botões. */}
+        <span className="ct-agenda-tags md:hidden">
+          <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
+          {concluido && <span className="ct-agenda-tag is-done">Concluído</span>}
+        </span>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
+          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
