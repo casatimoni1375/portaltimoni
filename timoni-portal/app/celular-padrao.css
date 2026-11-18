@@ -5,23 +5,22 @@
 */
 
 /* 0. PADRÃO GERAL DO CELULAR — todas as páginas (aprovado 18/11/2026)
-   Título da página 20 · título do quadro 16 (faixa azul clara) · texto 14 · apoio 13 (reduzido em 18/11)
-   Campo 16 / altura 44 · botões 13 / altura 32 (principal preenchido, secundário branco)
+   Escala do Fluxo (18/11): título da página 20 · quadro 15 · texto 12 · apoio 11 · botões 11 · etiquetas 10 · contador 16 · campos 13
    (":root:root" dá força às regras gerais contra os ajustes antigos de clean-portal.css)
-   Etiqueta 12 · contador 24 · campos ficam em 16 (abaixo disso o iPhone dá zoom ao digitar) · sem caixa-alta. */
+   Sem caixa-alta. Campos com 13 px como no Fluxo (o iPhone pode dar zoom ao tocar no campo). */
 @media (max-width: 767px) {
-  html body main { font-size: 14px; }
+  html body main { font-size: 12px; }
   :root:root body main h1 { font-size: 20px !important; font-weight: 600 !important; color: #102a83; line-height: 1.25 !important; }
-  :root:root body main :is(h2, h3) { font-size: 16px !important; font-weight: 600 !important; line-height: 1.3 !important; }
-  :root:root body main :is(h4, h5) { font-size: 14px !important; font-weight: 600 !important; }
+  :root:root body main :is(h2, h3) { font-size: 15px !important; font-weight: 600 !important; line-height: 1.3 !important; }
+  :root:root body main :is(h4, h5) { font-size: 12px !important; font-weight: 600 !important; }
   html body main :is(.uppercase) { text-transform: none !important; letter-spacing: 0 !important; }
 
   /* Textos pequenos antigos (10–13 px) sobem para 14; 15 px (títulos antigos) vai para 18 */
-  :root:root body main :is(.max-md\:text-\[10px\], .max-md\:text-\[11px\], .max-md\:text-\[12px\], .max-md\:text-\[12\.5px\], .max-md\:text-\[13px\], .text-\[10px\], .text-\[11px\], .text-\[12px\], .text-\[13px\], .text-xs) { font-size: 13px !important; line-height: 1.4 !important; }
-  :root:root body main :is(.max-md\:text-\[15px\]) { font-size: 16px !important; }
+  :root:root body main :is(.max-md\:text-\[10px\], .max-md\:text-\[11px\], .max-md\:text-\[12px\], .max-md\:text-\[12\.5px\], .max-md\:text-\[13px\], .text-\[10px\], .text-\[11px\], .text-\[12px\], .text-\[13px\], .text-xs) { font-size: 11px !important; line-height: 1.4 !important; }
+  :root:root body main :is(.max-md\:text-\[15px\]) { font-size: 15px !important; }
   /* Títulos com classes antigas de tamanho (text-xl, text-3xl...) dentro de quadros também seguem 22/18 */
   :root:root body main .ct-clean-card h1:is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 20px !important; line-height: 1.25 !important; }
-  :root:root body main .ct-clean-card :is(h2, h3):is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 16px !important; line-height: 1.3 !important; }
+  :root:root body main .ct-clean-card :is(h2, h3):is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 15px !important; line-height: 1.3 !important; }
 
   /* Quadros: brancos, contorno fino, faixa azul clara só no título */
   html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card) { background: #fff !important; border: 1px solid #c9d8f0 !important; border-radius: 12px !important; box-shadow: none !important; }
@@ -33,25 +32,25 @@
 
   /* Campos */
   html body main :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea) {
-    font-size: 16px !important; min-height: 44px !important; padding: 8px 12px !important; border-radius: 10px !important; border-color: #c9d8f0 !important;
+    font-size: 13px !important; min-height: 36px !important; padding: 6px 10px !important; border-radius: 10px !important; border-color: #c9d8f0 !important;
   }
   html body main textarea { min-height: 88px !important; }
   /* Escolher arquivo: botão secundário do padrão (13 px), texto ao lado em 13 px cinza */
-  :root:root body main input[type=file] { font-size: 13px !important; color: #65718a !important; min-height: 44px !important; padding: 6px 8px !important; }
-  :root:root body main input[type=file]::file-selector-button { font-family: inherit; font-size: 13px; font-weight: 500; line-height: 1.2; color: #102a83; background: #fff; border: 1px solid #c9d8f0; border-radius: 8px; padding: 6px 12px; margin-right: 10px; }
-  :root:root body main label { font-size: 13px !important; }
+  :root:root body main input[type=file] { font-size: 11px !important; color: #65718a !important; min-height: 36px !important; padding: 6px 8px !important; }
+  :root:root body main input[type=file]::file-selector-button { font-family: inherit; font-size: 11px; font-weight: 500; line-height: 1.2; color: #102a83; background: #fff; border: 1px solid #c9d8f0; border-radius: 8px; padding: 6px 12px; margin-right: 10px; }
+  :root:root body main label { font-size: 11px !important; }
 
   /* Botões: um tamanho só (13 px, altura 32). Mantém a cor de cada ação. */
   html body main :is(button, a[role=button], .ct-clean-action, a.rounded-lg, a.rounded-xl):not([role=switch]):not(.ct-notice-row):not(.ct-clean-calendar-row):not(.ct-estoque-count):not(.ct-clean-metric) {
-    font-size: 13px !important; font-weight: 500 !important; min-height: 32px !important; padding: 4px 12px !important; border-radius: 8px !important; line-height: 1.2 !important; white-space: nowrap;
+    font-size: 11px !important; font-weight: 500 !important; min-height: 30px !important; padding: 4px 12px !important; border-radius: 8px !important; line-height: 1.2 !important; white-space: nowrap;
   }
   html body main :is(button, a)[class*="bg-"]:not([class*="bg-white"]):not([class*="bg-slate-50"]):not([class*="bg-slate-100"]):not([class*="-50 "]):not([class*="bg-transparent"]) { font-weight: 600 !important; }
 
   /* Etiquetas */
-  html body main span.rounded-full, html body main .ct-clean-badge { font-size: 12px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
+  html body main span.rounded-full, html body main .ct-clean-badge { font-size: 10px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
 
   /* Contadores */
-  html body main :is(.ct-clean-counter, .ct-clean-metric strong, .ct-estoque-count > span:first-child, .ct-compras-count strong, .ct-sent-count strong) { font-size: 24px !important; line-height: 1.1 !important; color: #102a83 !important; }
+  html body main :is(.ct-clean-counter, .ct-clean-metric strong, .ct-estoque-count > span:first-child, .ct-compras-count strong, .ct-sent-count strong) { font-size: 16px !important; line-height: 1.1 !important; color: #102a83 !important; }
 }
 
 /* 1. Menu inferior: fixo em todas as páginas, letra 14, ícone 22, altura 58 */
@@ -78,9 +77,9 @@
 
 /* 2. Hoje: padrão do desktop (quadro branco, faixa azul clara só no título) em escala de celular 22/18/16/14 */
 @media (max-width: 767px) {
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-today-heading p { font-size: 13px !important; text-transform: none !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-today-heading p { font-size: 11px !important; text-transform: none !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-today-heading h1 { font-size: 20px !important; color: #102a83 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-today-heading .ct-clean-today-email { font-size: 13px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-today-heading .ct-clean-today-email { font-size: 11px !important; }
 
   html body .ct-today-azul.ct-today-azul.ct-today-azul section.ct-clean-card,
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card {
@@ -94,41 +93,41 @@
     background: #eef5ff; border-bottom: 1px solid #c9d8f0; align-items: center !important;
   }
   html body .ct-today-azul.ct-today-azul.ct-today-azul section.ct-clean-card > .ct-clean-people-group { margin: 0 !important; padding: 0 !important; background: none !important; border: 0 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul section.ct-clean-card h2 { font-size: 16px !important; font-weight: 600 !important; color: #102a83 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul section.ct-clean-card h2 { font-size: 15px !important; font-weight: 600 !important; color: #102a83 !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-card-heading > :is(a, button) {
-    font-size: 13px !important; font-weight: 500 !important; min-height: 28px !important; padding: 2px 10px !important;
+    font-size: 11px !important; font-weight: 500 !important; min-height: 26px !important; padding: 2px 10px !important;
     background: #fff !important; border: 1px solid #c9d8f0 !important; border-radius: 8px !important; color: #102a83 !important;
   }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-calendar-row { font-size: 14px !important; padding: 6px 0 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-calendar-row span { font-size: 14px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-calendar-row { font-size: 12px !important; padding: 6px 0 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-calendar-row span { font-size: 12px !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul a.ct-clean-calendar-row { border: 0 !important; background: none !important; box-shadow: none !important; width: 100%; padding: 6px 0 !important; border-radius: 0 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul section.ct-clean-card .ct-clean-people-group > h2 { font-size: 16px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-calendar-row b { font-size: 14px !important; color: #102a83; min-width: 52px; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-muted { font-size: 13px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul section.ct-clean-card .ct-clean-people-group > h2 { font-size: 15px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-calendar-row b { font-size: 12px !important; color: #102a83; min-width: 52px; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-muted { font-size: 11px !important; }
 
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-date { font-size: 13px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-scope { font-size: 13px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-headline { font-size: 13px !important; font-weight: 600 !important; color: #182443; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-subline { font-size: 13px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-stamp { font-size: 12px !important; padding: 1px 8px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive > button { font-size: 13px !important; padding: 2px 10px !important; min-height: 28px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-date { font-size: 11px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-scope { font-size: 11px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-headline { font-size: 11px !important; font-weight: 600 !important; color: #182443; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-subline { font-size: 11px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-stamp { font-size: 10px !important; padding: 1px 8px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive > button { font-size: 11px !important; padding: 2px 10px !important; min-height: 26px !important; }
   /* Arquivados: mesmas linhas dos avisos vigentes (data, título 16, etiquetas 12 lado a lado) */
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive > ul { margin-top: 8px !important; display: grid; gap: 8px; }
 
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row strong { font-size: 14px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 13px !important; min-height: 32px !important; padding: 4px 12px !important; border-radius: 8px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row strong { font-size: 12px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 11px !important; min-height: 30px !important; padding: 4px 12px !important; border-radius: 8px !important; }
 
   /* Reuniões no celular: um quadro por loja, Próxima e Seguinte lado a lado */
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-today-meetings { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; margin: 0 !important; grid-column: 1 / -1 !important; order: 10 !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child > div { display: flex; align-items: baseline; gap: 8px; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child p { font-size: 13px !important; text-transform: none !important; letter-spacing: 0 !important; color: #65718a !important; font-weight: 500 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child h3 { margin: 0 !important; font-size: 16px !important; color: #102a83 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child > span { font-size: 13px !important; padding: 2px 10px !important; border: 1px solid #c9d8f0; font-weight: 500 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child p { font-size: 11px !important; text-transform: none !important; letter-spacing: 0 !important; color: #65718a !important; font-weight: 500 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child h3 { margin: 0 !important; font-size: 15px !important; color: #102a83 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child > span { font-size: 11px !important; padding: 2px 10px !important; border: 1px solid #c9d8f0; font-weight: 500 !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div { margin-top: 0 !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div { background: #fff !important; border: 1px solid #e1e6f0; border-radius: 10px !important; padding: 8px 12px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div > p:first-child { font-size: 13px !important; text-transform: none !important; letter-spacing: 0 !important; color: #65718a !important; font-weight: 500 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div > p:nth-child(2) { margin-top: 2px !important; font-size: 14px !important; color: #182443 !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div > p:nth-child(3) { margin-top: 0 !important; font-size: 13px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div > p:first-child { font-size: 11px !important; text-transform: none !important; letter-spacing: 0 !important; color: #65718a !important; font-weight: 500 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div > p:nth-child(2) { margin-top: 2px !important; font-size: 12px !important; color: #182443 !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-meeting-card > :first-child + div > div > p:nth-child(3) { margin-top: 0 !important; font-size: 11px !important; }
 }
 
 /* 3. Estoque: padrão do desktop em escala de celular (títulos 18, texto 16/14, botões 13–14) */
@@ -141,58 +140,58 @@
     margin: -12px -14px 12px !important; padding: 8px 14px !important; max-width: none !important;
     background: #eef5ff; border-bottom: 1px solid #c9d8f0;
   }
-  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card h2 { font-size: 16px !important; font-weight: 600 !important; color: #102a83 !important; }
+  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card h2 { font-size: 15px !important; font-weight: 600 !important; color: #102a83 !important; }
 
   /* Cabeçalho */
   html body .ct-estoque-page.ct-estoque-page .ct-estoque-header p:first-child { display: none !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-estoque-header h1 { margin: 0 !important; font-size: 20px !important; color: #102a83 !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-estoque-header h1 + p { font-size: 13px !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-estoque-header h1 + p { font-size: 11px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-estoque-header .ct-estoque-btn {
-    font-size: 13px !important; font-weight: 500 !important; min-height: 32px !important; padding: 4px 10px !important;
+    font-size: 11px !important; font-weight: 500 !important; min-height: 30px !important; padding: 4px 10px !important;
     border-radius: 8px !important; display: inline-flex; align-items: center;
   }
   html body .ct-estoque-page.ct-estoque-page .ct-estoque-header .ct-estoque-btn:not(.bg-emerald-700) { background: #fff !important; border: 1px solid #c9d8f0 !important; color: #102a83 !important; }
 
   /* Contadores */
   html body .ct-estoque-page.ct-estoque-page .ct-estoque-count { background: #fff !important; border: 1px solid #c9d8f0 !important; border-radius: 12px !important; box-shadow: none !important; padding: 10px 14px !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-estoque-count > span:first-child { font-size: 24px !important; line-height: 1.1 !important; color: #102a83 !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-estoque-count > span:last-child { font-size: 13px !important; color: #65718a !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-estoque-count > span:first-child { font-size: 16px !important; line-height: 1.1 !important; color: #102a83 !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-estoque-count > span:last-child { font-size: 11px !important; color: #65718a !important; }
 
   /* Consultar: dois botões azuis com texto branco */
   html body .ct-estoque-page.ct-estoque-page a.ct-estoque-btn.bg-\[\#102a83\] {
-    color: #fff !important; background: #102a83 !important; font-size: 13px !important; font-weight: 600 !important;
-    min-height: 32px !important; display: flex; align-items: center; justify-content: center; padding: 4px 12px !important; border-radius: 8px !important;
+    color: #fff !important; background: #102a83 !important; font-size: 11px !important; font-weight: 600 !important;
+    min-height: 30px !important; display: flex; align-items: center; justify-content: center; padding: 4px 12px !important; border-radius: 8px !important;
   }
   html body .ct-estoque-page.ct-estoque-page a.ct-estoque-btn.bg-\[\#102a83\] span { color: #fff !important; }
 
   /* Formulário */
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card :is(input:not([type=checkbox]), select) {
-    font-size: 16px !important; min-height: 44px !important; padding: 8px 12px !important; border: 1px solid #c9d8f0 !important; border-radius: 10px !important;
+    font-size: 13px !important; min-height: 36px !important; padding: 6px 10px !important; border: 1px solid #c9d8f0 !important; border-radius: 10px !important;
   }
-  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card input + p { font-size: 14px !important; font-weight: 500 !important; }
-  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card label { font-size: 14px !important; }
+  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card input + p { font-size: 11px !important; font-weight: 500 !important; }
+  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card label { font-size: 12px !important; }
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card:not(.ct-estoque-header) > button.bg-emerald-700 {
-    font-size: 13px !important; font-weight: 600 !important; min-height: 32px !important; padding: 4px 16px !important; border-radius: 8px !important;
+    font-size: 11px !important; font-weight: 600 !important; min-height: 30px !important; padding: 4px 16px !important; border-radius: 8px !important;
   }
 
   /* Filtro Todas / Rio Claro / Araras */
   html body .ct-estoque-page.ct-estoque-page .rounded-xl.bg-slate-100.p-1 { margin-top: 4px; }
-  html body .ct-estoque-page.ct-estoque-page .rounded-xl.bg-slate-100.p-1 > button { font-size: 13px !important; min-height: 30px !important; padding: 2px 12px !important; }
+  html body .ct-estoque-page.ct-estoque-page .rounded-xl.bg-slate-100.p-1 > button { font-size: 11px !important; min-height: 30px !important; padding: 2px 12px !important; }
 
   /* Cartão de necessidade */
   html body .ct-estoque-page.ct-estoque-page .ct-need-card { padding: 10px 12px !important; border: 1px solid #e1e6f0 !important; border-radius: 10px !important; box-shadow: none !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card .ct-need-line1 { font-size: 14px !important; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card .ct-need-line1 { font-size: 12px !important; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-card > div:first-child > div { flex-basis: 100%; }
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card .ct-need-line1 > span { font-size: 14px !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card .ct-need-line1 > span { font-size: 12px !important; }
   /* Igual ao Hoje: conteúdo 16 (nome, telefone, observação); apoio 14 cinza (loja, vendedor, data) */
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card p:not(.ct-need-line1) { font-size: 14px !important; margin-top: 4px !important; color: #182443; }
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card p:is(.text-slate-500, .text-slate-400) { font-size: 13px !important; color: #65718a !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card p.text-amber-700 { color: #854f0b !important; font-size: 13px !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card .rounded-full { font-size: 12px !important; padding: 1px 8px !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card p:not(.ct-need-line1) { font-size: 12px !important; margin-top: 4px !important; color: #182443; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card p:is(.text-slate-500, .text-slate-400) { font-size: 11px !important; color: #65718a !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card p.text-amber-700 { color: #854f0b !important; font-size: 11px !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card .rounded-full { font-size: 10px !important; padding: 1px 8px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-card .space-y-3 { margin-top: 10px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-actions { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-actions > button {
-    font-size: 13px !important; font-weight: 600 !important; min-height: 32px !important; padding: 4px 6px !important;
+    font-size: 11px !important; font-weight: 600 !important; min-height: 30px !important; padding: 4px 6px !important;
     border-radius: 8px !important; white-space: nowrap;
     display: inline-flex !important; align-items: center; justify-content: center; text-align: center;
   }
@@ -204,7 +203,7 @@
   html body .ct-estoque-page.ct-estoque-page .ct-need-edit-mobile { display: none !important; }
 
   /* Listas vazias */
-  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card p.rounded-xl { font-size: 13px !important; padding: 10px 12px !important; }
+  html body .ct-estoque-page.ct-estoque-page section.ct-clean-card p.rounded-xl { font-size: 11px !important; padding: 10px 12px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-estoque-trio { gap: 12px !important; }
 }
 
@@ -215,7 +214,7 @@
   /* Abas 1–5: botões de 13 px; a aba aberta fica azul preenchida */
   html body main .ct-clean-module-tabs { gap: 6px !important; padding: 0 0 10px !important; margin-bottom: 12px !important; }
   html body main .ct-clean-module-tabs > a {
-    font-size: 13px !important; font-weight: 500 !important; min-height: 32px !important; padding: 4px 12px !important;
+    font-size: 11px !important; font-weight: 500 !important; min-height: 30px !important; padding: 4px 12px !important;
     border: 1px solid #c9d8f0 !important; border-radius: 8px !important; background: #fff !important; color: #102a83 !important; white-space: nowrap;
   }
   html body main .ct-clean-module-tabs > a[aria-current=page] { background: #102a83 !important; border-color: #102a83 !important; color: #fff !important; font-weight: 600 !important; }
@@ -223,9 +222,9 @@
   /* Contadores */
   html body .ct-compras-module.ct-compras-module .ct-compras-counts { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
   html body .ct-compras-module.ct-compras-module .ct-compras-count { background: #fff !important; border: 1px solid #c9d8f0 !important; border-radius: 12px !important; box-shadow: none !important; padding: 10px 14px !important; }
-  html body .ct-compras-module.ct-compras-module .ct-compras-count > p:first-child { font-size: 24px !important; line-height: 1.1 !important; font-weight: 600 !important; color: #102a83 !important; }
+  html body .ct-compras-module.ct-compras-module .ct-compras-count > p:first-child { font-size: 16px !important; line-height: 1.1 !important; font-weight: 600 !important; color: #102a83 !important; }
   html body .ct-compras-module.ct-compras-module .ct-compras-count.is-urgent > p:first-child { color: #b12532 !important; }
-  html body .ct-compras-module.ct-compras-module .ct-compras-count > p:last-child { font-size: 13px !important; margin-top: 2px !important; color: #65718a !important; white-space: nowrap; }
+  html body .ct-compras-module.ct-compras-module .ct-compras-count > p:last-child { font-size: 11px !important; margin-top: 2px !important; color: #65718a !important; white-space: nowrap; }
 
   /* Quadros: brancos com faixa azul clara no título (etapa 1, 2, 3...) */
   html body .ct-compras-module.ct-compras-module article:not(.ct-compras-count):is(.ct-clean-card, .rounded-3xl) {
@@ -234,50 +233,50 @@
   html body .ct-compras-module.ct-compras-module article:not(.ct-compras-count):is(.ct-clean-card, .rounded-3xl) > div:first-child {
     margin: -12px -14px 12px !important; padding: 8px 14px !important; background: #eef5ff; border-bottom: 1px solid #c9d8f0; align-items: center !important;
   }
-  html body .ct-compras-module.ct-compras-module :is(article, section) p.text-blue-700:first-child { font-size: 13px !important; font-weight: 500 !important; color: #65718a !important; }
-  :root:root body .ct-compras-module.ct-compras-module :is(article, section) h2 { margin-top: 0 !important; font-size: 16px !important; font-weight: 600 !important; color: #102a83 !important; }
-  html body .ct-compras-module.ct-compras-module :is(article, section) :is(h2 + p, p.text-slate-600) { font-size: 13px !important; line-height: 1.4 !important; color: #65718a !important; }
+  html body .ct-compras-module.ct-compras-module :is(article, section) p.text-blue-700:first-child { font-size: 11px !important; font-weight: 500 !important; color: #65718a !important; }
+  :root:root body .ct-compras-module.ct-compras-module :is(article, section) h2 { margin-top: 0 !important; font-size: 15px !important; font-weight: 600 !important; color: #102a83 !important; }
+  html body .ct-compras-module.ct-compras-module :is(article, section) :is(h2 + p, p.text-slate-600) { font-size: 11px !important; line-height: 1.4 !important; color: #65718a !important; }
 
   /* Lista de fornecedores: nome 16, como as linhas do Hoje */
   html body .ct-compras-module.ct-compras-module .ct-compras-list { border-color: #e1e6f0 !important; border-radius: 10px !important; }
   html body .ct-compras-module.ct-compras-module .ct-compras-list > button {
-    font-size: 14px !important; font-weight: 400 !important; min-height: 44px !important; padding: 8px 12px !important; border-radius: 0 !important; white-space: normal;
+    font-size: 12px !important; font-weight: 400 !important; min-height: 44px !important; padding: 8px 12px !important; border-radius: 0 !important; white-space: normal;
   }
-  html body .ct-compras-module.ct-compras-module .ct-compras-list > button > span:first-child { font-size: 14px !important; font-weight: 600 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  html body .ct-compras-module.ct-compras-module .ct-compras-list .rounded-full { font-size: 12px !important; padding: 1px 8px !important; }
-  html body .ct-compras-module.ct-compras-module .ct-compras-list > p { font-size: 13px !important; }
-  html body .ct-compras-module.ct-compras-module label { font-size: 13px !important; font-weight: 600 !important; color: #182443 !important; }
-  html body .ct-compras-module.ct-compras-module label > span.font-normal { font-size: 13px !important; font-weight: 400 !important; color: #65718a !important; }
+  html body .ct-compras-module.ct-compras-module .ct-compras-list > button > span:first-child { font-size: 12px !important; font-weight: 600 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  html body .ct-compras-module.ct-compras-module .ct-compras-list .rounded-full { font-size: 10px !important; padding: 1px 8px !important; }
+  html body .ct-compras-module.ct-compras-module .ct-compras-list > p { font-size: 11px !important; }
+  html body .ct-compras-module.ct-compras-module label { font-size: 11px !important; font-weight: 600 !important; color: #182443 !important; }
+  html body .ct-compras-module.ct-compras-module label > span.font-normal { font-size: 11px !important; font-weight: 400 !important; color: #65718a !important; }
 }
 
 /* Avisos (Hoje, celular e desktop): loja em etiquetas no canto superior direito, Pendente abaixo */
 html body .ct-notice-row { align-items: flex-start !important; }
 html body .ct-notice-side { flex: none; display: flex; flex-direction: row; align-items: center; gap: 4px; }
 html body .ct-notice-tags { display: flex; gap: 4px; }
-html body .ct-notice-tag { display: inline-flex; align-items: center; font-size: 12px !important; font-weight: 500; line-height: 1.4; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+html body .ct-notice-tag { display: inline-flex; align-items: center; font-size: 10px !important; font-weight: 500; line-height: 1.4; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
 html body .ct-notice-tag.is-araras { background: #fff4c2; color: #854f0b; }
 html body .ct-notice-tag.is-rio-claro { background: #e7f6ec; color: #166534; }
 html body .ct-notice-row .ct-notice-date { padding-top: 2px; }
-html body .ct-notice-side .ct-notice-stamp { align-self: center !important; font-size: 12px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
+html body .ct-notice-side .ct-notice-stamp { align-self: center !important; font-size: 10px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
 /* 18/11: linhas dos avisos mais leves — título 14, subtítulo e data 13 */
-html body .ct-notice-row.ct-notice-row .ct-notice-date { font-size: 13px !important; font-weight: 400 !important; color: #65718a !important; }
-html body .ct-notice-row.ct-notice-row .ct-notice-headline { font-size: 13px !important; font-weight: 600 !important; line-height: 1.3 !important; }
-html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 13px !important; font-weight: 400 !important; color: #65718a !important; line-height: 1.3 !important; }
+html body .ct-notice-row.ct-notice-row .ct-notice-date { font-size: 11px !important; font-weight: 400 !important; color: #65718a !important; }
+html body .ct-notice-row.ct-notice-row .ct-notice-headline { font-size: 11px !important; font-weight: 600 !important; line-height: 1.3 !important; }
+html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !important; font-weight: 400 !important; color: #65718a !important; line-height: 1.3 !important; }
 
 /* 4.3 Pedidos enviados (e Recebidos, que usam as mesmas linhas): nome 14, datas 13, etiquetas 12 */
 @media (max-width: 767px) {
   :root:root body .ct-compras-tab .ct-sent-count { padding: 10px 14px !important; border-radius: 12px !important; }
-  :root:root body .ct-compras-tab .ct-sent-count > p { font-size: 13px !important; color: #65718a !important; }
-  :root:root body .ct-compras-tab .ct-clean-exceptions > strong { font-size: 13px !important; font-weight: 600 !important; color: #b12532 !important; }
-  :root:root body .ct-compras-tab .ct-clean-exceptions button { font-size: 14px !important; font-weight: 600 !important; padding: 0 !important; min-height: 0 !important; white-space: normal !important; text-align: left; border: 0 !important; background: none !important; }
-  :root:root body .ct-compras-tab .ct-clean-exceptions small { font-size: 13px !important; color: #b12532 !important; }
+  :root:root body .ct-compras-tab .ct-sent-count > p { font-size: 11px !important; color: #65718a !important; }
+  :root:root body .ct-compras-tab .ct-clean-exceptions > strong { font-size: 11px !important; font-weight: 600 !important; color: #b12532 !important; }
+  :root:root body .ct-compras-tab .ct-clean-exceptions button { font-size: 12px !important; font-weight: 600 !important; padding: 0 !important; min-height: 0 !important; white-space: normal !important; text-align: left; border: 0 !important; background: none !important; }
+  :root:root body .ct-compras-tab .ct-clean-exceptions small { font-size: 11px !important; color: #b12532 !important; }
   :root:root body .ct-compras-tab .ct-sent-count strong.text-\[\#b12532\] { color: #b12532 !important; }
-  :root:root body .ct-compras-tab h3.ct-notice-scope { font-size: 14px !important; font-weight: 600 !important; color: #102a83 !important; margin: 4px 0 0 !important; }
+  :root:root body .ct-compras-tab h3.ct-notice-scope { font-size: 12px !important; font-weight: 600 !important; color: #102a83 !important; margin: 4px 0 0 !important; }
   :root:root body .ct-compras-tab .ct-row { padding: 8px 12px !important; border-radius: 10px !important; gap: 8px !important; align-items: center !important; }
-  :root:root body .ct-compras-tab .ct-row strong { font-size: 14px !important; font-weight: 600 !important; line-height: 1.3 !important; }
-  :root:root body .ct-compras-tab .ct-row small { font-size: 13px !important; line-height: 1.35 !important; color: #65718a !important; }
-  :root:root body .ct-compras-tab .ct-row .ct-notice-stamp { font-size: 12px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
-  :root:root body .ct-compras-tab p.text-slate-500 { font-size: 13px !important; }
+  :root:root body .ct-compras-tab .ct-row strong { font-size: 12px !important; font-weight: 600 !important; line-height: 1.3 !important; }
+  :root:root body .ct-compras-tab .ct-row small { font-size: 11px !important; line-height: 1.35 !important; color: #65718a !important; }
+  :root:root body .ct-compras-tab .ct-row .ct-notice-stamp { font-size: 10px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
+  :root:root body .ct-compras-tab p.text-slate-500 { font-size: 11px !important; }
 }
 
 /* 4.3 Pedidos enviados no celular: duas colunas (Enviados | Atrasados), compactas — pedido da Ciça em 18/11 */
