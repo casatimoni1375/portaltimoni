@@ -65,6 +65,9 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const allOrders=capabilities.ordersMode==="todos";
  const ordersHref=`/dashboard/compras?aba=acompanhar${allOrders?"":"&filtro=atrasados"}&unidade=${unit}`;
  const orders=(data.orders?.pedidosEnviados||[]).filter(order=>allowed(order.unidade)&&(allOrders||order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey())).sort((a,b)=>(a.previsaoEntrega||"9").localeCompare(b.previsaoEntrega||"9"));
+ // 18/11: boxes Pedidos enviados | Pedidos atrasados (antes os pedidos eram buscados e não apareciam).
+ const sentOrders=(data.orders?.pedidosEnviados||[]).filter(order=>allowed(order.unidade));
+ const lateOrders=sentOrders.filter(order=>order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey());
  const urgent=(data.purchases?.suppliers||[]).filter(item=>item.urgent&&allowed(item.unit));
  // Um motorista só: todas as viagens do dia aparecem, de qualquer empresa.
  const trips=(data.trips?.viagens||[]).filter(trip=>!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||""));
@@ -132,9 +135,15 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
   {shortcuts}
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
+  {/* 18/11: boxes no padrão dos contadores — Motorista | Pedidos enviados | Pedidos atrasados, conforme a permissão. */}
+  {(capabilities.trips||capabilities.orders)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
+   {tripsCard}
+   {capabilities.orders&&allOrders&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
+   {capabilities.orders&&<Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`} className={`ct-clean-metric ${lateOrders.length?"ct-clean-late":"ct-clean-normal"}`}><strong>{waiting("orders")?"–":lateOrders.length}</strong><span>Pedidos atrasados</span></Link>}
+  </section>}
   {/* Duas colunas independentes: cada bloco sobe logo abaixo do anterior, sem espaço vazio. */}
   {/* Tela Hoje v2: esquerda = Agenda + Aniversários/Férias; direita = Comunicados + Pedidos pendentes. */}
-  <div className="ct-today-layout ct-today-v2">
+  <div className={`ct-today-layout ct-today-v2${capabilities.agenda||events.length>0?"":" ct-no-side"}`}>
    <aside className="ct-today-side">
    {capabilities.trips&&<div className="ct-trips-v2">{tripsList}</div>}
    {capabilities.agenda&&<section className={`ct-clean-card ct-tone-card ${agendaTitle==="Agenda CT"?"ct-tone-blue":"ct-tone-purple"} ct-m-order-1`}><div className="ct-clean-card-heading"><h2>{agendaTitle}</h2><Link href={agendaHref}>Abrir agenda</Link></div>

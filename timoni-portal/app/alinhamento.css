@@ -111,3 +111,19 @@ html:root:root body main .ct-metric-action { position: relative !important; top:
   html:root:root body main .ct-today-op-cards { gap: 10px !important; }
   html:root:root body main .ct-metric-action { min-height: 28px !important; padding: 0 8px !important; font-size: 12px !important; }
 }
+
+/* 18/11 — Hoje: boxes Motorista | Pedidos enviados | Pedidos atrasados (mesma largura, numa linha)
+   e, quando não há quadros na coluna da esquerda, os demais ocupam a largura toda (sem coluna vazia). */
+html:root:root body main .ct-today-boxes { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important; gap: 20px !important; margin: 0 0 20px !important; }
+html:root:root body main .ct-today-boxes > .ct-clean-metric { min-height: 0 !important; }
+html:root:root body main .ct-today-boxes .ct-clean-metric > span,
+html:root:root body main .ct-today-boxes .ct-metric-link > span { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1001px) {
+  html:root:root:root body main .ct-today-layout.ct-today-v2.ct-no-side > .ct-today-main > * { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 767px) {
+  html:root:root body main .ct-today-boxes { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 16px !important; }
+  html:root:root body main .ct-today-boxes .ct-metric-with-action { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; }
+}
+/* A lista de viagens fica no box Motorista (o box leva à agenda do motorista). */
+html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
