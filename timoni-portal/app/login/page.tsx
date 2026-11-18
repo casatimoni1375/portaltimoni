@@ -58,28 +58,28 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h1 className="text-xl max-md:text-[15px] font-semibold">Portal Timoni</h1>
-        <p className="mt-2 text-sm max-md:text-[11px] text-slate-500">
+        <h1 className="text-xl max-md:text-[20px] font-semibold text-[#102a83]">Portal Timoni</h1>
+        <p className="mt-2 text-sm max-md:text-[14px] text-slate-500">
           {canResume ? "Seu acesso continua conectado." : "Entre com a conta Google autorizada para acessar o Portal Timoni."}
         </p>
 
         {errorMessage && (
-          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm max-md:text-[11px] text-red-700">
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm max-md:text-[14px] text-red-700">
             {errorMessage}
           </p>
         )}
 
         {canResume ? (
           <>
-            <p className="mt-3 break-all text-sm max-md:text-[11px] text-slate-600">{session?.user?.email}</p>
-            <Link href="/dashboard" prefetch={false} className="mt-6 block w-full rounded-lg bg-slate-900 px-4 py-2 text-sm max-md:text-[11px] font-medium text-white hover:bg-slate-800">
+            <p className="mt-3 break-all text-sm max-md:text-[14px] text-slate-600">{session?.user?.email}</p>
+            <Link href="/dashboard" prefetch={false} className="mt-6 block w-full rounded-lg bg-[#102a83] px-4 py-2 text-sm max-md:text-[14px] max-md:min-h-[44px] max-md:flex max-md:items-center max-md:justify-center font-semibold text-white hover:bg-[#0c2068]">
               Entrar no Portal
             </Link>
             <form action={async () => {
               "use server";
               await signOut({ redirectTo: "/login?trocar=1" });
             }}>
-              <button type="submit" className="mt-3 text-sm max-md:text-[11px] text-slate-500 hover:text-slate-800">Trocar conta</button>
+              <button type="submit" className="mt-3 text-sm max-md:text-[14px] text-slate-500 hover:text-slate-800">Trocar conta</button>
             </form>
           </>
         ) : (
@@ -91,7 +91,7 @@ export default async function LoginPage({
         >
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg bg-slate-900 px-4 py-2 text-sm max-md:text-[11px] font-medium text-white hover:bg-slate-800"
+            className="mt-6 w-full rounded-lg bg-[#102a83] px-4 py-2 text-sm max-md:text-[14px] max-md:min-h-[44px] font-semibold text-white hover:bg-[#0c2068]"
           >
             Entrar com Google
           </button>
