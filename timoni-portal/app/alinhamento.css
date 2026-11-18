@@ -115,7 +115,7 @@ html:root:root body main .ct-metric-action { position: relative !important; top:
 
 /* 18/11 — Hoje: boxes Motorista | Pedidos enviados | Pedidos atrasados (mesma largura, numa linha)
    e, quando não há quadros na coluna da esquerda, os demais ocupam a largura toda (sem coluna vazia). */
-html:root:root body main .ct-today-boxes { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important; gap: 20px !important; margin: 0 0 20px !important; }
+html:root:root body main .ct-today-boxes { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)) !important; gap: 20px !important; margin: 0 0 20px !important; }
 html:root:root body main .ct-today-boxes > .ct-clean-metric { min-height: 0 !important; }
 html:root:root body main .ct-today-boxes .ct-clean-metric > span,
 html:root:root body main .ct-today-boxes .ct-metric-link > span { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
