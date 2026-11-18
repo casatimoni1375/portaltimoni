@@ -602,13 +602,8 @@ export default function EstoqueRotativoClient() {
         <p>Origem: Trello, lista ESTOQUE ROTATIVO LUCAS/CAROL. A planilha do fornecedor atualiza o Rotativo pelo COD-VENDA.</p>
       </header>
 
-      <ol className="ct-rt-flow" aria-label="Etapas do Rotativo">
-        <li>1. Card no Trello</li>
-        <li>2. Planilha do fornecedor</li>
-        <li>3. Conferência</li>
-        <li>4. Atualizar Rotativo</li>
-        <li>5. Lançar no Bessani (até 24h)</li>
-      </ol>
+      {/* 18/11: das etapas, fica só o atalho para Lançar no Bessani. */}
+      <ol className="ct-rt-flow" aria-label="Atalho"><li><a href="#lancar-bessani">5. Lançar no Bessani (até 24h)</a></li></ol>
 
       <section className="ct-clean-metrics ct-rt-metrics" aria-label="Situação do Rotativo">
         {[
@@ -627,7 +622,7 @@ export default function EstoqueRotativoClient() {
       {error ? <p role="alert" className="ct-rt-alert ct-rt-error">{error}</p> : null}
 
       {erpGroups.length ? (
-        <section className="ct-rt-card" aria-label="Lançar no Bessani">
+        <section id="lancar-bessani" className="ct-rt-card scroll-mt-20" aria-label="Lançar no Bessani">
           <p className="ct-rt-step">5. Lançar no Bessani</p>
           <h2 className="ct-rt-title">Itens que mudaram e ainda não foram lançados</h2>
           <p className="ct-rt-help">Rodini recebe a quantidade contada; MCR fica zerada. Prazo: {ERP_DEADLINE_HOURS}h depois do aviso do Lucas.</p>
