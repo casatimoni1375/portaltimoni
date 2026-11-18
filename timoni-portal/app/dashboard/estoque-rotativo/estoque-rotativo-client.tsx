@@ -607,7 +607,7 @@ export default function EstoqueRotativoClient() {
         <li>2. Planilha do fornecedor</li>
         <li>3. Conferência</li>
         <li>4. Atualizar Rotativo</li>
-        <li>5. Lançar no Bessani (até 24h)</li>
+        <li>5. Lançar no Bessani</li>
       </ol>
 
       <section className="ct-clean-metrics ct-rt-metrics" aria-label="Situação do Rotativo">

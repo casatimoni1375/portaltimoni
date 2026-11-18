@@ -392,6 +392,19 @@ function linhaPrincipalRelatorio(v: Viagem, index: number) {
   return partes.join(" | ");
 }
 
+// Desktop: título e documento na mesma linha (há espaço na largura).
+// Ex.: "2. Entrega | MCR | Vend.: Jaqueline - NF 10407 | RICLAN | Volume: 1"
+function linhaUnicaDesktop(v: Viagem, index: number) {
+  const doc = [
+    documentoTexto(v.numeroPedido),
+    v.clienteFornecedor ? String(v.clienteFornecedor).toUpperCase() : "",
+    v.contatoNome ? `A/C: ${String(v.contatoNome).toUpperCase()}` : "",
+    v.volumes ? `Volume: ${String(v.volumes)}` : "",
+  ].filter(Boolean).join(" | ");
+  const titulo = linhaPrincipalRelatorio(v, index);
+  return doc ? `${titulo} - ${doc}` : titulo;
+}
+
 function separarVolume(valor?: string) {
   const texto = String(valor ?? "").trim();
   const unidadeMarcador = " | Unidade: ";
@@ -852,6 +865,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
                       <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl border p-3">
                         <EtiquetasViagem v={v} />
+                        <p style={estiloLinhaPrincipal(v)} className={`hidden md:block text-sm ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
+                        <div className="md:hidden">
                         <p style={estiloLinhaPrincipal(v)} className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
                         <p className="mt-2 text-sm font-bold uppercase text-slate-900">
                           {documentoTexto(v.numeroPedido)}
@@ -862,6 +877,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                           {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
                         </p>
                         {v.contatoNome && v.volumes && <p className="mt-1 text-sm font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
+                        </div>
                         {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
                         {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-sm text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
                         <p className="mt-1 text-sm text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
@@ -884,7 +900,9 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="font-[Arial] text-[11pt] leading-[1.35]">
+                  <div className="font-[Arial] text-[11pt] md:text-[calc(11pt+1px)] leading-[1.35]">
+                    <p style={estiloLinhaPrincipal(v)} className={`hidden md:block ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
+                    <div className="md:hidden">
                     <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>
                     <p className="mt-2 font-bold uppercase text-slate-900">
                       {documentoTexto(v.numeroPedido)}
@@ -895,9 +913,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                       {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
                     </p>
                     {v.contatoNome && v.volumes && <p className="mt-1 font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
+                    </div>
                     {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
                     {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
-                    <p className="mt-1 font-[Arial] text-[10pt] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                    <p className="mt-1 font-[Arial] text-[10pt] md:text-[calc(10pt+1px)] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2">
                     {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}

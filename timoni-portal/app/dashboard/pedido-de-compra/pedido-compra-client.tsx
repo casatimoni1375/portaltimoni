@@ -84,8 +84,8 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const isLate = (order: SentOrder) => Boolean(order.previsaoEntrega) && order.previsaoEntrega.slice(0, 10) < todayKey;
   const orderTone = (_order: SentOrder) => "border-[#e1e6f0]";
   const lateCount = visibleOrders.filter(isLate).length;
-  // Araras à esquerda, Rio Claro à direita (desktop); no celular, uma coluna depois da outra.
-  const columnUnits = (["araras", "rio_claro"] as const).filter((unit) => visibleUnits.includes(unit));
+  // Rio Claro à esquerda, Araras à direita (desktop, 18/11).
+  const columnUnits = (["rio_claro", "araras"] as const).filter((unit) => visibleUnits.includes(unit));
   return (
     <section className="ct-compras-tab ct-clean-card">
       <div className="ct-clean-card-heading">
@@ -135,7 +135,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         })()}
         {loading && <p className="ct-sent-empty">Atualizando...</p>}
       </div>
-      <div className="mt-4 grid gap-5 lg:grid-cols-2 max-md:!hidden">
+      <div className="mt-4 grid gap-5 md:grid-cols-2 max-md:!hidden">
         {columnUnits.map((currentUnit) => {
           const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
           return (
