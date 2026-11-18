@@ -806,7 +806,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
   return (
     <>
       <section className="ct-std-card rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-        <div className="flex flex-col gap-3">
+        <div className="ct-mot-barra flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {canCreate && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
             <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "dia" ? "bg-[#102a83] text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
@@ -855,8 +855,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               const data = localDateString(d);
               const itens = ordenarViagens(viagens[data] || []);
               return (
-                <section key={data} className={`rounded-xl border bg-white p-4 ${data === hoje ? "border-[#102a83]" : "border-[#e1e6f0]"}`}>
-                  <button type="button" onClick={() => selecionarDia(data)} className="w-full text-left">
+                <section key={data} className={`ct-mot-dia rounded-xl border bg-white p-4 ${data === hoje ? "border-[#102a83]" : "border-[#e1e6f0]"}`}>
+                  <button type="button" onClick={() => selecionarDia(data)} className="ct-mot-dia-titulo w-full text-left">
                     <p className="text-sm font-semibold uppercase text-slate-500">{d.toLocaleDateString("pt-BR", { weekday: "long" })}</p>
                     <p className="mt-1 flex items-center gap-2 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}{data === hoje && <Carimbo>Hoje</Carimbo>}</p>
                   </button>
@@ -865,7 +865,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                       <article key={v.id} style={estiloBoxViagem(v)} className="ct-mot-viagem rounded-xl border p-3 md:flex md:items-start md:justify-between md:gap-6">
                         <div className="min-w-0 md:flex-1">
                         <EtiquetasViagem v={v} />
-                        <p style={estiloLinhaPrincipal(v)} className={`hidden md:block text-sm ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
+                        <p style={estiloLinhaPrincipal(v)} className={`ct-mot-linha hidden md:block text-sm ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
                         <div className="md:hidden">
                         <p style={estiloLinhaPrincipal(v)} className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
                         <p className="mt-2 text-sm font-bold uppercase text-slate-900">
@@ -902,7 +902,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="ct-mot-viagem min-w-0 flex-1 font-[Arial] text-[11pt] md:font-[inherit] leading-[1.35]">
-                    <p style={estiloLinhaPrincipal(v)} className={`hidden md:block ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
+                    <p style={estiloLinhaPrincipal(v)} className={`ct-mot-linha hidden md:block ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
                     <div className="md:hidden">
                     <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>
                     <p className="mt-2 font-bold uppercase text-slate-900">
