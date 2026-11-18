@@ -326,3 +326,13 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
   :root:root body .ct-rt-erp-head small { font-size: 10px !important; }
   :root:root body :is(.ct-rt-card, .ct-std-card) :is(p, li, td, th, span, small, label) { font-size: 11px; }
 }
+
+/* 5. Motorista (só visual, só tela do celular): o cartão da viagem usava Arial 11pt/10pt.
+   Passa para Roboto na escala do Fluxo. O agendamento e o conteúdo não mudam; a impressão não é afetada. */
+@media screen and (max-width: 767px) {
+  :root:root body main .font-\[Arial\] { font-family: inherit !important; font-size: 11px !important; line-height: 1.4 !important; }
+  :root:root body main .font-\[Arial\] > p:first-child { font-size: 12px !important; font-weight: 600 !important; }
+  :root:root body main .font-\[Arial\] p, :root:root body main .font-\[Arial\] span { font-size: inherit !important; }
+  :root:root body main .font-\[Arial\] > p:first-child { font-size: 12px !important; }
+  :root:root body main p.font-\[Arial\], :root:root body main .font-\[Arial\] p.font-\[Arial\] { font-size: 10px !important; }
+}
