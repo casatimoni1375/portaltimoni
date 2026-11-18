@@ -142,7 +142,7 @@ export async function GET() {
     return NextResponse.json({ ok: true, items: isAdmin ? normalizedItems : normalizedItems.filter((item) => canViewComunicado(item, context.email, unit)), activeCount, isAdmin, recipientOptions, recipientOptionsError });
   } catch (error) {
     console.error("[comunicados][GET]", error);
-    return NextResponse.json({ error: "Não foi possível carregar os comunicados." }, { status: 500 });
+    return NextResponse.json({ error: "Não foi possível carregar os avisos." }, { status: 500 });
   }
 }
 
@@ -170,7 +170,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, id });
   } catch (error) {
     console.error("[comunicados][POST]", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível registrar o comunicado." }, { status: 400 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível registrar o aviso." }, { status: 400 });
   }
 }
 
@@ -184,7 +184,7 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const id = String(body?.id ?? "").trim();
     const action = String(body?.action ?? "edit");
-    if (!id) return NextResponse.json({ error: "Comunicado inválido." }, { status: 400 });
+    if (!id) return NextResponse.json({ error: "Aviso inválido." }, { status: 400 });
 
     if (action === "archive" || action === "activate") {
       await updateComunicado(context.accessToken, id, { status: action === "activate" ? "ativo" : "arquivado" });
@@ -207,7 +207,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("[comunicados][PATCH]", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível atualizar o comunicado." }, { status: 400 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível atualizar o aviso." }, { status: 400 });
   }
 }
 
@@ -220,11 +220,11 @@ export async function DELETE(request: Request) {
   try {
     const body = await request.json();
     const id = String(body?.id ?? "").trim();
-    if (!id) return NextResponse.json({ error: "Comunicado inválido." }, { status: 400 });
+    if (!id) return NextResponse.json({ error: "Aviso inválido." }, { status: 400 });
     await deleteComunicado(context.accessToken, id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("[comunicados][DELETE]", error);
-    return NextResponse.json({ error: "Não foi possível excluir o comunicado." }, { status: 500 });
+    return NextResponse.json({ error: "Não foi possível excluir o aviso." }, { status: 500 });
   }
 }

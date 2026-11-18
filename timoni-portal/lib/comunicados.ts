@@ -220,7 +220,7 @@ export async function updateComunicado(
   input: Partial<Pick<Comunicado, "unit" | "title" | "message" | "status" | "startsAt" | "expiresAt" | "recipientEmails" | "imageDataUrl">>,
 ) {
   const current = (await listComunicados(accessToken)).find((item) => item.id === id);
-  if (!current) throw new Error("Comunicado não encontrado.");
+  if (!current) throw new Error("Aviso não encontrado.");
   await upsertComunicado({ ...current, ...input, updatedAt: new Date().toISOString() });
 }
 

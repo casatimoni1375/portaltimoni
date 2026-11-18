@@ -80,7 +80,7 @@ function mergeHistory(current: NotificationItem[], previous: NotificationItem[])
 
 function typeLabel(type: NotificationItem["type"]) {
   if (type === "estoque") return "Estoque";
-  if (type === "comunicado") return "Comunicado";
+  if (type === "comunicado") return "Aviso";
   return "Mensagem de colaborador";
 }
 

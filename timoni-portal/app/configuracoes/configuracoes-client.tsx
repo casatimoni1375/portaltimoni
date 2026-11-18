@@ -461,7 +461,7 @@ export default function ConfiguracoesClient({ canAdministerPermissions = false }
                 Padrão pelas permissões
               </label>
             </div>
-            <p className="mt-1 text-[11px] text-slate-500">Blocos da tela inicial. Comunicados aparecem sempre. Um bloco só aparece se o módulo estiver liberado em Personalização.</p>
+            <p className="mt-1 text-[11px] text-slate-500">Blocos da tela inicial. Avisos aparecem sempre. Um bloco só aparece se o módulo estiver liberado em Personalização.</p>
             <div className={GRID}>
               {TODAY_BLOCKS.map((block) => {
                 const enabled = block.modules.some((module) => perm.modules.includes(module)) && perm.todayBlocks !== null;
