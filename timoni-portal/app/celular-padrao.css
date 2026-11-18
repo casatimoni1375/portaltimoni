@@ -20,8 +20,8 @@
   :root:root body main :is(.max-md\:text-\[10px\], .max-md\:text-\[11px\], .max-md\:text-\[12px\], .max-md\:text-\[12\.5px\], .max-md\:text-\[13px\], .text-\[10px\], .text-\[11px\], .text-\[12px\], .text-\[13px\], .text-xs) { font-size: 13px !important; line-height: 1.4 !important; }
   :root:root body main :is(.max-md\:text-\[15px\]) { font-size: 16px !important; }
   /* Títulos com classes antigas de tamanho (text-xl, text-3xl...) dentro de quadros também seguem 22/18 */
-  html body main .ct-clean-card h1:is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 20px !important; line-height: 1.25 !important; }
-  html body main .ct-clean-card :is(h2, h3):is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 16px !important; line-height: 1.3 !important; }
+  :root:root body main .ct-clean-card h1:is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 20px !important; line-height: 1.25 !important; }
+  :root:root body main .ct-clean-card :is(h2, h3):is(.text-base, .text-lg, .text-xl, .text-2xl, .text-3xl) { font-size: 16px !important; line-height: 1.3 !important; }
 
   /* Quadros: brancos, contorno fino, faixa azul clara só no título */
   html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card) { background: #fff !important; border: 1px solid #c9d8f0 !important; border-radius: 12px !important; box-shadow: none !important; }
@@ -232,7 +232,7 @@
     margin: -12px -14px 12px !important; padding: 8px 14px !important; background: #eef5ff; border-bottom: 1px solid #c9d8f0; align-items: center !important;
   }
   html body .ct-compras-module.ct-compras-module :is(article, section) p.text-blue-700:first-child { font-size: 13px !important; font-weight: 500 !important; color: #65718a !important; }
-  html body .ct-compras-module.ct-compras-module article h2 { margin-top: 0 !important; font-size: 16px !important; font-weight: 600 !important; color: #102a83 !important; }
+  :root:root body .ct-compras-module.ct-compras-module :is(article, section) h2 { margin-top: 0 !important; font-size: 16px !important; font-weight: 600 !important; color: #102a83 !important; }
   html body .ct-compras-module.ct-compras-module :is(article, section) :is(h2 + p, p.text-slate-600) { font-size: 13px !important; line-height: 1.4 !important; color: #65718a !important; }
 
   /* Lista de fornecedores: nome 16, como as linhas do Hoje */
