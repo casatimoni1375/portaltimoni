@@ -615,7 +615,7 @@ test("Cadastro fixo usa credencial central, sem herdar a conta Google do colabor
 
 test("Navegação enxuta preserva ordem e esconde módulos sem concessão",async()=>{
  const h=await harness();const nav=await h.evaluate("lib/clean-navigation.ts");
- assert.deepEqual(Array.from(nav.cleanNavigation(cica),item=>item.label),["Hoje","Estoque","Compras","Motorista","Agenda","Reuniões","Vendas Internas","Equipe"]);
+ assert.deepEqual(Array.from(nav.cleanNavigation(cica),item=>item.label),["Hoje","Agenda","Compras","Motorista","Estoque","Reuniões","Vendas Internas","Equipe"]);
  const seller=person("seller@example.test",{modules:["pedido-de-compra","painel"]});
  assert.deepEqual(Array.from(nav.cleanNavigation(seller),item=>item.label),["Hoje","Compras","Equipe"]);
  assert.equal(nav.cleanNavigation({...seller,active:false}).length,0);
@@ -633,7 +633,8 @@ test("Rotas agrupadas não concedem módulo nem ação nova",async()=>{
 test("Equipe mensal filtra a unidade do cadastro, mesmo com unidade forjada na URL",async()=>{
  const actor=person("rc@example.test",{unit:"Rio Claro",modules:["painel"]});
  const roster=[{...member,name:"Adriel",unit:"Rio Claro"},{...member,id:"ara",name:"Yan",unit:"Araras"}];
- const calendar=[{id:"rc",summary:"Aniversário Adriel",start:"2026-11-14",end:"2026-11-15"},{id:"ara",summary:"Aniversário Yan",start:"2026-11-26",end:"2026-11-27"},{id:"unknown",summary:"Aniversário sem cadastro",start:"2026-11-10",end:"2026-11-11"}];
+ const day=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
+ const calendar=[{id:"rc",summary:"Aniversário Adriel",start:day(0),end:day(1)},{id:"ara",summary:"Aniversário Yan",start:day(0),end:day(1)},{id:"unknown",summary:"Aniversário sem cadastro",start:day(0),end:day(1)}];
  const h=await harness({actor,extraMocks:{"@/lib/google-calendar":{getAccessTokenFromRefreshToken:async()=>"central",listEventsInRange:async()=>calendar},"@/lib/portal-config":{getEffectivePortalUser:async()=>actor,getEffectivePanelData:async()=>({user:actor,collaborators:roster})}}});
  const route=await h.evaluate("app/api/hoje/equipe/route.ts");
  const data=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=todas"))).json();assert.deepEqual(data.events.map(item=>item.id),["rc"]);assert.deepEqual(data.people.map(item=>item.name),["Adriel"]);
