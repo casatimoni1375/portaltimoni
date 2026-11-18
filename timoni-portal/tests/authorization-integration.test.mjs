@@ -635,15 +635,15 @@ test("Rotas agrupadas não concedem módulo nem ação nova",async()=>{
  assert.equal(m.default(req("/dashboard/compras",personWith(["painel"]))).status,302);
  const policy=await h.evaluate("lib/authorization.ts");assert.equal(policy.can(personWith(["pedido-de-compra"]),"compras","criar"),false);
 });
-test("Equipe mensal filtra a unidade do cadastro, mesmo com unidade forjada na URL",async()=>{
+test("Equipe mensal: Aniversários e Férias das duas lojas para acessos de uma loja (18/11); lista de pessoas segue a unidade do cadastro",async()=>{
  const actor=person("rc@example.test",{unit:"Rio Claro",modules:["painel"]});
  const roster=[{...member,name:"Adriel",unit:"Rio Claro"},{...member,id:"ara",name:"Yan",unit:"Araras"}];
  const day=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
  const calendar=[{id:"rc",summary:"Aniversário Adriel",start:day(0),end:day(1)},{id:"ara",summary:"Aniversário Yan",start:day(0),end:day(1)},{id:"unknown",summary:"Aniversário sem cadastro",start:day(0),end:day(1)}];
  const h=await harness({actor,extraMocks:{"@/lib/google-calendar":{getAccessTokenFromRefreshToken:async()=>"central",listEventsInRange:async()=>calendar},"@/lib/portal-config":{getEffectivePortalUser:async()=>actor,getEffectivePanelData:async()=>({user:actor,collaborators:roster})}}});
  const route=await h.evaluate("app/api/hoje/equipe/route.ts");
- const data=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=todas"))).json();assert.deepEqual(data.events.map(item=>item.id),["rc"]);assert.deepEqual(data.people.map(item=>item.name),["Adriel"]);
- const foreign=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=araras"))).json();assert.equal(foreign.events.length,0);assert.equal(foreign.people.length,0);
+ const data=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=todas"))).json();assert.deepEqual(data.events.map(item=>item.id),["rc","ara","unknown"]);assert.deepEqual(data.people.map(item=>item.name),["Adriel"]);
+ const foreign=await(await route.GET(new Request("https://portal.test/api/hoje/equipe?unidade=araras"))).json();assert.equal(foreign.events.length,3);assert.equal(foreign.people.length,0);
 });
 
 test("Conferência: compara com acesso autorizado e bloqueia outros perfis sem chamadas externas",async()=>{

@@ -71,7 +71,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const urgent=(data.purchases?.suppliers||[]).filter(item=>item.urgent&&allowed(item.unit));
  // Um motorista só: todas as viagens do dia aparecem, de qualquer empresa.
  const trips=(data.trips?.viagens||[]).filter(trip=>!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||""));
- const events=(data.people?.events||[]).filter(item=>allowed(item.unit)||item.unit==="geral");
+ // 18/11: acessos de uma loja veem Aniversários e Férias das duas lojas; a gestão filtra pelo seletor.
+ const events=(data.people?.events||[]).filter(item=>defaultUnit!=="todas"||allowed(item.unit)||item.unit==="geral");
  const agendaEvents=[...(data.agenda?.events||[])].sort((a,b)=>Number(b.allDay)-Number(a.allDay)||a.start.localeCompare(b.start));
  const agendaIds=new Set(agendaEvents.map(event=>event.id));
  const meetings=(data.people?.meetings||[]).filter(meeting=>!agendaIds.has(meeting.id));
