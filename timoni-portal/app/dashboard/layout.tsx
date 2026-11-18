@@ -45,8 +45,10 @@ export default async function DashboardLayout({
 
   const email = session.user.email.trim().toLowerCase();
 
+  // 18/11/2026: o layout da Ciça é o modelo de todos os acessos; cada um vê só os módulos que tem.
+  // ct-user-cica guarda apenas os ocultamentos do Hoje dela no celular.
   return (
-    <div className={`min-h-screen bg-slate-50${["mcrodini@gmail.com", "cecilia@casatimoni.com.br"].includes(email) ? " ct-user-compact" : ""}`}>
+    <div className={`min-h-screen bg-slate-50 ct-user-compact${["mcrodini@gmail.com", "cecilia@casatimoni.com.br"].includes(email) ? " ct-user-cica" : ""}`}>
       <Suspense fallback={<div className="ct-clean-spacer" aria-busy="true" aria-label="Carregando menu"/>}><PortalHeader email={email} portalUser={session.portalUser} /></Suspense>
 
 

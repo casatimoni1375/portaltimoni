@@ -36,7 +36,8 @@ export default async function DashboardPage(){
  const capabilities={orders:ordersAll||want("pedidos-atrasados"),ordersMode:(ordersAll?"todos":"atrasados") as "todos"|"atrasados",purchases:want("compras"),comprasEnviadosTodas:COMPRAS_ENVIADOS_SOMENTE_EMAILS.has(user.email.trim().toLowerCase()),trips:want("viagens"),tripsCreate:want("viagens")&&canModuleOperation(user,"motorista","criar"),people:want("aniversarios"),agenda:!want("agenda")?null:isCicaAccess(user.email)?(has("agenda-ct")?"timoni" as const:has("agenda")?"principal" as const:null):(has("agenda-ct")?"timoni" as const:null),shortcuts:{estoque:want("atalho-estoque"),equipe:want("atalho-equipe"),vendas:want("atalho-vendas")}};
  // Reuniões na Hoje (desktop e celular, 18/11): mesmo card aprovado do Painel, somente leitura.
  let meetingCards:ReactNode=null;
- if(has("painel")&&session?.accessToken&&session.error!=="RefreshAccessTokenError"){
+ // 18/11/2026: Reuniões na Hoje só para quem tem o módulo Reuniões (antes bastava o Painel).
+ if(has("reunioes")&&session?.accessToken&&session.error!=="RefreshAccessTokenError"){
   const items=await listMeetings(session.accessToken).catch(()=>[] as Meeting[]);const now=new Date();const todas=user.unit==="Geral"||isManagementEmail(user.email);
   const lojas:Array<["rio claro"|"araras",string]>=[["rio claro","Rio Claro"],["araras","Araras"]];
   const visiveis=lojas.filter(([store])=>todas||(user.unit==="Araras")===(store==="araras"));
