@@ -150,7 +150,7 @@ function AgendaRow({
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
-      <div className={clsx("flex shrink-0 gap-2", compact && "flex-col")}>
+      <div className={clsx("flex shrink-0 gap-2", compact && "flex-col max-md:flex-row")}>
         <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
           Editar
         </Button>
