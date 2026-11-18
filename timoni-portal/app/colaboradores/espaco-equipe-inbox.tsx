@@ -73,7 +73,7 @@ export default async function EspacoEquipeInbox({
       </div>
 
       {messages.length ? (
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <div className="ct-equipe-msgs mt-3 grid gap-3 md:grid-cols-2">
           {messages.map((item, index) => (
             <MessageBox key={`${item.date}-${index}`} item={item} index={index} canDelete={canDelete} />
           ))}

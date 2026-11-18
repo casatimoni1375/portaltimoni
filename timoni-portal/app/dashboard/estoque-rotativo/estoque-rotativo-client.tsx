@@ -1045,7 +1045,7 @@ export default function EstoqueRotativoClient() {
         </section>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-5">{/* 18/11: Estoque atualizado na largura toda, igual aos demais quadros. */}
       {data ? (
         <section className="ct-rt-card order-2">
           <div>
@@ -1054,44 +1054,48 @@ export default function EstoqueRotativoClient() {
           </div>
           <div className="mt-3 space-y-2">
             {visibleUpdates.length ? visibleUpdates.map((item) => (
-              <article key={item.id} className="rounded-xl border border-slate-200 px-3 py-2.5 sm:px-4">
+              <article key={item.id} className="min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 sm:px-4">
+                {/* 18/11: duas linhas para caber no quadro — fornecedor, data e status em cima; resumo e botões embaixo. */}
                 <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                  <p className="min-w-0 shrink truncate text-sm max-md:text-[11px] font-semibold text-slate-950 sm:min-w-[150px]">{item.supplier_name}</p>
+                  <p className="min-w-0 flex-1 truncate text-sm max-md:text-[11px] font-semibold text-slate-950">{item.supplier_name}</p>
                   <p className="shrink-0 whitespace-nowrap text-xs max-md:text-[10px] text-slate-500">{formatDate(item.reported_at)}</p>
-                  <p className="hidden min-w-0 flex-1 truncate text-xs max-md:text-[10px] text-slate-500 md:block">
+                  <StatusBadge status={item.status} />
+                </div>
+                <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-2">
+                  <p className="min-w-0 flex-1 truncate text-xs max-md:text-[10px] text-slate-500">
                     {item.items_read} lidos · {item.found_count} divergências · {item.not_found_count} não encontrados · {item.unchanged_count} OK
                   </p>
                   <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
-                    <StatusBadge status={item.status} />
                     <button
                       type="button"
                       disabled={busy || !data.permissions.canReport}
                       onClick={() => reopenForEdit(item)}
-                      className="min-h-9 rounded-lg border border-slate-300 px-2.5 text-sm max-md:text-[11px] font-semibold text-slate-700 disabled:opacity-40"
+                      className="min-h-8 rounded-lg border border-slate-300 px-2.5 text-[13px] max-md:text-[11px] font-semibold text-slate-700 disabled:opacity-40"
                     >
                       Editar
                     </button>
-                    <button
-                      type="button"
-                      disabled={busy || !data.permissions.canReport || editingId !== item.id}
-                      onClick={() => void saveEditedUpdate(item)}
-                      className="min-h-9 rounded-lg bg-blue-800 px-2.5 text-sm max-md:text-[11px] font-semibold text-white disabled:bg-slate-300"
-                    >
-                      Salvar
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy || !data.permissions.canManage}
-                      onClick={() => void removeUpdate(item)}
-                      className="min-h-9 rounded-lg border border-rose-200 px-2.5 text-sm max-md:text-[11px] font-semibold text-rose-700 disabled:opacity-40"
-                    >
-                      Excluir
-                    </button>
+                    {editingId === item.id ? (
+                      <button
+                        type="button"
+                        disabled={busy || !data.permissions.canReport}
+                        onClick={() => void saveEditedUpdate(item)}
+                        className="min-h-8 rounded-lg bg-blue-800 px-2.5 text-[13px] max-md:text-[11px] font-semibold text-white disabled:bg-slate-300"
+                      >
+                        Salvar
+                      </button>
+                    ) : null}
+                    {data.permissions.canManage ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void removeUpdate(item)}
+                        className="min-h-8 rounded-lg border border-rose-200 px-2.5 text-[13px] max-md:text-[11px] font-semibold text-rose-700 disabled:opacity-40"
+                      >
+                        Excluir
+                      </button>
+                    ) : null}
                   </div>
                 </div>
-                <p className="mt-1 truncate text-xs max-md:text-[10px] text-slate-500 md:hidden">
-                  {item.items_read} lidos · {item.found_count} divergências · {item.not_found_count} não encontrados · {item.unchanged_count} OK
-                </p>
                 {item.status === "atualizado" ? (
                   <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
                     <p className="text-xs max-md:text-[10px] font-semibold text-emerald-900">
