@@ -379,7 +379,7 @@ export default function ComprasClient() {
           </div>
         </article>
 
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article className="ct-clean-card ct-tone-card ct-tone-blue">
           <div>
           <p className="text-sm max-md:text-[11px] font-semibold text-blue-700">2. Itens do pedido · opcional</p>
           <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Planilha do pedido</h2>
@@ -395,7 +395,7 @@ export default function ComprasClient() {
               value={sheetUrl}
               onChange={(event) => setSheetUrl(event.target.value)}
               placeholder="https://docs.google.com/spreadsheets/d/..."
-              className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 px-4 text-sm max-md:text-[11px] outline-none focus:border-blue-600"
+              className="mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 text-sm max-md:text-[11px]"
             />
           </label>
           <label className="mt-4 block text-sm max-md:text-[11px] font-semibold text-slate-800">
