@@ -53,7 +53,7 @@
 
 /* 1. Menu inferior: fixo em todas as páginas, letra 14, ícone 22, altura 58 */
 @media (max-width: 767px) {
-  html body .ct-clean-navigation .ct-clean-bottom {
+  :root:root body .ct-clean-navigation .ct-clean-bottom {
     display: flex !important;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 95;
     background: #fff; border-top: 1px solid #e1e6f0;

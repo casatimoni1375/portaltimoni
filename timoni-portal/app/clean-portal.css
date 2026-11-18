@@ -59,7 +59,7 @@ body:has(.ct-clean-navigation) main [class~="bg-[#14038D]"],body:has(.ct-clean-n
 .ct-compras-module .ct-clean-purchases label{font-size:18px!important;line-height:1.5;}
 .ct-compras-module .ct-clean-purchases small:not(.text-xs){font-size:18px!important;line-height:1.5;}
 
-.ct-clean-navigation.ct-no-bottom-nav .ct-clean-bottom{display:none!important;}
+/* 18/11: menu inferior fixo em todas as páginas — a regra que escondia o menu em Compras foi removida. */
 body:has(.ct-clean-navigation.ct-no-bottom-nav){padding-bottom:0!important;}
 .ct-pedidos-lista{max-height:calc(100dvh - 230px);min-height:200px;}
 @media(max-width:767px){.ct-pedidos-lista{max-height:calc(100dvh - 190px);}}
