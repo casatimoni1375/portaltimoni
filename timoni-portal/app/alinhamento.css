@@ -1,0 +1,30 @@
+/* 18/11/2026 — Ajuste fino de alinhamento (desktop): mesma largura em todas as páginas,
+   mesmo espaçamento entre quadros e colunas iguais, para os cards ficarem alinhados. */
+@media (min-width: 768px) {
+  /* Largura única do conteúdo em todas as páginas (1180 px, a mesma do Hoje). */
+  html body main.mx-auto { max-width: 1240px !important; }
+
+  /* Mesmo espaço entre cards em todas as linhas. */
+  html body main :is(.ct-compras-counts, .ct-clean-metrics, .ct-rt-flow) { gap: 20px !important; }
+
+  /* Pedidos enviados: contadores Enviados | Atrasados acompanham as colunas Rio Claro | Araras. */
+  html body main div.grid:has(> .ct-sent-count) { max-width: none !important; gap: 20px !important; }
+
+  /* Reuniões: quadros lado a lado com a mesma altura. */
+  html body main .grid > article.ct-std-card { height: 100%; }
+
+  /* Equipe: mensagens lado a lado com a mesma altura e botões no rodapé. */
+  html body main .ct-equipe-msgs { align-items: stretch !important; gap: 20px !important; }
+  html body main .ct-equipe-msgs > * { height: 100%; display: flex; flex-direction: column; }
+  html body main .ct-equipe-msgs > * > :last-child { margin-top: auto; }
+}
+
+@media (min-width: 1280px) {
+  /* Compras (Fazer pedido) e Rotativo: duas colunas iguais, alinhadas aos contadores de cima. */
+  html body main section.grid:has(> .ct-compras-supplier),
+  html body main .ct-rotativo section.grid:has(> .ct-rt-card) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+    align-items: stretch;
+  }
+}
