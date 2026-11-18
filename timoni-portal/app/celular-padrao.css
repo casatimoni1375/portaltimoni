@@ -242,3 +242,13 @@
   html body .ct-compras-module.ct-compras-module label { font-size: 14px !important; font-weight: 600 !important; color: #182443 !important; }
   html body .ct-compras-module.ct-compras-module label > span.font-normal { font-size: 14px !important; font-weight: 400 !important; color: #65718a !important; }
 }
+
+/* Avisos (Hoje, celular e desktop): loja em etiquetas no canto superior direito, Pendente abaixo */
+html body .ct-notice-row { align-items: flex-start !important; }
+html body .ct-notice-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+html body .ct-notice-tags { display: flex; gap: 4px; }
+html body .ct-notice-tag { display: inline-flex; align-items: center; font-size: 13px !important; font-weight: 500; line-height: 1.4; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+html body .ct-notice-tag.is-araras { background: #fff4c2; color: #854f0b; }
+html body .ct-notice-tag.is-rio-claro { background: #e7f6ec; color: #166534; }
+html body .ct-notice-row .ct-notice-date { padding-top: 2px; }
+html body .ct-notice-side .ct-notice-stamp { align-self: flex-end !important; font-size: 13px !important; padding: 1px 8px !important; line-height: 1.4 !important; }

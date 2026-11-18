@@ -61,8 +61,10 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   return <li key={item.id} className={`ct-notice${isOpen?" is-open":""}`}>
    <button type="button" className="ct-notice-row" aria-expanded={isOpen} onClick={()=>toggle(key)}>
     <span className="ct-notice-date">{fmtDate(item.createdAt)}</span>
-    <span className="ct-notice-title"><small className="ct-notice-scope">{SCOPE_LABEL[item.unit]}</small>{splitNoticeTitle(item.title).map((part,i)=><span key={i} className={i===0?"ct-notice-headline":"ct-notice-subline"}>{part}</span>)}</span>
-    {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}
+    <span className="ct-notice-title">{splitNoticeTitle(item.title).map((part,i)=><span key={i} className={i===0?"ct-notice-headline":"ct-notice-subline"}>{part}</span>)}</span>
+    {/* 18/11: loja em etiquetas no canto superior direito; Pendente logo abaixo. */}
+    <span className="ct-notice-side"><span className="ct-notice-tags" aria-label={SCOPE_LABEL[item.unit]}>{(item.unit==="geral"?["araras","rio claro"]:[item.unit]).map(unit=><span key={unit} className={`ct-notice-tag ${unit==="araras"?"is-araras":"is-rio-claro"}`}>{unit==="araras"?"Araras":"Rio Claro"}</span>)}</span>
+    {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}</span>
    </button>
    {isOpen&&<div className="ct-notice-body">
     <p>{item.message}</p>
