@@ -103,7 +103,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  // topo = cards Viagens (+ Agendar) e Agenda ao lado dos Comunicados; embaixo = lista de Viagens + Aniversários/Férias.
  const operational=!capabilities.orders&&!capabilities.purchases;
  const agendaCount=agendaEvents.length+meetings.length;
- const tripsCard=capabilities.trips&&<div className="ct-clean-metric ct-clean-normal ct-metric-with-action"><Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-metric-link"><strong>{waiting("trips")?"–":trips.length}</strong><span>Viagens hoje</span></Link>{capabilities.tripsCreate&&<Link href="/dashboard/motorista?nova=1" className="ct-metric-action">Agendar</Link>}</div>;
+ // 18/11 (opção A da Ciça): box "Viagens hoje", igual aos demais; o agendamento fica no Motorista (Nova viagem).
+ const tripsCard=capabilities.trips&&<Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("trips")?"–":trips.length}</strong><span>Viagens hoje</span></Link>;
  const agendaCard=capabilities.agenda&&<Link href={agendaHref} className="ct-clean-metric ct-clean-normal"><strong>{waiting("agenda")?"–":agendaCount}</strong><span>{capabilities.agenda==="principal"?"Compromissos hoje":"Agenda CT hoje"}</span></Link>;
  const tripsList=capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>Ver agenda</Link></div>
   {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
@@ -113,7 +114,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const peopleBlock=events.length>0&&<section className="ct-clean-card">
   {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
  </section>;
- const shortcutItems=[capabilities.shortcuts?.estoque&&{href:"/dashboard/estoque",label:"Estoque"},capabilities.shortcuts?.equipe&&{href:"/colaboradores",label:"Equipe"},capabilities.shortcuts?.vendas&&{href:"/dashboard/leads",label:"Vendas Internas"}].filter(Boolean) as Array<{href:string;label:string}>;
+ // 18/11: Estoque virou box na linha de boxes; o atalho solto saiu.
+ const shortcutItems=[capabilities.shortcuts?.equipe&&{href:"/colaboradores",label:"Equipe"},capabilities.shortcuts?.vendas&&{href:"/dashboard/leads",label:"Vendas Internas"}].filter(Boolean) as Array<{href:string;label:string}>;
  const shortcuts=shortcutItems.length>0&&<nav className="ct-today-shortcuts" aria-label="Atalhos">{shortcutItems.map(item=><Link key={item.href} href={item.href}>{item.label}</Link>)}</nav>;
  const anyBlock=Boolean(notices)||Boolean(capabilities.agenda)||orders.length>0||urgent.length>0||pending.length>0||events.length>0;
 

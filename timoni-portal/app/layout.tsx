@@ -8,7 +8,6 @@ import "./celular-padrao.css";
 import "./alinhamento.css";
 import MobileUiRules from "@/components/mobile-ui-rules";
 import PortalPermissionsSync from "@/components/portal-permissions-sync";
-import AvisosRequiredGate from "@/components/avisos-required-gate";
 import UpdateButton from "@/components/update-button";
 
 const roboto = Roboto({
@@ -47,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body className={`${roboto.className} min-h-screen text-slate-900 antialiased`}>
-        <AvisosRequiredGate />
+        {/* 18/11: trava de Avisos obrigatórios retirada a pedido da Ciça — o aviso segue obrigatório (Pendente/Assinado) sem bloquear o menu. */}
         {children}
         <PortalPermissionsSync />
         <MobileUiRules />
