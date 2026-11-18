@@ -107,7 +107,9 @@
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-headline { font-size: 16px !important; font-weight: 600 !important; color: #182443; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-subline { font-size: 14px !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-stamp { font-size: 12px !important; padding: 1px 8px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive button { font-size: 13px !important; padding: 2px 10px !important; min-height: 28px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive > button { font-size: 13px !important; padding: 2px 10px !important; min-height: 28px !important; }
+  /* Arquivados: mesmas linhas dos avisos vigentes (data, título 16, etiquetas 12 lado a lado) */
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive > ul { margin-top: 8px !important; display: grid; gap: 8px; }
 
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row strong { font-size: 16px !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 13px !important; min-height: 32px !important; padding: 4px 12px !important; border-radius: 8px !important; }
@@ -253,3 +255,6 @@ html body .ct-notice-tag.is-araras { background: #fff4c2; color: #854f0b; }
 html body .ct-notice-tag.is-rio-claro { background: #e7f6ec; color: #166534; }
 html body .ct-notice-row .ct-notice-date { padding-top: 2px; }
 html body .ct-notice-side .ct-notice-stamp { align-self: center !important; font-size: 12px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
+html body .ct-notice-row .ct-notice-date { font-size: 14px !important; font-weight: 400 !important; color: #65718a !important; }
+html body .ct-notice-row .ct-notice-headline { font-size: 16px !important; font-weight: 600 !important; }
+html body .ct-notice-row .ct-notice-subline { font-size: 14px !important; font-weight: 400 !important; color: #65718a !important; }
