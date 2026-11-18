@@ -309,3 +309,15 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
   :root:root body .ct-sent-card small { display: block; font-size: 8.5px; color: #65718a; }
   :root:root body .ct-sent-empty { font-size: 12px !important; color: #65718a; }
 }
+
+/* 4.5 Rotativo: escala do Fluxo */
+@media (max-width: 767px) {
+  :root:root body .ct-rt-back { font-size: 11px !important; min-height: 30px !important; }
+  :root:root body .ct-rt-heading > p, :root:root body .ct-rt-help, :root:root body .ct-rt-step, :root:root body .ct-rt-alert { font-size: 11px !important; }
+  :root:root body .ct-rt-flow > li { font-size: 11px !important; padding: 6px 10px !important; border-radius: 8px !important; }
+  :root:root body .ct-rt-summary { font-size: 15px !important; min-height: 34px !important; }
+  :root:root body .ct-rt-primary { font-size: 11px !important; min-height: 30px !important; padding: 4px 12px !important; border-radius: 8px !important; }
+  :root:root body .ct-rt-erp-head strong { font-size: 12px !important; }
+  :root:root body .ct-rt-erp-head small { font-size: 10px !important; }
+  :root:root body :is(.ct-rt-card, .ct-std-card) :is(p, li, td, th, span, small, label) { font-size: 11px; }
+}
