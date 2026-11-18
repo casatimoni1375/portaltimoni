@@ -103,7 +103,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  // topo = cards Viagens (+ Agendar) e Agenda ao lado dos Comunicados; embaixo = lista de Viagens + Aniversários/Férias.
  const operational=!capabilities.orders&&!capabilities.purchases;
  const agendaCount=agendaEvents.length+meetings.length;
- const tripsCard=capabilities.trips&&<div className="ct-clean-metric ct-clean-normal ct-metric-with-action"><Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-metric-link"><strong>{waiting("trips")?"–":trips.length}</strong><span>Viagens hoje</span></Link>{capabilities.tripsCreate&&<Link href="/dashboard/motorista?nova=1" className="ct-metric-action">Agendar</Link>}</div>;
+ // 18/11: box Motorista sem o botão Agendar (o box inteiro leva à agenda do motorista).
+ const tripsCard=capabilities.trips&&<Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("trips")?"–":trips.length}</strong><span>Viagens hoje</span></Link>;
  const agendaCard=capabilities.agenda&&<Link href={agendaHref} className="ct-clean-metric ct-clean-normal"><strong>{waiting("agenda")?"–":agendaCount}</strong><span>{capabilities.agenda==="principal"?"Compromissos hoje":"Agenda CT hoje"}</span></Link>;
  const tripsList=capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>Ver agenda</Link></div>
   {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
