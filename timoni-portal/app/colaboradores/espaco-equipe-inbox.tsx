@@ -58,9 +58,6 @@ export default async function EspacoEquipeInbox({
       <div className="max-w-3xl">
         <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Equipe</p>
         <h2 className="mt-2 text-xl max-md:text-[15px] font-semibold text-slate-950">Sua contribuição ajuda a melhorar nosso dia a dia</h2>
-        <p className="mt-2 text-sm max-md:text-[11px] leading-6 text-slate-600">
-          Use este espaço para enviar sugestões, reclamações, dificuldades ou ideias de melhoria. Os registros serão analisados pela gestão e poderão ser considerados nas pautas das reuniões.
-        </p>
       </div>
 
       <div className="mt-5 border-t border-blue-200 pt-4">

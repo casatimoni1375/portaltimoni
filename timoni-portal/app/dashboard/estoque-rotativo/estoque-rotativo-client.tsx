@@ -599,7 +599,6 @@ export default function EstoqueRotativoClient() {
     <div className="ct-modern-workspace ct-rotativo space-y-5 pb-10">
       <header className="ct-rt-heading">
         <h1>Estoque Rotativo</h1>
-        <p>Origem: Trello, lista ESTOQUE ROTATIVO LUCAS/CAROL. A planilha do fornecedor atualiza o Rotativo pelo COD-VENDA.</p>
       </header>
 
       <ol className="ct-rt-flow" aria-label="Etapas do Rotativo">
@@ -630,7 +629,6 @@ export default function EstoqueRotativoClient() {
         <section className="ct-rt-card" aria-label="Lançar no Bessani">
           <p className="ct-rt-step">5. Lançar no Bessani</p>
           <h2 className="ct-rt-title">Itens que mudaram e ainda não foram lançados</h2>
-          <p className="ct-rt-help">Rodini recebe a quantidade contada; MCR fica zerada. Prazo: {ERP_DEADLINE_HOURS}h depois do aviso do Lucas.</p>
           {(() => {
             const late = erpGroups.filter(({ update }) => Date.now() - new Date(update.reported_at).getTime() > 30 * 24 * 60 * 60 * 1000).length;
             return late ? <p className="ct-rt-help">{late} atualização(ões) pendente(s) há mais de 30 dias.</p> : null;

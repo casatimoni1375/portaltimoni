@@ -369,3 +369,12 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
   :root:root body .ct-clean-agenda div.relative.flex.rounded-xl p.flex { font-size: 10px !important; }
   :root:root body .ct-clean-agenda section, :root:root body .ct-clean-agenda .rounded-2xl { padding-left: 6px !important; padding-right: 6px !important; }
 }
+
+/* 18/11 — Contadores no modelo do Rotativo (desktop e celular): número, texto e contorno
+   na mesma cor do card, fundo branco. Azul = normal, vermelho = atrasado, âmbar = pendente. */
+html:root:root:root:root body main :is(.ct-compras-count, .ct-estoque-count, .ct-sent-count, .ct-clean-metric) { background: #fff !important; border: 1px solid #c9d8f0 !important; }
+html:root:root:root:root body main :is(.ct-compras-count > p, .ct-estoque-count > span, .ct-sent-count > p, .ct-sent-count > strong, .ct-clean-metric > strong, .ct-clean-metric > span, .ct-clean-metric .ct-metric-link > strong, .ct-clean-metric .ct-metric-link > span) { color: #102a83 !important; }
+html:root:root:root:root body main :is(.ct-compras-count.is-urgent, .ct-sent-count.is-late, .ct-clean-metric.ct-clean-late) { border-color: #f4b9bc !important; }
+html:root:root:root:root body main :is(.ct-compras-count.is-urgent > p, .ct-sent-count.is-late > p, .ct-sent-count.is-late > strong, .ct-clean-metric.ct-clean-late > strong, .ct-clean-metric.ct-clean-late > span) { color: #b12532 !important; }
+html:root:root:root:root body main .ct-clean-metric.ct-clean-urgent { border-color: #f0d19a !important; }
+html:root:root:root:root body main :is(.ct-clean-metric.ct-clean-urgent > strong, .ct-clean-metric.ct-clean-urgent > span) { color: #996000 !important; }

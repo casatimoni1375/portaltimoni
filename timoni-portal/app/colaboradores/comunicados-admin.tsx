@@ -194,7 +194,6 @@ export default function ComunicadosAdmin({variant}:{variant?:"hoje"}={}) {
         <div>
           <p className="text-xs max-md:text-[10px] font-semibold uppercase tracking-wider text-blue-700">Gerenciar avisos</p>
           <h2 className="mt-2 text-2xl max-md:text-[20px] font-semibold text-slate-950">Avisos do Painel</h2>
-          <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">Somente no seu acesso. Escolha Geral, Rio Claro, Araras ou acessos específicos.</p>
         </div>
         <div className="hidden items-center gap-3 lg:flex">
           <div className="min-w-28 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-center">
@@ -211,7 +210,6 @@ export default function ComunicadosAdmin({variant}:{variant?:"hoje"}={}) {
       <form id="novo-comunicado" onSubmit={submit} className="mt-5 grid gap-4 rounded-2xl bg-blue-50 p-4 lg:grid-cols-12 lg:border lg:border-blue-100 lg:p-6">
         <div className="hidden lg:col-span-12 lg:block">
           <p className="text-sm max-md:text-[11px] font-semibold text-blue-950">{form.id ? "Editar aviso" : "Cadastrar novo aviso"}</p>
-          <p className="mt-1 text-xs max-md:text-[10px] text-blue-700">Defina o público, o período de exibição e o conteúdo.</p>
         </div>
 
         <label className="text-sm max-md:text-[11px] font-medium text-slate-700 lg:col-span-3">
@@ -270,7 +268,6 @@ export default function ComunicadosAdmin({variant}:{variant?:"hoje"}={}) {
             onChange={(value) => setForm((current) => ({ ...current, expiresAt: value }))}
             className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 outline-none focus:border-blue-500"
           />
-          <span className="mt-1 block text-xs max-md:text-[10px] font-normal text-slate-500">Em branco: permanece ativo até ser concluído.</span>
         </label>
 
         <label className="text-sm max-md:text-[11px] font-medium text-slate-700 lg:col-span-12">

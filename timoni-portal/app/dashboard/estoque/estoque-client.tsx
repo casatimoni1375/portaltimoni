@@ -624,7 +624,6 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Módulo Estoque</p>
               <h1 className="mt-1 text-xl max-md:text-[15px] font-semibold">Estoque CT</h1>
-              <p className="mt-1 text-xs max-md:text-[10px] text-slate-500">Uso direto no Portal Timoni · notificações com o Portal aberto.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refresh()} className="ct-estoque-btn rounded-lg bg-emerald-700 px-3 py-2 text-xs max-md:text-[10px] font-semibold text-white disabled:opacity-50">Atualizar informações</button>

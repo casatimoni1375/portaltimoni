@@ -88,7 +88,7 @@ export async function UpcomingPeopleHighlights({ accessToken }: { accessToken?: 
   const { birthdays, vacations } = selectUpcomingPeople(events, new Date());
   return <section id="proximas-datas" className="ct-weekly-people mt-7" aria-label="Datas já registradas para os próximos 60 dias">
     {([{ title: "Próximos aniversários", events: birthdays, vacations: false }, { title: "Férias programadas", events: vacations, vacations: true }]).map(group => <article key={group.title} className="ct-weekly-card">
-      <div className="ct-weekly-heading"><h2>{group.title}</h2><p>Registros existentes dos próximos 60 dias</p></div>
+      <div className="ct-weekly-heading"><h2>{group.title}</h2></div>
       {group.events.length ? <ul>{group.events.map(event => <li key={`${event.calendarKey}-${event.id}`}><div><strong>{clean(event.summary)}</strong><small>{group.vacations ? `${format(event.start)} a ${format(event.end)}` : format(event.start)}</small></div></li>)}</ul> : <p className="ct-weekly-empty">Nenhum registro informado para este período.</p>}
     </article>)}
   </section>;

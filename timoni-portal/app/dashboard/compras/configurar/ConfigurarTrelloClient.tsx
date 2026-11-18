@@ -74,9 +74,6 @@ export default function ConfigurarTrelloClient() {
         <h1 className="mt-2 text-3xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">
           Trello — Módulo Compras
         </h1>
-        <p className="mt-3 text-sm max-md:text-[11px] leading-6 text-slate-600">
-          A Ciça conecta uma única vez para todos os usuários autorizados. Trocar a chave mantém a conexão atual até a nova ser validada.
-        </p>
 
         {configured ? (
           <div className="mt-5 space-y-4">
