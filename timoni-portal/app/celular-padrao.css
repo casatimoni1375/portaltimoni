@@ -57,7 +57,7 @@
 @media (max-width: 767px) {
   :root:root body .ct-clean-navigation .ct-clean-bottom {
     display: flex !important;
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 95;
+    position: fixed !important; inset: auto 0 0 0 !important; top: auto !important; transform: none !important; z-index: 95;
     background: #fff; border-top: 1px solid #e1e6f0;
     padding: 4px 4px max(8px, env(safe-area-inset-bottom)) !important;
   }
