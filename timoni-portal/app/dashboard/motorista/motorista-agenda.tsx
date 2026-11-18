@@ -392,17 +392,16 @@ function linhaPrincipalRelatorio(v: Viagem, index: number) {
   return partes.join(" | ");
 }
 
-// Desktop: título e documento na mesma linha (há espaço na largura).
-// Ex.: "2. Entrega | MCR | Vend.: Jaqueline - NF 10407 | RICLAN | Volume: 1"
+// Desktop (18/11/2026, aprovado pela Ciça): tudo numa linha em negrito, separado por " | ".
+// Ex.: "1. Entrega | Rodini | Vend.: Adriel | NF E85971 | BRUNO CONTATO | VOLUME: 1"
 function linhaUnicaDesktop(v: Viagem, index: number) {
-  const doc = [
+  return [
+    linhaPrincipalRelatorio(v, index),
     documentoTexto(v.numeroPedido),
     v.clienteFornecedor ? String(v.clienteFornecedor).toUpperCase() : "",
     v.contatoNome ? `A/C: ${String(v.contatoNome).toUpperCase()}` : "",
-    v.volumes ? `Volume: ${String(v.volumes)}` : "",
+    v.volumes ? `VOLUME: ${String(v.volumes).toUpperCase()}` : "",
   ].filter(Boolean).join(" | ");
-  const titulo = linhaPrincipalRelatorio(v, index);
-  return doc ? `${titulo} - ${doc}` : titulo;
 }
 
 function separarVolume(valor?: string) {
@@ -810,9 +809,9 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {canCreate && <button type="button" onClick={() => abrirNova()} className="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">Nova viagem</button>}
-            <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "dia" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
-            <button type="button" onClick={() => setModo("semana")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "semana" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Semana</button>
-            <button type="button" onClick={() => setModo("mes")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "mes" ? "bg-slate-900 text-white" : "border border-slate-300 text-slate-700"}`}>Mês</button>
+            <button type="button" onClick={() => setModo("dia")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "dia" ? "bg-[#102a83] text-white" : "border border-slate-300 text-slate-700"}`}>Dia</button>
+            <button type="button" onClick={() => setModo("semana")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "semana" ? "bg-[#102a83] text-white" : "border border-slate-300 text-slate-700"}`}>Semana</button>
+            <button type="button" onClick={() => setModo("mes")} className={`rounded-lg px-3 py-2 text-sm font-medium ${modo === "mes" ? "bg-[#102a83] text-white" : "border border-slate-300 text-slate-700"}`}>Mês</button>
           </div>
 
           {modo === "dia" ? (
@@ -863,7 +862,8 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                   </button>
                   <div className="mt-3 space-y-2">
                     {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
-                      <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl border p-3">
+                      <article key={v.id} style={estiloBoxViagem(v)} className="ct-mot-viagem rounded-xl border p-3 md:flex md:items-start md:justify-between md:gap-6">
+                        <div className="min-w-0 md:flex-1">
                         <EtiquetasViagem v={v} />
                         <p style={estiloLinhaPrincipal(v)} className={`hidden md:block text-sm ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
                         <div className="md:hidden">
@@ -880,13 +880,14 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                         </div>
                         {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
                         {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-sm text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
-                        <p className="mt-1 text-sm text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        <p className="ct-mot-apoio mt-1 text-sm text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                        {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-sm text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2 md:mt-0 md:shrink-0 md:justify-end">
                           {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
                           <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                           {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}
                         </div>
-                        {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-sm text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
                       </article>
                     ))}
                   </div>
@@ -900,7 +901,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
               <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="font-[Arial] text-[11pt] md:text-[calc(11pt+1px)] leading-[1.35]">
+                  <div className="ct-mot-viagem min-w-0 flex-1 font-[Arial] text-[11pt] md:font-[inherit] leading-[1.35]">
                     <p style={estiloLinhaPrincipal(v)} className={`hidden md:block ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
                     <div className="md:hidden">
                     <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>
@@ -916,9 +917,9 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     </div>
                     {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
                     {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
-                    <p className="mt-1 font-[Arial] text-[10pt] md:text-[calc(10pt+1px)] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                    <p className="ct-mot-apoio mt-1 font-[Arial] text-[10pt] md:font-[inherit] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
                   </div>
-                  {canEdit && <div className="flex flex-wrap gap-2">
+                  {canEdit && <div className="flex flex-wrap gap-2 sm:shrink-0 sm:justify-end">
                     {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
                     <button type="button" onClick={() => abrirEditar(v)} className="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">Editar</button>
                     {canDelete && <button type="button" disabled={saving} onClick={() => void excluirViagem(v)} className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">Excluir</button>}

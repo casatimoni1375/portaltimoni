@@ -56,6 +56,14 @@ export default async function MotoristaPage() {
         .motorista-agenda-controle select,
         .motorista-agenda-controle input,
         .motorista-agenda-controle textarea{font-size:14px;line-height:1.4;}
+        /* Desktop (18/11/2026): viagem em 16 px usando a largura toda; apoio (Preenchido por) em 14 px. */
+        @media (min-width:768px){
+          .motorista-agenda-controle .ct-mot-viagem p,
+          .motorista-agenda-controle .ct-mot-viagem span{font-size:16px;line-height:1.45;}
+          .motorista-agenda-controle .ct-mot-viagem p.ct-mot-apoio,
+          .motorista-agenda-controle .ct-mot-viagem p.ct-mot-apoio *{font-size:14px;}
+          .motorista-agenda-controle .ct-mot-viagem span.rounded-full{font-size:13px;}
+        }
         .motorista-agenda-controle h2,
         .motorista-agenda-controle h3{font-size:16px;line-height:1.3;}
         .motorista-agenda-controle .tracking-wide{letter-spacing:.04em;}
