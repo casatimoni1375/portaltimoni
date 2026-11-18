@@ -12,7 +12,7 @@ import PurchaseNeeds from "@/components/clean/purchase-needs";
 export default async function ComprasPage({searchParams}:{searchParams:Promise<{aba?:string;unidade?:string}>}){
  const session=await getPortalSession();const user=session?.portalUser;if(!user)redirect("/login");const query=await searchParams;
  const has=(module:Parameters<typeof hasModuleAccess>[1])=>hasModuleAccess(user.email,module,user);
- const tabs=[{key:"montar",label:"1. Fazer pedido",visible:has("compras")},{key:"conferir",label:"2. Conferir",visible:isCicaAccess(user.email)&&has("conferencia")},{key:"acompanhar",label:"3. Pedidos enviados",visible:has("pedido-de-compra")||has("compras")},{key:"recebidos",label:"4. Recebidos",visible:has("pedido-de-compra")||has("compras")},{key:"necessidades",label:"5. Estoque rotativo",visible:has("compras")||has("estoque-rotativo")}].filter(tab=>tab.visible);
+ const tabs=[{key:"montar",label:"1. Fazer pedido",visible:has("compras")},{key:"conferir",label:"2. Conferir",visible:isCicaAccess(user.email)&&has("conferencia")},{key:"acompanhar",label:"3. Pedidos de compra",visible:has("pedido-de-compra")||has("compras")},{key:"necessidades",label:"4. Estoque rotativo",visible:has("compras")||has("estoque-rotativo")}].filter(tab=>tab.visible);
  if(!tabs.length)redirect("/dashboard");const selected=tabs.some(tab=>tab.key===query.aba)?query.aba:has("compras")?"montar":tabs[0].key;
  // 5. Estoque rotativo abre direto o Rotativo (17/11/2026), para quem tem acesso a ele.
  const rotativoDireto=has("estoque-rotativo");if(selected==="necessidades"&&rotativoDireto)redirect("/dashboard/estoque-rotativo");

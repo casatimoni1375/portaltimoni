@@ -101,7 +101,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   return (
     <section className="ct-compras-tab ct-clean-card">
       <div className="ct-clean-card-heading">
-        <h2>Pedidos enviados</h2>
+        <h2>Pedidos de compra</h2>
         <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="ct-clean-action">Atualizar lista</button>
       </div>
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
