@@ -1,6 +1,5 @@
 "use client";
 
-import { Carimbo } from "@/components/clean/carimbo";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -70,6 +69,23 @@ function eventDateKey(iso: string) {
   return shifted.toISOString().slice(0, 10);
 }
 
+function eventDayKeys(event: CalendarEventDTO) {
+  const firstKey = eventDateKey(event.start);
+  let lastKey = firstKey;
+  if (event.end) {
+    lastKey = event.end.includes("T")
+      ? eventDateKey(new Date(new Date(event.end).getTime() - 1).toISOString())
+      : addDaysKey(event.end.slice(0, 10), -1);
+  }
+  const keys = [firstKey];
+  for (let key = addDaysKey(firstKey, 1); key <= lastKey && keys.length < 62; key = addDaysKey(key, 1)) keys.push(key);
+  return keys;
+}
+
+function weekDayLabel(key: string) {
+  return WEEK_DAY_LABELS[(new Date(`${key}T12:00:00Z`).getUTCDay() + 6) % 7];
+}
+
 function dateFromKey(key: string) {
   return new Date(`${key}T12:00:00-03:00`);
 }
@@ -128,7 +144,7 @@ function AgendaRow({
     <div
       className={clsx(
         "relative flex min-w-0 items-center gap-3 rounded-xl border bg-white px-3 py-2 md:border-0",
-        concluido && "opacity-60"
+        concluido && "opacity-40"
       )}
       style={{ borderColor: color }}
     >
@@ -136,7 +152,6 @@ function AgendaRow({
       <div className="min-w-0 flex-1">
         <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
           {event.summary}
-          {concluido && <span className="ml-2 align-middle max-md:hidden"><Carimbo>Concluído</Carimbo></span>}
         </p>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
           {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
@@ -147,7 +162,6 @@ function AgendaRow({
       <div className="ct-agenda-side flex shrink-0 flex-col items-end gap-1 md:contents">
         <span className="ct-agenda-tags md:hidden">
           <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
-          {concluido && <span className="ct-agenda-tag is-done">Concluído</span>}
         </span>
       <div className={clsx("flex shrink-0 gap-2", compact && "flex-col max-md:flex-row")}>
           <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
@@ -185,12 +199,11 @@ function DesktopEventRow({
     ? "Dia todo"
     : `${format(new Date(event.start), "HH:mm", { locale: ptBR })}–${format(new Date(event.end), "HH:mm", { locale: ptBR })}`;
   return (
-    <div className={clsx("grid grid-cols-[110px_minmax(0,1fr)_auto] items-center gap-3 border-t border-[#edf0f6] px-4 py-2.5 first:border-t-0", concluido && "opacity-60")}>
+    <div className={clsx("grid grid-cols-[110px_minmax(0,1fr)_auto] items-center gap-3 border-t border-[#edf0f6] px-4 py-2.5 first:border-t-0", concluido && "opacity-40")}>
       <span className="text-[14px] tabular-nums text-slate-600">{time}</span>
       <div className="min-w-0">
         <p className="truncate text-[16px] text-[#182443]">
           {event.summary}
-          {concluido && <span className="ml-2 align-middle"><Carimbo>Concluído</Carimbo></span>}
         </p>
         <p className="truncate text-[14px] text-slate-500">
           <span className="font-semibold" style={{ color }}>{event.calendarLabel}</span>
@@ -304,8 +317,8 @@ export function CalendarView({
   const eventsByDate = useMemo(() => {
     const grouped = new Map<string, CalendarEventDTO[]>();
     for (const event of events) {
-      const key = eventDateKey(event.start);
-      grouped.set(key, [...(grouped.get(key) ?? []), event]);
+      // 18/11: evento de vários dias aparece em todos os dias (Google: fim de dia todo é exclusivo).
+      for (const key of eventDayKeys(event)) grouped.set(key, [...(grouped.get(key) ?? []), event]);
     }
     for (const [key, list] of grouped) grouped.set(key, sortDayEvents(list));
     return grouped;
@@ -523,12 +536,11 @@ export function CalendarView({
         {/* Desktop: um quadro por dia com compromisso (faixa azul clara com o dia). Dias sem compromisso não aparecem. */}
         <div className="mt-5 hidden space-y-3 md:block">
           {weekKeys.filter((dayKey) => (eventsByDate.get(dayKey) ?? []).length > 0).map((dayKey) => {
-            const index = weekKeys.indexOf(dayKey);
             const isToday = dayKey === todayKey;
             return (
               <div key={dayKey} className="overflow-hidden rounded-xl border border-[#c9d8f0] bg-white">
                 <div className="flex items-baseline gap-2 border-b border-[#c9d8f0] bg-[#eef5ff] px-4 py-2">
-                  <span className="text-[14px] text-slate-600">{WEEK_DAY_LABELS[index]}</span>
+                  <span className="text-[14px] text-slate-600">{weekDayLabel(dayKey)}</span>
                   <span className="text-[20px] font-semibold text-[#102a83]">{format(dateFromKey(dayKey), "d")}</span>
                   {isToday && <span className="ml-auto self-center rounded-md bg-[#102a83] px-2 py-0.5 text-[13px] font-semibold text-white">Hoje</span>}
                 </div>
@@ -550,7 +562,7 @@ export function CalendarView({
           )}
         </div>
         <section className="mt-5 overflow-hidden rounded-xl border border-[#e1e6f0] bg-white md:hidden">
-          {weekKeys.map((dayKey, index) => {
+          {weekKeys.map((dayKey) => {
             const dayEvents = eventsByDate.get(dayKey) ?? [];
             const isToday = dayKey === todayKey;
             return (
@@ -562,7 +574,7 @@ export function CalendarView({
                 )}
               >
                 <div className="flex items-baseline gap-2 px-3 py-3">
-                  <p className="text-sm max-md:text-[11px] font-semibold uppercase text-slate-500">{WEEK_DAY_LABELS[index]}</p>
+                  <p className="text-sm max-md:text-[11px] font-semibold uppercase text-slate-500">{weekDayLabel(dayKey)}</p>
                   <p className={clsx("text-2xl max-md:text-[20px] font-semibold", isToday ? "text-[#102a83]" : "text-[#182443]")}>{format(dateFromKey(dayKey), "d")}</p>
                   {isToday && <p className="ml-auto text-xs max-md:text-[10px] font-semibold text-[#102a83]">Hoje</p>}
                 </div>
