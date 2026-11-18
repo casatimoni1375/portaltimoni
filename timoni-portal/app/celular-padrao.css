@@ -4,6 +4,49 @@
   em clean-portal.css. Mudanças visuais do celular entram aqui.
 */
 
+/* 0. PADRÃO GERAL DO CELULAR — todas as páginas (aprovado 18/11/2026)
+   Título da página 22 · título do quadro 18 (faixa azul clara) · texto 16 · apoio 14
+   Campo 16 / altura 44 · botões 13 / altura 32 (principal preenchido, secundário branco)
+   Etiqueta 13 · contador 26 · sem caixa-alta. */
+@media (max-width: 767px) {
+  html body main { font-size: 16px; }
+  html body main h1 { font-size: 22px !important; font-weight: 600 !important; color: #102a83; line-height: 1.25 !important; }
+  html body main :is(h2, h3) { font-size: 18px !important; font-weight: 600 !important; line-height: 1.3 !important; }
+  html body main :is(h4, h5) { font-size: 16px !important; font-weight: 600 !important; }
+  html body main :is(.uppercase) { text-transform: none !important; letter-spacing: 0 !important; }
+
+  /* Textos pequenos antigos (10–13 px) sobem para 14; 15 px (títulos antigos) vai para 18 */
+  html body main :is(.max-md\:text-\[10px\], .max-md\:text-\[11px\], .max-md\:text-\[12px\], .max-md\:text-\[12\.5px\], .max-md\:text-\[13px\], .text-\[10px\], .text-\[11px\], .text-\[12px\], .text-\[13px\], .text-xs) { font-size: 14px !important; line-height: 1.4 !important; }
+  html body main :is(.max-md\:text-\[15px\]) { font-size: 18px !important; }
+
+  /* Quadros: brancos, contorno fino, faixa azul clara só no título */
+  html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card) { background: #fff !important; border: 1px solid #c9d8f0 !important; border-radius: 12px !important; box-shadow: none !important; }
+  html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card):is(:has(> :is(h1,h2,h3):first-child), :has(> :first-child :is(h1,h2,h3)):has(> :first-child + *)) { padding: 12px 14px !important; overflow: hidden; }
+  html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card):is(:has(> :is(h1,h2,h3):first-child), :has(> :first-child :is(h1,h2,h3)):has(> :first-child + *)) > :first-child {
+    margin: -12px -14px 12px !important; padding: 8px 14px !important; max-width: none !important; background: #eef5ff; border-bottom: 1px solid #c9d8f0;
+  }
+  html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card) :is(h2, h3):first-child, html body main :is(section.ct-clean-card, .ct-std-card, .ct-rt-card) > :first-child :is(h2, h3) { color: #102a83 !important; }
+
+  /* Campos */
+  html body main :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea) {
+    font-size: 16px !important; min-height: 44px !important; padding: 8px 12px !important; border-radius: 10px !important; border-color: #c9d8f0 !important;
+  }
+  html body main textarea { min-height: 88px !important; }
+  html body main label { font-size: 14px !important; }
+
+  /* Botões: um tamanho só (13 px, altura 32). Mantém a cor de cada ação. */
+  html body main :is(button, a[role=button], .ct-clean-action, a.rounded-lg, a.rounded-xl):not([role=switch]):not(.ct-notice-row):not(.ct-clean-calendar-row):not(.ct-estoque-count):not(.ct-clean-metric) {
+    font-size: 13px !important; font-weight: 500 !important; min-height: 32px !important; padding: 4px 12px !important; border-radius: 8px !important; line-height: 1.2 !important; white-space: nowrap;
+  }
+  html body main :is(button, a)[class*="bg-"]:not([class*="bg-white"]):not([class*="bg-slate-50"]):not([class*="bg-slate-100"]):not([class*="-50 "]):not([class*="bg-transparent"]) { font-weight: 600 !important; }
+
+  /* Etiquetas */
+  html body main span.rounded-full, html body main .ct-clean-badge { font-size: 13px !important; padding: 2px 10px !important; line-height: 1.4 !important; }
+
+  /* Contadores */
+  html body main :is(.ct-clean-counter, .ct-clean-metric strong, .ct-estoque-count > span:first-child, .ct-compras-count strong, .ct-sent-count strong) { font-size: 26px !important; line-height: 1.1 !important; color: #102a83 !important; }
+}
+
 /* 1. Menu inferior: fixo em todas as páginas, letra 14, ícone 22, altura 58 */
 @media (max-width: 767px) {
   html body .ct-clean-navigation .ct-clean-bottom {
@@ -63,7 +106,7 @@
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive button { font-size: 13px !important; padding: 2px 10px !important; min-height: 28px !important; }
 
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row strong { font-size: 16px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 14px !important; min-height: 36px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 13px !important; min-height: 32px !important; padding: 4px 12px !important; border-radius: 8px !important; }
 
   /* Reuniões no celular: um quadro por loja, Próxima e Seguinte lado a lado */
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-today-meetings { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; margin: 0 !important; grid-column: 1 / -1 !important; order: 10 !important; }
@@ -107,8 +150,8 @@
 
   /* Consultar: dois botões azuis com texto branco */
   html body .ct-estoque-page.ct-estoque-page a.ct-estoque-btn.bg-\[\#102a83\] {
-    color: #fff !important; background: #102a83 !important; font-size: 14px !important; font-weight: 600 !important;
-    min-height: 44px !important; display: flex; align-items: center; justify-content: center; padding: 8px !important; border-radius: 10px !important;
+    color: #fff !important; background: #102a83 !important; font-size: 13px !important; font-weight: 600 !important;
+    min-height: 32px !important; display: flex; align-items: center; justify-content: center; padding: 4px 12px !important; border-radius: 8px !important;
   }
   html body .ct-estoque-page.ct-estoque-page a.ct-estoque-btn.bg-\[\#102a83\] span { color: #fff !important; }
 
@@ -119,7 +162,7 @@
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card input + p { font-size: 14px !important; font-weight: 500 !important; }
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card label { font-size: 16px !important; }
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card:not(.ct-estoque-header) > button.bg-emerald-700 {
-    width: 100%; font-size: 16px !important; font-weight: 600 !important; min-height: 44px !important; border-radius: 10px !important;
+    font-size: 13px !important; font-weight: 600 !important; min-height: 32px !important; padding: 4px 16px !important; border-radius: 8px !important;
   }
 
   /* Filtro Todas / Rio Claro / Araras */
@@ -135,7 +178,7 @@
   html body .ct-estoque-page.ct-estoque-page .ct-need-card .space-y-3 { margin-top: 10px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-actions { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-actions > button {
-    font-size: 13px !important; font-weight: 600 !important; min-height: 36px !important; padding: 4px 6px !important;
+    font-size: 13px !important; font-weight: 600 !important; min-height: 32px !important; padding: 4px 6px !important;
     border-radius: 8px !important; white-space: nowrap;
     display: inline-flex !important; align-items: center; justify-content: center; text-align: center;
   }

@@ -552,7 +552,7 @@ export default function EstoqueClient({ isManager = false, canDelete = false, ca
           <input ref={noteInputRef} value={note} onChange={(event) => setNote(event.target.value)} onKeyDown={handleNoteKeyDown} placeholder="Observação" className={input + " md:col-span-2 xl:col-span-5"} />
         </div>
         <label className="mt-4 flex items-center gap-2 text-sm max-md:text-[11px]"><input ref={waitingInputRef} type="checkbox" checked={waiting} onChange={(event) => setWaiting(event.target.checked)} onKeyDown={handleWaitingKeyDown} /> Cliente aguardando</label>
-        <button ref={registerButtonRef} onClick={() => void create()} disabled={busy === "geral"} className={primary + " ct-estoque-btn mt-4"}>Registrar solicitação</button>
+        <button ref={registerButtonRef} onClick={() => void create()} disabled={busy === "geral"} className={primary + " ct-estoque-btn mt-4"}>Solicitar</button>
       </section>
     );
   }
