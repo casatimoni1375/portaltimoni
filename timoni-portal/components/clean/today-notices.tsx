@@ -86,7 +86,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
   </li>;};
 
  return <section className="ct-clean-card ct-today-notices ct-tone-card ct-tone-red ct-m-order-2" aria-label="Comunicados">
-  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<button type="button" className="ct-clean-action" aria-expanded={creating} onClick={()=>setCreating(value=>!value)}>{creating?"Fechar":"+ Novo"}</button>}</div>
+  <div className="ct-clean-card-heading"><h2>Comunicados</h2>{isAdmin&&<button type="button" className="ct-clean-action" aria-expanded={creating} onClick={()=>setCreating(value=>!value)}>{creating?"Fechar":"Novo"}</button>}</div>
   {isAdmin&&creating&&<ComunicadosAdmin variant="hoje"/>}
   {error&&<p className="ct-notice-error">{error}</p>}
   {!loaded?<p className="ct-clean-muted">Carregando…</p>:visible.length?<ul className="ct-notice-list">{visible.map(item=>row(item,false))}</ul>:<p className="ct-clean-muted">Nenhum comunicado.</p>}
