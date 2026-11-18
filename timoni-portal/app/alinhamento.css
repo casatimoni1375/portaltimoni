@@ -12,6 +12,8 @@
 
   /* Reuniões: quadros lado a lado com a mesma altura. */
   html body main .grid > article.ct-std-card { height: 100%; }
+  /* Pauta | Ata | Apresentação sempre no rodapé, alinhados entre os quadros. */
+  html body main .grid > article.ct-std-card > :last-child { margin-top: auto; }
 
   /* Equipe: mensagens lado a lado com a mesma altura e botões no rodapé. */
   html body main .ct-equipe-msgs { align-items: stretch !important; gap: 20px !important; }
@@ -27,4 +29,15 @@
     gap: 20px !important;
     align-items: stretch;
   }
+}
+
+/* 18/11 — Datas das reuniões (Hoje e Reuniões): fonte menor e alinhada; "A definir" na mesma linha e tamanho da data. */
+@media (min-width: 768px) {
+  html:root:root:root:root:root:root body main .ct-meeting-date { padding: 12px 16px !important; border-radius: 10px !important; background: #fff !important; border: 1px solid #e1e6f0 !important; }
+  html:root:root:root:root:root:root body main .ct-meeting-date > p { margin: 0 !important; letter-spacing: 0 !important; text-transform: none !important; }
+  html:root:root:root:root:root:root body main .ct-meeting-date > p:nth-child(1) { font-size: 13px !important; line-height: 1.4 !important; font-weight: 500 !important; color: #65718a !important; }
+  html:root:root:root:root:root:root body main .ct-meeting-date > p:nth-child(2) { margin-top: 6px !important; font-size: 16px !important; line-height: 1.4 !important; }
+  html:root:root:root:root:root:root body main .ct-meeting-date > p:nth-child(2):not([class*="slate-500"]):not([class*="65718a"]) { font-weight: 600 !important; color: #182443 !important; }
+  html:root:root:root:root:root:root body main .ct-meeting-date > p:nth-child(2):is([class*="slate-500"], [class*="65718a"]) { font-weight: 400 !important; color: #65718a !important; }
+  html:root:root:root:root:root:root body main .ct-meeting-date > p:nth-child(3) { margin-top: 2px !important; font-size: 14px !important; line-height: 1.4 !important; color: #65718a !important; }
 }
