@@ -1,0 +1,27 @@
+/*
+  Padrão do celular (até 767 px) — aprovado pela Ciça em 18/11/2026.
+  Carregado por último: estas regras substituem os ajustes antigos espalhados
+  em clean-portal.css. Mudanças visuais do celular entram aqui.
+*/
+
+/* 1. Menu inferior: fixo em todas as páginas, letra 14, ícone 22, altura 58 */
+@media (max-width: 767px) {
+  html body .ct-clean-navigation .ct-clean-bottom {
+    display: flex !important;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 95;
+    background: #fff; border-top: 1px solid #e1e6f0;
+    padding: 4px 4px max(8px, env(safe-area-inset-bottom)) !important;
+  }
+  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link {
+    min-height: 58px !important; gap: 4px !important; padding: 4px 2px !important;
+    flex-direction: column !important; justify-content: center;
+    font-size: 14px !important; font-weight: 500 !important; line-height: 1.2 !important;
+    color: #65718a; border-radius: 10px;
+  }
+  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link[aria-current=page] {
+    background: #eef1fa; color: #102a83; font-weight: 600 !important;
+  }
+  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link svg { width: 22px !important; height: 22px !important; }
+  html body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link > small { font-size: 11px !important; top: 2px; right: 8px; }
+  html body:has(.ct-clean-navigation) { padding-bottom: 80px !important; }
+}

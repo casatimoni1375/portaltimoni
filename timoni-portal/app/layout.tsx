@@ -4,6 +4,7 @@ import "./globals.css";
 import "./dashboard/workspace-modern.css";
 import "./portal-modern-shell.css";
 import "./clean-portal.css";
+import "./celular-padrao.css";
 import MobileUiRules from "@/components/mobile-ui-rules";
 import PortalPermissionsSync from "@/components/portal-permissions-sync";
 import AvisosRequiredGate from "@/components/avisos-required-gate";
