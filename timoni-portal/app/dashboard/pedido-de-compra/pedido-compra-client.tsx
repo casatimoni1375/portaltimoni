@@ -35,7 +35,6 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
   const [, setExceptions] = useState<PurchaseException[]>([]);
   const [selected, setSelected] = useState<{ id: string; nome: string } | null>(null);
-  const [mobileUnit, setMobileUnit] = useState<"todas" | RequestUnit>("todas");
   const [mobileStatus, setMobileStatus] = useState<"todos" | "enviados" | "atrasados">("todos");
   const request = useRef<{ run: (options?: { urgent?: boolean; force?: boolean }) => Promise<void> } | null>(null);
   const unitKey = visibleUnits.join("|");
@@ -120,13 +119,9 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
             <option value="enviados">Só enviados</option>
             <option value="atrasados">Só atrasados</option>
           </select>
-          {visibleUnits.length > 1 && <select className="ct-sent-mobile-filter" aria-label="Filtrar por loja" value={mobileUnit} onChange={event => setMobileUnit(event.target.value as "todas" | RequestUnit)}>
-            <option value="todas">Todas as lojas</option>
-            {visibleUnits.map(unit => <option key={unit} value={unit}>{unitLabel(unit)}</option>)}
-          </select>}
         </div>
         {(() => {
-          const pool = visibleOrders.filter(order => mobileUnit === "todas" || order.unidade === mobileUnit);
+          const pool = visibleOrders;
           const late = pool.filter(isLate);
           const onTime = pool.filter(order => !isLate(order));
           const card = (order: SentOrder, lateCard: boolean) => { const company = companyOf(order.nome); return (
