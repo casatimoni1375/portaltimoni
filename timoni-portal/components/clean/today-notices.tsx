@@ -18,7 +18,7 @@ function withinEnd(value:string,now=Date.now()){if(!value)return true;const date
  * Comunicados na tela Hoje: um card por loja (Geral · Araras + Rio Claro, Araras ou Rio Claro),
  * em lista, um abaixo do outro. Só o mais recente de cada destino fica visível; os anteriores
  * vão para Arquivados. Passado o prazo final, arquiva (não apaga) e pode ser reativado.
- * Carimbo: "Pendente" em vermelho; some quando todos confirmarem.
+ * Carimbo: "Pendente" em âmbar (18/11, igual ao Rotativo e às Reuniões); some quando todos confirmarem.
  */
 export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{store:Unit;isAdmin:boolean;canConfirmRead:boolean;members:NoticeMember[]}){
  const [items,setItems]=useState<Notice[]>([]),[completed,setCompleted]=useState<string[]>([]),[unsigned,setUnsigned]=useState<string[]>([]),[readers,setReaders]=useState<Record<string,Reader[]>>({});
@@ -63,7 +63,7 @@ export default function TodayNotices({store,isAdmin,canConfirmRead,members}:{sto
     <span className="ct-notice-date">{fmtDate(item.createdAt)}</span>
     <span className="ct-notice-title">{splitNoticeTitle(item.title).map((part,i)=><span key={i} className={i===0?"ct-notice-headline":"ct-notice-subline"}>{part}</span>)}</span>
     {/* 18/11: loja em etiquetas no canto superior direito; Pendente logo abaixo. */}
-    <span className="ct-notice-side"><span className="ct-notice-tags" aria-label={SCOPE_LABEL[item.unit]}>{(item.unit==="geral"?["araras","rio claro"]:[item.unit]).map(unit=><span key={unit} className={`ct-notice-tag ${unit==="araras"?"is-araras":"is-rio-claro"}`}>{unit==="araras"?"Araras":"Rio Claro"}</span>)}</span>
+    <span className="ct-notice-side"><span className="ct-notice-tags" aria-label={SCOPE_LABEL[item.unit]}>{(item.unit==="geral"?["rio claro","araras"]:[item.unit]).map(unit=><span key={unit} className={`ct-notice-tag ${unit==="araras"?"is-araras":"is-rio-claro"}`}>{unit==="araras"?"Araras":"Rio Claro"}</span>)}</span>
     {pending&&<span className="ct-notice-stamp is-pending">Pendente</span>}</span>
    </button>
    {isOpen&&<div className="ct-notice-body">
