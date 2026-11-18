@@ -91,8 +91,8 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const isLate = (order: SentOrder) => Boolean(order.previsaoEntrega) && order.previsaoEntrega.slice(0, 10) < todayKey;
   const orderTone = (_order: SentOrder) => "border-[#e1e6f0]";
   const lateCount = visibleOrders.filter(isLate).length;
-  // Araras à esquerda, Rio Claro à direita (desktop); no celular, uma coluna depois da outra.
-  const columnUnits = (["araras", "rio_claro"] as const).filter((unit) => visibleUnits.includes(unit));
+  // Rio Claro à esquerda, Araras à direita (desktop, 18/11).
+  const columnUnits = (["rio_claro", "araras"] as const).filter((unit) => visibleUnits.includes(unit));
   return (
     <section className="ct-compras-tab ct-clean-card">
       <div className="ct-clean-card-heading">
@@ -110,17 +110,6 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>
       </div>
-      {!loading && exceptions.length > 0 && (
-        <div className="ct-clean-exceptions hidden">
-          <strong>Pedidos que exigem atenção</strong>
-          {exceptions.map((item) => (
-            <div key={`${item.id}-${item.tipo}`}>
-              <button type="button" onClick={() => setSelected(item)} className="ct-link-button" style={{textDecoration:"none",color:"#182443",fontWeight:600}}>{item.nome} · {unitLabel(item.unidade)}</button>
-              <small className="text-red-700">{item.tipo === "atrasado" ? `Entrega prevista em ${dateOnly(item.previsaoEntrega)} — atrasada.` : "Sem previsão de entrega informada."}</small>
-            </div>
-          ))}
-        </div>
-      )}
       {/* Celular (18/11): duas colunas — Enviados no prazo à esquerda, Atrasados à direita — com etiquetas de loja e empresa e filtro discreto de loja. */}
       <div className="ct-sent-mobile md:hidden">
         {visibleUnits.length > 1 && <select className="ct-sent-mobile-filter" aria-label="Filtrar por loja" value={mobileUnit} onChange={event => setMobileUnit(event.target.value as "todas" | RequestUnit)}>
@@ -149,7 +138,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         })()}
         {loading && <p className="ct-sent-empty">Atualizando...</p>}
       </div>
-      <div className="mt-4 grid gap-5 lg:grid-cols-2 max-md:!hidden">
+      <div className="mt-4 grid gap-5 md:grid-cols-2 max-md:!hidden">
         {columnUnits.map((currentUnit) => {
           const orders = visibleOrders.filter((order) => order.unidade === currentUnit);
           return (

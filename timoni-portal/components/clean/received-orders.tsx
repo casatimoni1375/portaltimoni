@@ -3,10 +3,10 @@ import {useEffect,useState} from "react";
 
 type ReceivedOrder={id:string;nome:string;unidade:string|null;data:string|null};
 
-// Araras à esquerda (amarelo), Rio Claro à direita (verde). Mesma ordem das colunas de Enviados.
+// Rio Claro à esquerda, Araras à direita (18/11). Linhas sem borda.
 const COLUMNS=[
- {key:"araras",label:"Araras",band:"border-[#ffd438]",ink:"text-[#854f0b]"},
- {key:"rio_claro",label:"Rio Claro",band:"border-[#15803d]",ink:"text-[#166534]"},
+ {key:"rio_claro",label:"Rio Claro",ink:"text-[#166534]"},
+ {key:"araras",label:"Araras",ink:"text-[#854f0b]"},
 ] as const;
 
 export default function ReceivedOrders(){
@@ -29,7 +29,7 @@ export default function ReceivedOrders(){
     return <div key={column.key} className="min-w-0">
      <h3 className={`text-lg max-md:text-[14px] font-semibold ${column.ink}`}>{column.label} · {list.length}</h3>
      <div className="mt-2 grid gap-2">
-      {list.map(order=><div key={order.id} className={`ct-row rounded-xl border bg-white px-3 py-3 md:flex md:items-center md:justify-between md:gap-3 ${column.band}`}>
+      {list.map(order=><div key={order.id} className="ct-row rounded-xl bg-white px-3 py-2 md:flex md:items-center md:justify-between md:gap-3">
        <strong className="block break-words text-lg max-md:text-[14px] text-[#182443]">{order.nome}</strong>
        <small className="ct-row-line2 block shrink-0 text-base max-md:text-[12.5px] text-slate-500">Concluído em {order.data?new Date(order.data).toLocaleDateString("pt-BR"):"data não informada"}</small>
       </div>)}
