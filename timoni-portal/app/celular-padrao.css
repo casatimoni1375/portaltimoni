@@ -7,7 +7,7 @@
 /* 0. PADRÃO GERAL DO CELULAR — todas as páginas (aprovado 18/11/2026)
    Título da página 22 · título do quadro 18 (faixa azul clara) · texto 16 · apoio 14
    Campo 16 / altura 44 · botões 13 / altura 32 (principal preenchido, secundário branco)
-   Etiqueta 13 · contador 26 · sem caixa-alta. */
+   Etiqueta 12 · contador 26 · sem caixa-alta. */
 @media (max-width: 767px) {
   html body main { font-size: 16px; }
   html body main h1 { font-size: 22px !important; font-weight: 600 !important; color: #102a83; line-height: 1.25 !important; }
@@ -44,7 +44,7 @@
   html body main :is(button, a)[class*="bg-"]:not([class*="bg-white"]):not([class*="bg-slate-50"]):not([class*="bg-slate-100"]):not([class*="-50 "]):not([class*="bg-transparent"]) { font-weight: 600 !important; }
 
   /* Etiquetas */
-  html body main span.rounded-full, html body main .ct-clean-badge { font-size: 13px !important; padding: 2px 10px !important; line-height: 1.4 !important; }
+  html body main span.rounded-full, html body main .ct-clean-badge { font-size: 12px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
 
   /* Contadores */
   html body main :is(.ct-clean-counter, .ct-clean-metric strong, .ct-estoque-count > span:first-child, .ct-compras-count strong, .ct-sent-count strong) { font-size: 26px !important; line-height: 1.1 !important; color: #102a83 !important; }
@@ -105,7 +105,7 @@
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-scope { font-size: 14px !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-headline { font-size: 16px !important; font-weight: 600 !important; color: #182443; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-subline { font-size: 14px !important; }
-  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-stamp { font-size: 13px !important; padding: 2px 8px !important; }
+  html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-stamp { font-size: 12px !important; padding: 1px 8px !important; }
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-notice-archive button { font-size: 13px !important; padding: 2px 10px !important; min-height: 28px !important; }
 
   html body .ct-today-azul.ct-today-azul.ct-today-azul .ct-clean-action-row strong { font-size: 16px !important; }
@@ -181,7 +181,7 @@
   html body .ct-estoque-page.ct-estoque-page .ct-need-card p:not(.ct-need-line1) { font-size: 16px !important; margin-top: 4px !important; color: #182443; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-card p:is(.text-slate-500, .text-slate-400) { font-size: 14px !important; color: #65718a !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-card p.text-amber-700 { color: #854f0b !important; font-size: 14px !important; }
-  html body .ct-estoque-page.ct-estoque-page .ct-need-card .rounded-full { font-size: 13px !important; padding: 2px 10px !important; }
+  html body .ct-estoque-page.ct-estoque-page .ct-need-card .rounded-full { font-size: 12px !important; padding: 1px 8px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-card .space-y-3 { margin-top: 10px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-actions { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px !important; }
   html body .ct-estoque-page.ct-estoque-page .ct-need-actions > button {
@@ -237,7 +237,7 @@
     font-size: 16px !important; font-weight: 400 !important; min-height: 44px !important; padding: 8px 12px !important; border-radius: 0 !important; white-space: normal;
   }
   html body .ct-compras-module.ct-compras-module .ct-compras-list > button > span:first-child { font-size: 16px !important; font-weight: 600 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  html body .ct-compras-module.ct-compras-module .ct-compras-list .rounded-full { font-size: 13px !important; padding: 2px 10px !important; }
+  html body .ct-compras-module.ct-compras-module .ct-compras-list .rounded-full { font-size: 12px !important; padding: 1px 8px !important; }
   html body .ct-compras-module.ct-compras-module .ct-compras-list > p { font-size: 14px !important; }
   html body .ct-compras-module.ct-compras-module label { font-size: 14px !important; font-weight: 600 !important; color: #182443 !important; }
   html body .ct-compras-module.ct-compras-module label > span.font-normal { font-size: 14px !important; font-weight: 400 !important; color: #65718a !important; }
@@ -247,8 +247,8 @@
 html body .ct-notice-row { align-items: flex-start !important; }
 html body .ct-notice-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 html body .ct-notice-tags { display: flex; gap: 4px; }
-html body .ct-notice-tag { display: inline-flex; align-items: center; font-size: 13px !important; font-weight: 500; line-height: 1.4; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+html body .ct-notice-tag { display: inline-flex; align-items: center; font-size: 12px !important; font-weight: 500; line-height: 1.4; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
 html body .ct-notice-tag.is-araras { background: #fff4c2; color: #854f0b; }
 html body .ct-notice-tag.is-rio-claro { background: #e7f6ec; color: #166534; }
 html body .ct-notice-row .ct-notice-date { padding-top: 2px; }
-html body .ct-notice-side .ct-notice-stamp { align-self: flex-end !important; font-size: 13px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
+html body .ct-notice-side .ct-notice-stamp { align-self: flex-end !important; font-size: 12px !important; padding: 1px 8px !important; line-height: 1.4 !important; }
