@@ -32,9 +32,9 @@
 
   /* Campos */
   html body main :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea) {
-    font-size: 13px !important; min-height: 36px !important; padding: 6px 10px !important; border-radius: 10px !important; border-color: #c9d8f0 !important;
+    font-size: 13px !important; min-height: 34px !important; padding: 5px 10px !important; border-radius: 8px !important; border-color: #c9d8f0 !important;
   }
-  html body main textarea { min-height: 88px !important; }
+  html body main textarea { min-height: 72px !important; }
   /* Escolher arquivo: botão secundário do padrão (13 px), texto ao lado em 13 px cinza */
   :root:root body main input[type=file] { font-size: 11px !important; color: #65718a !important; min-height: 36px !important; padding: 6px 8px !important; }
   :root:root body main input[type=file]::file-selector-button { font-family: inherit; font-size: 11px; font-weight: 500; line-height: 1.2; color: #102a83; background: #fff; border: 1px solid #c9d8f0; border-radius: 8px; padding: 6px 12px; margin-right: 10px; }
@@ -166,7 +166,7 @@
 
   /* Formulário */
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card :is(input:not([type=checkbox]), select) {
-    font-size: 13px !important; min-height: 36px !important; padding: 6px 10px !important; border: 1px solid #c9d8f0 !important; border-radius: 10px !important;
+    font-size: 13px !important; min-height: 34px !important; padding: 5px 10px !important; border: 1px solid #c9d8f0 !important; border-radius: 8px !important;
   }
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card input + p { font-size: 11px !important; font-weight: 500 !important; }
   html body .ct-estoque-page.ct-estoque-page section.ct-clean-card label { font-size: 12px !important; }
