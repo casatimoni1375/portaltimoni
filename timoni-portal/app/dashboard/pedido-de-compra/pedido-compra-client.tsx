@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {useSearchParams} from "next/navigation";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
+import { companyOf } from "@/lib/empresa-pedido";
 
 const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
 
@@ -11,14 +12,6 @@ type RequestUnit = "rio_claro" | "araras";
 type SentOrder = { id: string; nome: string; enviadoEm: string; previsaoEntrega: string; unidade: RequestUnit };
 type PurchaseException = { id: string; nome: string; unidade: RequestUnit; tipo: "sem_previsao" | "atrasado"; previsaoEntrega: string };
 function unitLabel(unit: RequestUnit) { return unit === "araras" ? "Araras" : "Rio Claro"; }
-// Empresa da compra pelo final do nome do pedido (CT, ROD/RODINI ou MCR).
-function companyOf(name: string): { label: string; tone: "ct" | "rod" | "mcr" } | null {
-  const end = name.trim().toUpperCase().replace(/[^A-Z]+$/, "").slice(-8);
-  if (/(^|[^A-Z])CT$/.test(end) || end.endsWith(" CT")) return { label: "Casa Timoni", tone: "ct" };
-  if (/(ROD|RODINI)$/.test(end)) return { label: "Rodini", tone: "rod" };
-  if (/MCR$/.test(end)) return { label: "MCR", tone: "mcr" };
-  return null;
-}
 function shortDate(value: string) { const full = dateOnly(value); return /^\d{2}\/\d{2}\/\d{4}$/.test(full) ? full.slice(0, 5) : full; }
 function dateOnly(value: string) {
   if (!value) return "Sem data";
