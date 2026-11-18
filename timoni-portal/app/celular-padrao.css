@@ -38,7 +38,7 @@
   html body main textarea { min-height: 88px !important; }
   /* Escolher arquivo: botão secundário do padrão (13 px), texto ao lado em 13 px cinza */
   :root:root body main input[type=file] { font-size: 13px !important; color: #65718a !important; min-height: 44px !important; padding: 6px 8px !important; }
-  :root:root body main input[type=file]::file-selector-button { font: 500 13px/1.2 inherit; color: #102a83; background: #fff; border: 1px solid #c9d8f0; border-radius: 8px; padding: 6px 12px; margin-right: 10px; }
+  :root:root body main input[type=file]::file-selector-button { font-family: inherit; font-size: 13px; font-weight: 500; line-height: 1.2; color: #102a83; background: #fff; border: 1px solid #c9d8f0; border-radius: 8px; padding: 6px 12px; margin-right: 10px; }
   :root:root body main label { font-size: 13px !important; }
 
   /* Botões: um tamanho só (13 px, altura 32). Mantém a cor de cada ação. */
