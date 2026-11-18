@@ -4,11 +4,12 @@ export function cleanNavigation(user: PortalUser): CleanNavItem[] {
   if (user.active === false) return [];
   const has = (module: Parameters<typeof hasModuleAccess>[1]) => hasModuleAccess(user.email,module,user);
   return [
+    // Ordem do menu definida pela Ciça em 18/11/2026.
     {href:"/dashboard",label:"Hoje",key:"hoje",visible:true},
-    {href:"/dashboard/estoque",label:"Estoque",key:"estoque",visible:has("estoque")},
+    {href:"/agenda",label:"Agenda",key:"agenda",visible:has("agenda")||has("agenda-ct")},
     {href:"/dashboard/compras",label:"Compras",key:"compras",visible:has("compras")||has("pedido-de-compra")||has("estoque-rotativo")||has("conferencia")},
     {href:"/dashboard/motorista",label:"Motorista",key:"motorista",visible:has("motorista")},
-    {href:"/agenda",label:"Agenda",key:"agenda",visible:has("agenda")||has("agenda-ct")},
+    {href:"/dashboard/estoque",label:"Estoque",key:"estoque",visible:has("estoque")},
     {href:"/dashboard/reunioes",label:"Reuniões",key:"reunioes",visible:has("reunioes")},
     {href:"/dashboard/leads",label:"Vendas Internas",key:"comercial",visible:has("leads")},
     {href:"/colaboradores",label:"Equipe",key:"equipe",visible:has("painel")},

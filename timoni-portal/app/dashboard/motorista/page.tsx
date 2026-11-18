@@ -68,7 +68,7 @@ export default async function MotoristaPage() {
           .motorista-agenda-controle .ct-mot-viagem button{font-size:16px;}
           .motorista-agenda-controle .ct-mot-barra button,
           .motorista-agenda-controle .ct-mot-barra p{font-size:16px;}
-          .motorista-agenda-controle .ct-mot-barra p.text-lg{font-size:20px;color:#102a83;}
+          .motorista-agenda-controle .ct-mot-barra p.text-lg{font-size:22px;color:#102a83;}
           .motorista-agenda-controle .ct-mot-barra p.uppercase{text-transform:none;letter-spacing:0;font-size:14px;color:#65718a;}
           .motorista-agenda-controle section.ct-mot-dia{border-radius:12px;overflow:hidden;border-color:#c9d8f0;padding:0 20px 16px;}
           .motorista-agenda-controle section.ct-mot-dia.border-\\[\\#102a83\\]{border-color:#102a83;}
