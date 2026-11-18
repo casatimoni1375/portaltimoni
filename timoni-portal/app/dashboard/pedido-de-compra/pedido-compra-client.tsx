@@ -98,7 +98,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           <p className="text-base max-md:text-[12.5px] text-slate-600">Enviados</p>
           <strong className="ct-clean-counter text-[#102a83]">{visibleOrders.length}</strong>
         </div>
-        <div className="ct-sent-count rounded-xl border border-[#b12532]/40 bg-white px-4 py-3">
+        <div className="ct-sent-count is-late rounded-xl border border-[#b12532]/40 bg-white px-4 py-3">
           <p className="text-base max-md:text-[12.5px] text-slate-600">Atrasados</p>
           <strong className="ct-clean-counter text-[#b12532]">{lateCount}</strong>
         </div>

@@ -599,7 +599,6 @@ export default function EstoqueRotativoClient() {
     <div className="ct-modern-workspace ct-rotativo space-y-5 pb-10">
       <header className="ct-rt-heading">
         <h1>Estoque Rotativo</h1>
-        <p>Origem: Trello, lista ESTOQUE ROTATIVO LUCAS/CAROL. A planilha do fornecedor atualiza o Rotativo pelo COD-VENDA.</p>
       </header>
 
       <ol className="ct-rt-flow" aria-label="Etapas do Rotativo">
