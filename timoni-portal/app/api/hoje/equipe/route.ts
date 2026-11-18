@@ -22,7 +22,9 @@ export async function GET(request:Request){
  if(kind==="vacation"&&lastDay&&lastDay<parts)return[];
  // Aniversário: fica visível no dia e nos 2 dias seguintes; depois sai (mesma regra visual para todos).
  if(kind==="birthday"&&event.start.slice(0,10)<birthdayCutoff)return[];
- if(indicated?!visibleUnit(indicated):members.length?!members.some(person=>visibleUnit(person.unit)):user.unit!=="Geral"||Boolean(selected&&selected!=="todas"))return[];
+ // 18/11 (Ciça): Aniversários e Férias aparecem para todos os acessos, das duas lojas.
+ // Só a gestão (Geral) filtra pela loja escolhida no seletor.
+ if(user.unit==="Geral"&&(indicated?!visibleUnit(indicated):members.length?!members.some(person=>visibleUnit(person.unit)):Boolean(selected&&selected!=="todas")))return[];
  return[{id:event.id,name:event.summary.replace(/^anivers[aá]rio\s*(?:de\s*)?/i,""),date:event.start,end:lastDay||event.end,kind,unit:indicated==="Araras"?"araras":indicated==="Rio Claro"?"rio_claro":members[0]?.unit==="Araras"?"araras":members[0]?.unit==="Rio Claro"?"rio_claro":"geral"}];
  });
  const meetings=calendar.filter(event=>event.start.slice(0,10)===parts&&["reuniao mensal rio claro","reuniao mensal araras"].includes(normalizedText(event.summary))&&visibleUnit(normalizedText(event.summary).includes("araras")?"Araras":"Rio Claro")).map(event=>({id:event.id,title:event.summary,date:event.start,time:event.start.includes("T")?new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",hour:"2-digit",minute:"2-digit"}).format(new Date(event.start)):"Hoje"}));
