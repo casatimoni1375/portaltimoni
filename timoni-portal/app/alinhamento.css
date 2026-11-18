@@ -95,3 +95,19 @@ html:root:root body .ct-notice-stamp.is-pending { background: #fff4e1 !important
     display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 6px;
   }
 }
+
+/* 18/11 — Hoje dos acessos operacionais (Caixa, Estoque…): contadores Viagens hoje | Agenda hoje
+   no padrão dos contadores do portal — lado a lado, mesma largura, texto numa linha só,
+   e o botão Agendar como botão pequeno à direita (sem ficar por cima do número). */
+html:root:root body main .ct-today-op-top { grid-template-columns: minmax(0, 1fr) !important; gap: 20px !important; align-items: stretch !important; }
+html:root:root body main .ct-today-op-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 20px !important; }
+html:root:root body main .ct-today-op-cards > .ct-clean-metric { min-height: 0 !important; }
+html:root:root body main .ct-today-op-cards .ct-clean-metric > span,
+html:root:root body main .ct-today-op-cards .ct-metric-link > span { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+html:root:root body main .ct-metric-with-action { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; }
+html:root:root body main .ct-metric-with-action .ct-metric-link { min-width: 0; flex: 1; }
+html:root:root body main .ct-metric-action { position: relative !important; top: auto !important; right: auto !important; flex: none; display: inline-flex !important; align-items: center !important; min-height: 32px !important; padding: 0 12px !important; border: 1px solid #c9d8f0 !important; border-radius: 8px !important; background: #fff !important; color: #102a83 !important; font-size: 13px !important; font-weight: 500 !important; }
+@media (max-width: 767px) {
+  html:root:root body main .ct-today-op-cards { gap: 10px !important; }
+  html:root:root body main .ct-metric-action { min-height: 28px !important; padding: 0 8px !important; font-size: 12px !important; }
+}
