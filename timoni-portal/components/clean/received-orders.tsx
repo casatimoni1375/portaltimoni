@@ -1,6 +1,5 @@
 "use client";
 import {useEffect,useState} from "react";
-import {companyOf} from "@/lib/empresa-pedido";
 
 type ReceivedOrder={id:string;nome:string;unidade:string|null;data:string|null};
 
@@ -28,10 +27,9 @@ export default function ReceivedOrders(){
   {orders&&<div className="ct-sent-mobile md:hidden">
    <div className="ct-sent-cols is-single"><div>
     <h3>Recebidos · {orders.length}</h3>
-    {orders.map(order=>{const company=companyOf(order.nome);return <div key={order.id} className="ct-sent-card">
+    {orders.map(order=>{return <div key={order.id} className="ct-sent-card">
      <b>{order.nome}</b>
-     <span className="ct-sent-tags">{order.unidade&&<span className="ct-sent-tag is-store">{order.unidade==="araras"?"Araras":"Rio Claro"}</span>}{company&&<span className={`ct-sent-tag is-${company.tone}`}>{company.label}</span>}</span>
-     <small>Recebido em {order.data?new Date(order.data).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}):"data não informada"}</small>
+     <small>{order.data?new Date(order.data).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"}):"sem data"}</small>
     </div>;})}
     {orders.length===0&&<p className="ct-sent-empty">Nenhum pedido recebido nos últimos 7 dias.</p>}
    </div></div>

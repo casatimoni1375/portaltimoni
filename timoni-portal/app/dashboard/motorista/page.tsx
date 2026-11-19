@@ -23,7 +23,7 @@ export default async function MotoristaPage() {
   const empresas = ["Casa Timoni", "MCR", "Rodini"].filter((empresa) => canMotoristaStore(gate.current!.user, "criar", empresa));
 
   return (
-    <div className="ct-modern-calendar mx-auto w-full max-w-6xl space-y-4">
+    <div className="ct-motorista-page ct-modern-calendar mx-auto w-full max-w-6xl space-y-4">
       <header>
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">Casa Timoni</p>
         <h1 className="mt-1 text-2xl max-md:text-[20px] font-semibold tracking-tight text-slate-950">Agenda do Motorista</h1>

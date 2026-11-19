@@ -151,18 +151,18 @@ function AgendaRow({
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
         <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
+          {/* 19/11: no celular (cartão compacto) horário completo e compromisso na mesma linha; "Dia todo" quando for o dia inteiro. */}
+          {compact && <span className="ct-agenda-time md:hidden">{time} </span>}
           {event.summary}
         </p>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
+          {/* 19/11: no celular sem etiqueta Principal/Timoni (agendas já separadas); desktop mantém o nome da agenda. */}
+          {!compact && <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
-      {/* Celular (18/11): coluna da direita com as etiquetas em cima e os botões menores embaixo. */}
+      {/* Celular: coluna da direita só com os botões (19/11). */}
       <div className="ct-agenda-side flex shrink-0 flex-col items-end gap-1 md:contents">
-        <span className="ct-agenda-tags md:hidden">
-          <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
-        </span>
       <div className={clsx("flex shrink-0 gap-2", compact && "flex-col max-md:flex-row")}>
           <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
             Editar
@@ -192,24 +192,22 @@ function DesktopEventRow({
   onDelete: (event: CalendarEventDTO) => void;
 }) {
   const isAllDay = !event.start.includes("T");
-  const color = CALENDAR_COLOR_FALLBACKS[event.calendarKey];
   const passou = new Date(event.end).getTime() < now;
   const concluido = Boolean(event.completed) || (passou && !event.edited);
   const time = isAllDay
     ? "Dia todo"
     : `${format(new Date(event.start), "HH:mm", { locale: ptBR })}–${format(new Date(event.end), "HH:mm", { locale: ptBR })}`;
   return (
-    // 18/11: etiqueta da agenda (Timoni / Ciça) acima do compromisso; hora na mesma linha do compromisso.
+    // 19/11: sem etiqueta Timoni/Ciça (agendas já separadas); hora na mesma linha do compromisso.
     <div className={clsx("grid grid-cols-[110px_minmax(0,1fr)_auto] items-start gap-3 border-t border-[#edf0f6] px-4 py-2.5 first:border-t-0", concluido && "opacity-40")}>
-      <span className="mt-[26px] text-[14px] leading-6 tabular-nums text-slate-600">{time}</span>
+      <span className="text-[14px] leading-6 tabular-nums text-slate-600">{time}</span>
       <div className="min-w-0">
-        <span className="inline-block h-5 rounded-full border px-2 text-[12px] font-medium leading-[18px]" style={{ color, borderColor: color }}>{event.calendarKey === "principal" ? "Ciça" : "Timoni"}</span>
-        <p className="mt-1.5 truncate text-[16px] leading-6 text-[#182443]">
+        <p className="truncate text-[16px] leading-6 text-[#182443]">
           {event.summary}
         </p>
         {event.location ? <p className="truncate text-[14px] text-slate-500">{event.location}</p> : null}
       </div>
-      <div className="mt-[22px] flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <button type="button" onClick={() => onEdit(event)} className="rounded-lg border border-[#c9d8f0] bg-white px-3 py-1 text-[14px] text-[#102a83] hover:bg-[#f5f8fe]">
           Editar
         </button>
@@ -348,8 +346,9 @@ export function CalendarView({
         ? `${format(dateFromKey(range.startKey), "dd/MM")} – ${format(dateFromKey(addDaysKey(range.startKey, 6)), "dd/MM/yyyy")}`
         : format(dateFromKey(monthStartKey(anchorKey)), "MMMM 'de' yyyy", { locale: ptBR });
 
-  const previousLabel = view === "dia" ? "← Dia anterior" : view === "semana" ? "← Semana anterior" : "← Mês anterior";
-  const nextLabel = view === "dia" ? "Próximo dia →" : view === "semana" ? "Próxima semana →" : "Próximo mês →";
+  // 19/11: botões curtos em todas as agendas.
+  const previousLabel = "Anterior";
+  const nextLabel = "Próximo";
 
   function changeView(next: ViewMode) {
     setView(next);
@@ -420,11 +419,10 @@ export function CalendarView({
     <div className="ct-clean-agenda">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         {abas}
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-          <h1 className="text-xl max-md:text-[15px] font-semibold text-[#102a83]">{title}</h1>
-          <p className="capitalize text-base max-md:text-[12.5px] text-slate-500">{periodLabel}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+        {/* 19/11: título numa linha abaixo de Loja | Minha agenda; o período fica na linha de Dia | Semana | Mês. */}
+        <h1 className="ct-agenda-titulo basis-full text-xl max-md:text-[15px] font-semibold text-[#102a83]">{title}</h1>
+        <p className="ct-agenda-periodo capitalize text-base max-md:text-[12.5px] text-slate-500">{periodLabel}</p>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           <div className="inline-flex overflow-hidden rounded-xl border border-[#d7deeb]" role="group" aria-label="Visão da agenda">
             {(Object.keys(VIEW_LABELS) as ViewMode[]).map((mode) => (
               <button

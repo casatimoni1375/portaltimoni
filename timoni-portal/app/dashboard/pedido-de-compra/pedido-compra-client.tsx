@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {useSearchParams} from "next/navigation";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
-import { companyOf } from "@/lib/empresa-pedido";
 
 const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
 
@@ -12,7 +11,8 @@ type RequestUnit = "rio_claro" | "araras";
 type SentOrder = { id: string; nome: string; enviadoEm: string; previsaoEntrega: string; unidade: RequestUnit };
 type PurchaseException = { id: string; nome: string; unidade: RequestUnit; tipo: "sem_previsao" | "atrasado"; previsaoEntrega: string };
 function unitLabel(unit: RequestUnit) { return unit === "araras" ? "Araras" : "Rio Claro"; }
-function shortDate(value: string) { const full = dateOnly(value); return /^\d{2}\/\d{2}\/\d{4}$/.test(full) ? full.slice(0, 5) : full; }
+// 19/11: datas curtas dd/mm/aa nas linhas dos pedidos ("10/11/26 - 19/11/26").
+function yy(value: string | null | undefined) { if (!value) return "sem data"; const full = dateOnly(value); return /^\d{2}\/\d{2}\/\d{4}$/.test(full) ? `${full.slice(0, 6)}${full.slice(8)}` : full; }
 function dateOnly(value: string) {
   if (!value) return "Sem data";
   const d = new Date(value);
@@ -129,15 +129,10 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           const pool = visibleOrders;
           const late = pool.filter(isLate);
           const onTime = pool.filter(order => !isLate(order));
-          const card = (order: SentOrder, lateCard: boolean) => { const company = companyOf(order.nome); return (
+          const card = (order: SentOrder, lateCard: boolean) => { return (
             <button type="button" key={order.id} onClick={() => setSelected(order)} className={`ct-sent-card${lateCard ? " is-late" : ""}`}>
               <b>{order.nome}</b>
-              <span className="ct-sent-tags">
-                <span className="ct-sent-tag is-store">{unitLabel(order.unidade)}</span>
-                {company && <span className={`ct-sent-tag is-${company.tone}`}>{company.label}</span>}
-                {lateCard ? <span className="ct-sent-tag is-late">Atrasado</span> : !order.previsaoEntrega ? <span className="ct-sent-tag is-nodate">Sem data</span> : null}
-              </span>
-              <small>Envio {shortDate(order.enviadoEm)} · Entrega {order.previsaoEntrega ? shortDate(order.previsaoEntrega) : "sem data"}</small>
+              <small>{yy(order.enviadoEm)} - {yy(order.previsaoEntrega)}</small>
             </button>
           ); };
           return <div className={`ct-sent-cols${mobileStatus !== "todos" ? " is-single" : ""}`}>
