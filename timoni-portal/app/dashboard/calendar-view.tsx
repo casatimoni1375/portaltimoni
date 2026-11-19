@@ -420,8 +420,8 @@ export function CalendarView({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         {abas}
         <div className="flex min-w-0 basis-full flex-col items-start">
-          <h1 className="text-xl max-md:text-[15px] font-semibold text-[#102a83]">{title}</h1>
-          <p className="capitalize text-base max-md:text-[12.5px] text-slate-500">{periodLabel}</p>
+          <h1 className="ct-agenda-titulo text-xl max-md:text-[15px] font-semibold text-[#102a83]">{title}</h1>
+          <p className="ct-agenda-periodo capitalize text-base max-md:text-[12.5px] text-slate-500">{periodLabel}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <div className="inline-flex overflow-hidden rounded-xl border border-[#d7deeb]" role="group" aria-label="Visão da agenda">

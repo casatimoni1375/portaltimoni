@@ -179,3 +179,10 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
 @media (min-width: 768px) {
   html:root:root:root:root:root:root body main p.ct-motorista-data { font-size: 17px !important; line-height: 1.3 !important; }
 }
+/* 19/11 — Agendas: título e período menores (abaixo de Loja | Minha agenda) */
+html:root:root:root:root:root:root body main h1.ct-agenda-titulo { font-size: 20px !important; line-height: 1.25 !important; }
+html:root:root:root:root:root:root body main p.ct-agenda-periodo { font-size: 14px !important; }
+@media (max-width: 767px) {
+  html:root:root:root:root:root:root body main h1.ct-agenda-titulo { font-size: 18px !important; }
+  html:root:root:root:root:root:root body main p.ct-agenda-periodo { font-size: 13px !important; }
+}
