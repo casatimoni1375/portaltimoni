@@ -156,7 +156,8 @@ function AgendaRow({
           {event.summary}
         </p>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {/* 19/11: sem etiqueta Principal/Timoni — as agendas já ficam separadas (Loja | Minha agenda). */}
+          {/* 19/11: no celular sem etiqueta Principal/Timoni (agendas já separadas); desktop mantém o nome da agenda. */}
+          {!compact && <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
