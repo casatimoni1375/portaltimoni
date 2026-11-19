@@ -349,8 +349,8 @@ export function CalendarView({
         : format(dateFromKey(monthStartKey(anchorKey)), "MMMM 'de' yyyy", { locale: ptBR });
 
   // 19/11: botões curtos em todas as agendas.
-  const previousLabel = "← Anterior";
-  const nextLabel = "Próximo →";
+  const previousLabel = "Anterior";
+  const nextLabel = "Próximo";
 
   function changeView(next: ViewMode) {
     setView(next);
