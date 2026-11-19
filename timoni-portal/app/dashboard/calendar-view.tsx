@@ -153,11 +153,8 @@ function AgendaRow({
         <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
           {event.summary}
         </p>
-        <span className="ct-agenda-tags md:hidden">
-          <span className={`ct-agenda-tag is-${event.calendarKey}`}>{event.calendarKey === "timoni" ? "Timoni" : "Ciça"}</span>
-        </span>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
-          {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
+          {/* 19/11: sem etiqueta Principal/Timoni — as agendas já ficam separadas (Loja | Minha agenda). */}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
