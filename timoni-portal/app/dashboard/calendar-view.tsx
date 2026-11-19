@@ -419,7 +419,7 @@ export function CalendarView({
     <div className="ct-clean-agenda">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         {abas}
-        <div className="ml-auto flex min-w-0 flex-col items-end text-right">
+        <div className="flex min-w-0 basis-full flex-col items-start">
           <h1 className="text-xl max-md:text-[15px] font-semibold text-[#102a83]">{title}</h1>
           <p className="capitalize text-base max-md:text-[12.5px] text-slate-500">{periodLabel}</p>
         </div>
