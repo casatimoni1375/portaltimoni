@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {useSearchParams} from "next/navigation";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
+import { companyOf } from "@/lib/empresa-pedido";
 
 const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
 
@@ -148,13 +149,15 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         const onTime = mine.filter((order) => !isLate(order));
         const chosen = query.get("unidade");
         const got = (received || []).filter((order) => columnUnits.some((unit) => unit === order.unidade) && (!chosen || chosen === "todas" || order.unidade === chosen));
-        const store = (value: string | null) => multiUnit && value ? `${value === "araras" ? "Araras" : "Rio Claro"} · ` : "";
-        const row = (key: string, name: string, line: string, onClick?: () => void) => (
-          <button type="button" key={key} onClick={onClick} className="ct-row block w-full rounded-xl border border-[#e1e6f0] bg-white px-3 py-2.5 text-left">
-            <strong className="block break-words text-[16px] text-[#182443]">{name}</strong>
+        const store = (_value: string | null) => "";
+        // 18/11: etiquetas de cor da empresa (Casa Timoni verde, Rodini amarelo, MCR laranja) e da loja.
+        const row = (key: string, name: string, line: string, onClick?: () => void, unidade?: string | null) => { const company = companyOf(name); return (
+          <button type="button" key={key} onClick={onClick} className="ct-row ct-row-tagged block w-full rounded-xl border border-[#e1e6f0] bg-white px-3 py-2.5 text-left">
+            <span className="flex items-start justify-between gap-2"><strong className="block min-w-0 break-words text-[16px] text-[#182443]">{name}</strong>
+              <span className="ct-sent-tags shrink-0">{multiUnit && unidade && <span className="ct-sent-tag is-store">{unidade === "araras" ? "Araras" : "Rio Claro"}</span>}{company && <span className={`ct-sent-tag is-${company.tone}`}>{company.label}</span>}</span></span>
             <small className="ct-row-line2 block text-[14px] text-slate-500">{line}</small>
           </button>
-        );
+        ); };
         const column = (title: string, count: string | number, tone: string, items: import("react").ReactNode, empty: boolean) => (
           <div className="min-w-0">
             <div className={`ct-sent-count rounded-xl border bg-white px-4 py-3 ${tone}`}><p className="text-base">{title}</p><strong className="ct-clean-counter">{count}</strong></div>
@@ -164,9 +167,9 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         );
         return (
           <div className="ct-sent-three mt-3 grid gap-5 md:grid-cols-3 max-md:!hidden">
-            {column("Enviados", loading && !sentOrders.length ? "–" : onTime.length, "border-[#c9d8f0] text-[#102a83]", onTime.map((order) => row(order.id, order.nome, `${store(order.unidade)}Enviado ${dateOnly(order.enviadoEm)} · previsto ${order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "sem data"}`, () => setSelected(order))), !loading && !onTime.length)}
-            {column("Atrasados", loading && !sentOrders.length ? "–" : late.length, "is-late border-[#f4b9bc] text-[#b12532]", late.map((order) => row(order.id, order.nome, `${store(order.unidade)}Previsto ${dateOnly(order.previsaoEntrega)} · enviado ${dateOnly(order.enviadoEm)}`, () => setSelected(order))), !loading && !late.length)}
-            {column("Recebidos", received === null ? "–" : got.length, "border-[#c9d8f0] text-[#102a83]", got.map((order) => row(order.id, order.nome, `${store(order.unidade)}Recebido em ${order.data ? new Date(order.data).toLocaleDateString("pt-BR") : "data não informada"}`)), received !== null && !got.length)}
+            {column("Enviados", loading && !sentOrders.length ? "–" : onTime.length, "border-[#c9d8f0] text-[#102a83]", onTime.map((order) => row(order.id, order.nome, `${store(order.unidade)}Enviado ${dateOnly(order.enviadoEm)} · previsto ${order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "sem data"}`, () => setSelected(order), order.unidade)), !loading && !onTime.length)}
+            {column("Atrasados", loading && !sentOrders.length ? "–" : late.length, "is-late border-[#f4b9bc] text-[#b12532]", late.map((order) => row(order.id, order.nome, `${store(order.unidade)}Previsto ${dateOnly(order.previsaoEntrega)} · enviado ${dateOnly(order.enviadoEm)}`, () => setSelected(order), order.unidade)), !loading && !late.length)}
+            {column("Recebidos", received === null ? "–" : got.length, "border-[#c9d8f0] text-[#102a83]", got.map((order) => row(order.id, order.nome, `${store(order.unidade)}Recebido em ${order.data ? new Date(order.data).toLocaleDateString("pt-BR") : "data não informada"}`, undefined, order.unidade)), received !== null && !got.length)}
           </div>
         );
       })()}

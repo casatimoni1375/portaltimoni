@@ -192,6 +192,7 @@ function DesktopEventRow({
   onDelete: (event: CalendarEventDTO) => void;
 }) {
   const isAllDay = !event.start.includes("T");
+  const color = CALENDAR_COLOR_FALLBACKS[event.calendarKey];
   const passou = new Date(event.end).getTime() < now;
   const concluido = Boolean(event.completed) || (passou && !event.edited);
   const time = isAllDay
@@ -200,14 +201,16 @@ function DesktopEventRow({
   return (
     // 19/11: sem etiqueta Timoni/Ciça (agendas já separadas); hora na mesma linha do compromisso.
     <div className={clsx("grid grid-cols-[110px_minmax(0,1fr)_auto] items-start gap-3 border-t border-[#edf0f6] px-4 py-2.5 first:border-t-0", concluido && "opacity-40")}>
-      <span className="text-[14px] leading-6 tabular-nums text-slate-600">{time}</span>
+      <span className="mt-[26px] text-[14px] leading-6 tabular-nums text-slate-600">{time}</span>
       <div className="min-w-0">
-        <p className="truncate text-[16px] leading-6 text-[#182443]">
+        {/* 18/11: etiqueta da agenda (Timoni / Ciça) acima do compromisso; hora alinhada com o compromisso. */}
+        <span className="inline-block h-5 rounded-full border px-2 text-[12px] font-medium leading-[18px]" style={{ color, borderColor: color }}>{event.calendarKey === "principal" ? "Ciça" : "Timoni"}</span>
+        <p className="mt-1.5 truncate text-[16px] leading-6 text-[#182443]">
           {event.summary}
         </p>
         {event.location ? <p className="truncate text-[14px] text-slate-500">{event.location}</p> : null}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="mt-[22px] flex items-center gap-2">
         <button type="button" onClick={() => onEdit(event)} className="rounded-lg border border-[#c9d8f0] bg-white px-3 py-1 text-[14px] text-[#102a83] hover:bg-[#f5f8fe]">
           Editar
         </button>
