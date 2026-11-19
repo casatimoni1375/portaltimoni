@@ -165,3 +165,7 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
   html:root:root:root:root:root:root body main input[aria-label="Pesquisar compromissos"] { min-height: 30px !important; height: 30px !important; padding-top: 2px !important; padding-bottom: 2px !important; font-size: 14px !important; }
   html:root:root:root:root body main div.relative:has(> input[aria-label="Pesquisar compromissos"]) { margin-top: 10px !important; }
 }
+/* 19/11 — Agenda Ciça (celular): cartão do compromisso um pouco maior */
+@media (max-width: 767px) {
+  html:root:root:root:root:root:root body main .ct-agenda-cica .ct-clean-agenda div.relative.flex.rounded-xl { padding: 10px 10px !important; min-height: 44px; }
+}
