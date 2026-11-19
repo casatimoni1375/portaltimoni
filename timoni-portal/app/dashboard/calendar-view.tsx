@@ -155,6 +155,8 @@ function AgendaRow({
         </p>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
           {/* 19/11: sem etiqueta Principal/Timoni — as agendas já ficam separadas (Loja | Minha agenda). */}
+          {/* 19/11: no celular (cartão compacto) o horário aparece abaixo do compromisso; "Dia todo" quando for o dia inteiro. */}
+          {compact && <span className="ct-agenda-time shrink-0 md:hidden">{time}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>

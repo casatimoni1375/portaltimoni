@@ -412,6 +412,7 @@ html body .ct-notice-row.ct-notice-row .ct-notice-subline { font-size: 11px !imp
   /* 19/11: Agenda Timoni = etiqueta azul; Agenda Ciça = etiqueta amarela */
   :root:root body .ct-agenda-tag.is-timoni { color: #102a83; border-color: #9fbbe8; background: #eef5ff; }
   :root:root body .ct-agenda-tag.is-principal { color: #7a5200; border-color: #f0d19a; background: #fff4cc; }
+  :root:root body .ct-agenda-time { font-size: 14px !important; font-weight: 600; color: #102a83; }
   :root:root body .ct-agenda-tag.is-done { color: #166534; border-color: #bfe3cb; background: #e7f6ec; }
   :root:root body .ct-clean-agenda .ct-agenda-side :is(button, a)[class*="min-h-11"] { min-height: 22px !important; padding: 1px 7px !important; font-size: 12px !important; border-radius: 6px !important; }
   :root:root body .ct-clean-agenda .ct-agenda-side > div { gap: 4px !important; }
