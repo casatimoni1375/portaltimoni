@@ -169,3 +169,9 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
 @media (max-width: 767px) {
   html:root:root:root:root:root:root body main .ct-agenda-cica .ct-clean-agenda div.relative.flex.rounded-xl { padding: 10px 10px !important; min-height: 44px; }
 }
+/* 19/11 — Pedidos de compra (celular): cartão com nome em cima e datas embaixo, um pouco maior */
+@media (max-width: 767px) {
+  html:root:root:root:root:root:root body main .ct-sent-card { display: block !important; padding: 8px 10px !important; margin: 0 0 6px !important; text-align: left !important; }
+  html:root:root:root:root:root:root body main .ct-sent-card > b { display: block !important; font-size: 13px !important; font-weight: 600 !important; }
+  html:root:root:root:root:root:root body main .ct-sent-card > small { display: block !important; margin-top: 2px; font-size: 12px !important; }
+}
