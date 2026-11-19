@@ -430,3 +430,8 @@ html:root:root:root:root body main :is(.ct-compras-count.is-urgent, .ct-sent-cou
 html:root:root:root:root body main :is(.ct-compras-count.is-urgent > p, .ct-sent-count.is-late > p, .ct-sent-count.is-late > strong, .ct-clean-metric.ct-clean-late > strong, .ct-clean-metric.ct-clean-late > span) { color: #b12532 !important; }
 html:root:root:root:root body main .ct-clean-metric.ct-clean-urgent { border-color: #f0d19a !important; }
 html:root:root:root:root body main :is(.ct-clean-metric.ct-clean-urgent > strong, .ct-clean-metric.ct-clean-urgent > span) { color: #996000 !important; }
+
+/* 19/11 — Etiquetas sempre sem contorno (pedido da Ciça). Celular, todas as páginas menos Motorista. */
+@media (max-width: 767px) {
+  html:root:root:root:root body main:where(:not(:has(.ct-motorista-page))) :is(span.rounded-full, .ct-clean-badge, .ct-agenda-tag, .ct-notice-tag, .ct-notice-stamp, .ct-sent-tag, .ct-rt-tag) { border: 0 !important; box-shadow: none !important; }
+}
