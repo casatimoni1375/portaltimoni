@@ -151,12 +151,12 @@ function AgendaRow({
       {!compact && <span className="w-[92px] shrink-0 text-[15px] font-medium tabular-nums text-slate-600">{time}</span>}
       <div className="min-w-0 flex-1">
         <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
+          {/* 19/11: no celular (cartão compacto) horário e compromisso na mesma linha; "Dia todo" quando for o dia inteiro. */}
+          {compact && <span className="ct-agenda-time md:hidden">{time} </span>}
           {event.summary}
         </p>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
           {/* 19/11: sem etiqueta Principal/Timoni — as agendas já ficam separadas (Loja | Minha agenda). */}
-          {/* 19/11: no celular (cartão compacto) o horário aparece abaixo do compromisso; "Dia todo" quando for o dia inteiro. */}
-          {compact && <span className="ct-agenda-time shrink-0 md:hidden">{time}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
