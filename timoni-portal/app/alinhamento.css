@@ -137,6 +137,9 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
   html:root:root:root:root body .ct-today-azul section.ct-clean-card h2,
   html:root:root:root:root body .ct-today-azul section.ct-clean-card .ct-clean-people-group > h2 { font-size: 18px !important; }
   html:root:root:root:root body .ct-today-azul .ct-clean-card-heading > :is(a, button) { font-size: 14px !important; }
+  /* Abrir agenda: botão sem contorno, na cor da agenda — Timoni azul, Ciça amarelo */
+  html:root:root:root:root body .ct-today-azul section.ct-tone-blue .ct-clean-card-heading > a { border: 0 !important; background: #dbe8ff !important; color: #102a83 !important; }
+  html:root:root:root:root body .ct-today-azul section.ct-tone-purple .ct-clean-card-heading > a { border: 0 !important; background: #fff4cc !important; color: #7a5200 !important; }
   html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row,
   html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row span,
   html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row b { font-size: 15px !important; }
