@@ -1,5 +1,5 @@
 import { getAccessTokenFromRefreshToken } from "@/lib/google-calendar";
-import { rotatingStockFilterTitle, rotatingStockRowFilter } from "@/lib/rotativo-filter";
+import { rotatingStockCodeFilter, rotatingStockFilterTitle } from "@/lib/rotativo-filter";
 import { requireModuleAuthorization } from "@/lib/authorization-server";
 import { canRotativoOperation, rotativoAction, type RotativoRole } from "@/lib/module-authorization";
 import type { PortalUser } from "@/lib/access-control";
@@ -897,7 +897,12 @@ async function ensureRotatingStockFilterView(
 
   const title = rotatingStockFilterTitle(updateId, supplierName);
   const existing = sheet?.filterViews?.find((filterView) => filterView.title === title);
-  const spec = rotatingStockRowFilter(targetRows, rowCount);
+  const codes = await sheets.spreadsheets.values.get({
+    spreadsheetId: ROTATING_STOCK_CENTRAL.spreadsheetId,
+    range: `${ROTATING_STOCK_CENTRAL.sheetName}!B2:B${rowCount}`,
+    valueRenderOption: "FORMATTED_VALUE",
+  });
+  const spec = rotatingStockCodeFilter((codes.data.values || []) as unknown[][], targetRows.filter((row) => row <= rowCount));
   if (existing?.filterViewId != null) {
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId: ROTATING_STOCK_CENTRAL.spreadsheetId,
