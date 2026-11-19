@@ -129,22 +129,22 @@ html:root:root body main .ct-today-boxes .ct-metric-link > span { white-space: n
 /* A lista de viagens fica no box Motorista (o box leva à agenda do motorista). */
 html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
 
-/* 19/11 — Celular, tela Hoje: fontes dos cards maiores (+2px), pedido da Ciça. Desktop não muda. */
+/* 19/11 — Celular, tela Hoje: fontes dos cards maiores (+3px), pedido da Ciça. Desktop não muda. */
 @media (max-width: 767px) {
-  html:root:root:root:root body main .ct-clean-metric > strong { font-size: 20px !important; }
-  html:root:root:root:root body main .ct-clean-metric > span { font-size: 13px !important; }
+  html:root:root:root:root body main .ct-clean-metric > strong { font-size: 22px !important; }
+  html:root:root:root:root body main .ct-clean-metric > span { font-size: 14px !important; }
   html:root:root:root:root body .ct-today-azul section.ct-clean-card h2,
-  html:root:root:root:root body .ct-today-azul section.ct-clean-card .ct-clean-people-group > h2 { font-size: 17px !important; }
-  html:root:root:root:root body .ct-today-azul .ct-clean-card-heading > :is(a, button) { font-size: 13px !important; }
+  html:root:root:root:root body .ct-today-azul section.ct-clean-card .ct-clean-people-group > h2 { font-size: 18px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-clean-card-heading > :is(a, button) { font-size: 14px !important; }
   html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row,
   html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row span,
-  html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row b { font-size: 14px !important; }
-  html:root:root:root:root body .ct-today-azul .ct-clean-muted { font-size: 13px !important; }
-  html:root:root:root:root body .ct-today-azul .ct-clean-action-row strong { font-size: 14px !important; }
-  html:root:root:root:root body .ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 13px !important; }
-  html:root:root:root:root body .ct-today-azul :is(.ct-notice-date, .ct-notice-scope, .ct-notice-headline, .ct-notice-subline, .ct-notice-archive > button) { font-size: 13px !important; }
-  html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child h3 { font-size: 17px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-clean-calendar-row b { font-size: 15px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-clean-muted { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-clean-action-row strong { font-size: 15px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul :is(.ct-notice-date, .ct-notice-scope, .ct-notice-headline, .ct-notice-subline, .ct-notice-archive > button) { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child h3 { font-size: 18px !important; }
   html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child :is(p, span),
-  html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child + div > div > p:is(:first-child, :nth-child(3)) { font-size: 13px !important; }
-  html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child + div > div > p:nth-child(2) { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child + div > div > p:is(:first-child, :nth-child(3)) { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child + div > div > p:nth-child(2) { font-size: 15px !important; }
 }
