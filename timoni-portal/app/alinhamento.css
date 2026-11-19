@@ -131,6 +131,7 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
 
 /* 19/11 — Celular, tela Hoje: fontes dos cards maiores (+3px), pedido da Ciça. Desktop não muda. */
 @media (max-width: 767px) {
+  html:root:root:root:root body main .ct-clean-metric { padding: 6px 12px !important; gap: 2px !important; }
   html:root:root:root:root body main .ct-clean-metric > strong { font-size: 22px !important; }
   html:root:root:root:root body main .ct-clean-metric > span { font-size: 14px !important; }
   html:root:root:root:root body .ct-today-azul section.ct-clean-card h2,
