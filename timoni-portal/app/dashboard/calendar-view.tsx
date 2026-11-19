@@ -154,7 +154,7 @@ function AgendaRow({
           {event.summary}
         </p>
         <span className="ct-agenda-tags md:hidden">
-          <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
+          <span className={`ct-agenda-tag is-${event.calendarKey}`}>{event.calendarLabel}</span>
         </span>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
           {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
