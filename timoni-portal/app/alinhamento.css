@@ -175,7 +175,3 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
   html:root:root:root:root:root:root body main .ct-sent-card > b { display: block !important; font-size: 13px !important; font-weight: 600 !important; }
   html:root:root:root:root:root:root body main .ct-sent-card > small { display: block !important; margin-top: 2px; font-size: 12px !important; }
 }
-/* 19/11 — Motorista (desktop): data do cabeçalho menor */
-@media (min-width: 768px) {
-  html:root:root:root:root:root:root body main p.ct-motorista-data { font-size: 17px !important; line-height: 1.3 !important; }
-}
