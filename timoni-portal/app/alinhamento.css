@@ -160,3 +160,8 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
   html:root:root:root:root:root:root body main .ct-agenda-side :is(button, a)[class*="min-h-11"] { min-height: 22px !important; height: 22px !important; padding: 0 7px !important; font-size: 11px !important; line-height: 1 !important; border-radius: 6px !important; }
   html:root:root:root:root:root:root body main .ct-agenda-side > div { gap: 4px !important; }
 }
+/* 19/11 — Agenda (celular): campo de pesquisa mais baixo */
+@media (max-width: 767px) {
+  html:root:root:root:root:root:root body main input[aria-label="Pesquisar compromissos"] { min-height: 30px !important; height: 30px !important; padding-top: 2px !important; padding-bottom: 2px !important; font-size: 14px !important; }
+  html:root:root:root:root body main div.relative:has(> input[aria-label="Pesquisar compromissos"]) { margin-top: 10px !important; }
+}
