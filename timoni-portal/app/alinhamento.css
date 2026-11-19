@@ -143,7 +143,9 @@ html:root:root body main .ct-today-v2 .ct-trips-v2 { display: none !important; }
   html:root:root:root:root body .ct-today-azul .ct-clean-muted { font-size: 14px !important; }
   html:root:root:root:root body .ct-today-azul .ct-clean-action-row strong { font-size: 15px !important; }
   html:root:root:root:root body .ct-today-azul .ct-clean-action-row .ct-clean-action { font-size: 14px !important; }
-  html:root:root:root:root body .ct-today-azul :is(.ct-notice-date, .ct-notice-scope, .ct-notice-headline, .ct-notice-subline, .ct-notice-archive > button) { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul :is(.ct-notice-date, .ct-notice-scope, .ct-notice-subline, .ct-notice-archive > button) { font-size: 14px !important; }
+  html:root:root:root:root body .ct-today-azul .ct-notice-headline { font-size: 15px !important; }
+  html:root:root:root:root body .ct-today-azul :is(.ct-notice-tag, .ct-notice-stamp) { font-size: 12px !important; }
   html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child h3 { font-size: 18px !important; }
   html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child :is(p, span),
   html:root:root:root:root body .ct-today-azul .ct-meeting-card > :first-child + div > div > p:is(:first-child, :nth-child(3)) { font-size: 14px !important; }
