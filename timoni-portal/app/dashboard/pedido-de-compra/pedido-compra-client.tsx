@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {useSearchParams} from "next/navigation";
 import { createScreenRequest, ScreenRequestError } from "@/lib/screen-request";
-import { companyOf } from "@/lib/empresa-pedido";
 
 const PedidoDetalhes = dynamic(() => import("./pedido-detalhes"), { ssr: false });
 
@@ -12,7 +11,8 @@ type RequestUnit = "rio_claro" | "araras";
 type SentOrder = { id: string; nome: string; enviadoEm: string; previsaoEntrega: string; unidade: RequestUnit };
 type PurchaseException = { id: string; nome: string; unidade: RequestUnit; tipo: "sem_previsao" | "atrasado"; previsaoEntrega: string };
 function unitLabel(unit: RequestUnit) { return unit === "araras" ? "Araras" : "Rio Claro"; }
-function shortDate(value: string) { const full = dateOnly(value); return /^\d{2}\/\d{2}\/\d{4}$/.test(full) ? full.slice(0, 5) : full; }
+// 19/11: datas curtas dd/mm/aa nas linhas dos pedidos ("10/11/26 - 19/11/26").
+function yy(value: string | null | undefined) { if (!value) return "sem data"; const full = dateOnly(value); return /^\d{2}\/\d{2}\/\d{4}$/.test(full) ? `${full.slice(0, 6)}${full.slice(8)}` : full; }
 function dateOnly(value: string) {
   if (!value) return "Sem data";
   const d = new Date(value);
@@ -31,7 +31,6 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [mobileStatus, setMobileStatus] = useState<"todos" | "enviados" | "atrasados">("todos");
   // 18/11 (Ciça): todos os acessos de Compras veem três colunas — Enviados (no prazo) | Atrasados | Recebidos.
   const singleUnit = true;
-  const multiUnit = (["rio_claro", "araras"] as const).filter((unit) => visibleUnits.includes(unit)).length > 1;
   const [received, setReceived] = useState<Array<{ id: string; nome: string; unidade: string | null; data: string | null }> | null>(null);
   useEffect(() => {
     if (!singleUnit) return;
@@ -129,15 +128,10 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
           const pool = visibleOrders;
           const late = pool.filter(isLate);
           const onTime = pool.filter(order => !isLate(order));
-          const card = (order: SentOrder, lateCard: boolean) => { const company = companyOf(order.nome); return (
+          const card = (order: SentOrder, lateCard: boolean) => { return (
             <button type="button" key={order.id} onClick={() => setSelected(order)} className={`ct-sent-card${lateCard ? " is-late" : ""}`}>
               <b>{order.nome}</b>
-              <span className="ct-sent-tags">
-                <span className="ct-sent-tag is-store">{unitLabel(order.unidade)}</span>
-                {company && <span className={`ct-sent-tag is-${company.tone}`}>{company.label}</span>}
-                {lateCard ? <span className="ct-sent-tag is-late">Atrasado</span> : !order.previsaoEntrega ? <span className="ct-sent-tag is-nodate">Sem data</span> : null}
-              </span>
-              <small>Envio {shortDate(order.enviadoEm)} · Entrega {order.previsaoEntrega ? shortDate(order.previsaoEntrega) : "sem data"}</small>
+              <small>{yy(order.enviadoEm)} - {yy(order.previsaoEntrega)}</small>
             </button>
           ); };
           return <div className={`ct-sent-cols${mobileStatus !== "todos" ? " is-single" : ""}`}>
@@ -153,11 +147,10 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         const onTime = mine.filter((order) => !isLate(order));
         const chosen = query.get("unidade");
         const got = (received || []).filter((order) => columnUnits.some((unit) => unit === order.unidade) && (!chosen || chosen === "todas" || order.unidade === chosen));
-        const store = (value: string | null) => multiUnit && value ? `${value === "araras" ? "Araras" : "Rio Claro"} · ` : "";
         const row = (key: string, name: string, line: string, onClick?: () => void) => (
           <button type="button" key={key} onClick={onClick} className="ct-row block w-full rounded-xl border border-[#e1e6f0] bg-white px-3 py-2.5 text-left">
-            <strong className="block break-words text-[16px] text-[#182443]">{name}</strong>
-            <small className="ct-row-line2 block text-[14px] text-slate-500">{line}</small>
+            <strong className="block break-words text-[14px] font-semibold text-[#182443]">{name}</strong>
+            <small className="ct-row-line2 block text-[13px] text-slate-500">{line}</small>
           </button>
         );
         const column = (title: string, count: string | number, tone: string, items: import("react").ReactNode, empty: boolean) => (
@@ -169,9 +162,9 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         );
         return (
           <div className="ct-sent-three mt-3 grid gap-5 md:grid-cols-3 max-md:!hidden">
-            {column("Enviados", loading && !sentOrders.length ? "–" : onTime.length, "border-[#c9d8f0] text-[#102a83]", onTime.map((order) => row(order.id, order.nome, `${store(order.unidade)}Enviado ${dateOnly(order.enviadoEm)} · previsto ${order.previsaoEntrega ? dateOnly(order.previsaoEntrega) : "sem data"}`, () => setSelected(order))), !loading && !onTime.length)}
-            {column("Atrasados", loading && !sentOrders.length ? "–" : late.length, "is-late border-[#f4b9bc] text-[#b12532]", late.map((order) => row(order.id, order.nome, `${store(order.unidade)}Previsto ${dateOnly(order.previsaoEntrega)} · enviado ${dateOnly(order.enviadoEm)}`, () => setSelected(order))), !loading && !late.length)}
-            {column("Recebidos", received === null ? "–" : got.length, "border-[#c9d8f0] text-[#102a83]", got.map((order) => row(order.id, order.nome, `${store(order.unidade)}Recebido em ${order.data ? new Date(order.data).toLocaleDateString("pt-BR") : "data não informada"}`)), received !== null && !got.length)}
+            {column("Enviados", loading && !sentOrders.length ? "–" : onTime.length, "border-[#c9d8f0] text-[#102a83]", onTime.map((order) => row(order.id, order.nome, `${yy(order.enviadoEm)} - ${yy(order.previsaoEntrega)}`, () => setSelected(order))), !loading && !onTime.length)}
+            {column("Atrasados", loading && !sentOrders.length ? "–" : late.length, "is-late border-[#f4b9bc] text-[#b12532]", late.map((order) => row(order.id, order.nome, `${yy(order.enviadoEm)} - ${yy(order.previsaoEntrega)}`, () => setSelected(order))), !loading && !late.length)}
+            {column("Recebidos", received === null ? "–" : got.length, "border-[#c9d8f0] text-[#102a83]", got.map((order) => row(order.id, order.nome, order.data ? new Date(order.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "sem data")), received !== null && !got.length)}
           </div>
         );
       })()}
