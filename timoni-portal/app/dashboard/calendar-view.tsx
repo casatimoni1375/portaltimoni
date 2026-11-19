@@ -348,8 +348,9 @@ export function CalendarView({
         ? `${format(dateFromKey(range.startKey), "dd/MM")} – ${format(dateFromKey(addDaysKey(range.startKey, 6)), "dd/MM/yyyy")}`
         : format(dateFromKey(monthStartKey(anchorKey)), "MMMM 'de' yyyy", { locale: ptBR });
 
-  const previousLabel = view === "dia" ? "← Dia anterior" : view === "semana" ? "← Semana anterior" : "← Mês anterior";
-  const nextLabel = view === "dia" ? "Próximo dia →" : view === "semana" ? "Próxima semana →" : "Próximo mês →";
+  // 19/11: botões curtos em todas as agendas.
+  const previousLabel = "← Anterior";
+  const nextLabel = "Próximo →";
 
   function changeView(next: ViewMode) {
     setView(next);
