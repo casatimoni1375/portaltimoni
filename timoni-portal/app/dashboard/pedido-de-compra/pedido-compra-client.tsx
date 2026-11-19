@@ -148,7 +148,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         const chosen = query.get("unidade");
         const got = (received || []).filter((order) => columnUnits.some((unit) => unit === order.unidade) && (!chosen || chosen === "todas" || order.unidade === chosen));
         const row = (key: string, name: string, line: string, onClick?: () => void) => (
-          <button type="button" key={key} onClick={onClick} className="ct-row block w-full rounded-xl border border-[#e1e6f0] bg-white px-3 py-2.5 text-left">
+          <button type="button" key={key} onClick={onClick} className="ct-row block w-full rounded-xl border border-[#e1e6f0] bg-white px-4 py-3.5 text-left">
             <strong className="block break-words text-[14px] font-semibold text-[#182443]">{name}</strong>
             <small className="ct-row-line2 block text-[13px] text-slate-500">{line}</small>
           </button>
