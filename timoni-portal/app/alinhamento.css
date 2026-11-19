@@ -185,6 +185,7 @@ html:root:root:root:root:root:root body main p.ct-agenda-periodo { font-size: 15
 @media (max-width: 767px) {
   html:root:root:root:root:root:root body main h1.ct-agenda-titulo { font-size: 21px !important; }
   html:root:root:root:root:root:root body main p.ct-agenda-periodo { font-size: 16px !important; }
+}
 /* 18/11 — Pedidos de compra (desktop): etiquetas de empresa e loja nas linhas. */
 @media (min-width: 768px) {
   html:root:root body main .ct-row-tagged .ct-sent-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
