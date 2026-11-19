@@ -153,16 +153,16 @@ function AgendaRow({
         <p className={clsx("truncate text-[17px] font-medium text-[#182443]", !compact && "md:pr-24")}>
           {event.summary}
         </p>
+        <span className="ct-agenda-tags md:hidden">
+          <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
+        </span>
         <p className="flex min-w-0 items-center gap-2 text-sm max-md:text-[11px] text-slate-500">
           {compact ? <span className="shrink-0 text-[10px] font-semibold leading-none max-md:hidden" style={{ color }}>{event.calendarLabel}</span> : <span className="hidden shrink-0 text-[13px] font-semibold leading-none md:inline" style={{ color }}>{event.calendarLabel}</span>}
           {event.location ? <span className="truncate">{event.location}</span> : null}
         </p>
       </div>
-      {/* Celular (18/11): coluna da direita com as etiquetas em cima e os botões menores embaixo. */}
+      {/* Celular: coluna da direita só com os botões; a etiqueta da agenda fica abaixo do compromisso (19/11). */}
       <div className="ct-agenda-side flex shrink-0 flex-col items-end gap-1 md:contents">
-        <span className="ct-agenda-tags md:hidden">
-          <span className="ct-agenda-tag" style={{ color, borderColor: color }}>{event.calendarLabel}</span>
-        </span>
       <div className={clsx("flex shrink-0 gap-2", compact && "flex-col max-md:flex-row")}>
           <Button className="min-h-11 px-3 text-base max-md:text-[12.5px] lg:min-h-9 lg:text-sm" variant="secondary" onClick={() => onEdit(event)}>
             Editar
