@@ -818,7 +818,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 {/* 18/11: sem o rótulo "Agenda do dia"; a data é o destaque. */}
-                <p className="text-lg max-md:text-[14px] font-semibold text-slate-950">{dataSelecionada.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</p>
+                <p className="ct-motorista-data text-lg max-md:text-[14px] font-semibold text-slate-950">{dataSelecionada.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</p>
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setSelecionado(localDateString(new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate() - 1)))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">← Dia anterior</button>
