@@ -13,7 +13,7 @@ type CalendarEvent={id:string;summary:string;start:string;end:string;allDay:bool
 type Source={
  orders?:{pedidosEnviados:Order[];stale?:boolean};
  purchases?:{suppliers?:Supplier[];configured?:boolean;summary?:{pedidosParaFazer?:number;enviadosRioClaro?:number;enviadosAraras?:number}};
- trips?:{viagens:Trip[]};
+ trips?:{dias?:{data:string;viagens:Trip[]}[]};
  people?:{events:DateItem[];meetings:Array<{id:string;title:string;date:string;time:string}>};
  agenda?:{events:CalendarEvent[]};
  estoque?:{necessidades:Array<{status:string;unidade:string;chegouEm:string}>};
@@ -46,7 +46,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
   const run=async()=>{if(pending||document.hidden)return;pending=true;const day=todayKey();const sources:Array<[keyof Source,string]>=[];
    if(caps.orders)sources.push(["orders","/api/pedido-de-compra"]);
    if(caps.purchases)sources.push(["purchases","/api/compras"]);
-   if(caps.trips)sources.push(["trips",`/api/agenda-motorista?action=dia&data=${day}`]);
+   // 21/11: Viagens programadas = hoje + próximos 3 dias (pedido da Ciça); o box "Viagens hoje" usa só o dia de hoje.
+   if(caps.trips)sources.push(["trips",`/api/motorista-agenda?inicio=${day}&dias=4`]);
    if(caps.shortcuts?.estoque)sources.push(["estoque","/api/estoque"]);
    if(caps.people)sources.push(["people",`/api/hoje/equipe?unidade=${unit}`]);
    if(caps.agenda)sources.push(["agenda",`/api/events?calendarKey=${caps.agenda}&timeMin=${encodeURIComponent(`${day}T00:00:00-03:00`)}&timeMax=${encodeURIComponent(`${addDays(day,1)}T00:00:00-03:00`)}`]);
@@ -70,7 +71,10 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const lateOrders=sentOrders.filter(order=>order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<todayKey());
  const urgent=(data.purchases?.suppliers||[]).filter(item=>item.urgent&&allowed(item.unit));
  // Um motorista só: todas as viagens do dia aparecem, de qualquer empresa.
- const trips=(data.trips?.viagens||[]).filter(trip=>!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||""));
+ const pendingTrip=(trip:Trip)=>!trip.checkoutEm&&!/[Cc]onclu[ií]d|[Ff]inalizad|[Cc]ancelad|[Ee]ntregue/.test(trip.status||"");
+ const tripDays=(data.trips?.dias||[]).map(day=>({data:day.data,viagens:(day.viagens||[]).filter(pendingTrip)})).filter(day=>day.viagens.length>0);
+ const trips=tripDays.find(day=>day.data===todayKey())?.viagens||[];
+ const tripDayLabel=(day:string)=>{const today=todayKey();if(day===today)return "Hoje";if(day===addDays(today,1))return "Amanhã";const text=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",weekday:"short",day:"2-digit",month:"2-digit"}).format(new Date(`${day}T12:00:00-03:00`)).replace(".","");return text.charAt(0).toUpperCase()+text.slice(1);};
  // 18/11: acessos de uma loja veem Aniversários e Férias das duas lojas; a gestão filtra pelo seletor.
  const events=(data.people?.events||[]).filter(item=>defaultUnit!=="todas"||allowed(item.unit)||item.unit==="geral");
  const agendaEvents=[...(data.agenda?.events||[])].sort((a,b)=>Number(b.allDay)-Number(a.allDay)||a.start.localeCompare(b.start));
@@ -109,8 +113,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const agendaCard=capabilities.agenda&&<Link href={agendaHref} className="ct-clean-metric ct-clean-normal"><strong>{waiting("agenda")?"–":agendaCount}</strong><span>{capabilities.agenda==="principal"?"Compromissos hoje":"Agenda CT hoje"}</span></Link>;
  const tripsList=capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>Ver agenda</Link></div>
   {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
-  {!waiting("trips")&&!trips.length&&<p className="ct-clean-muted">Nenhuma viagem pendente hoje.</p>}
-  {trips.map((trip,index)=>{const bloqueio=trip.tipoHorario==="Bloqueio";const hora=trip.horario?(trip.horarioFim?`${trip.horario.slice(0,5)}–${trip.horarioFim.slice(0,5)}`:trip.horario.slice(0,5)):`${(Number.isFinite(trip.ordem)?Number(trip.ordem):index)+1}ª`;const texto=bloqueio?"Motorista bloqueado":[trip.clienteFornecedor,trip.numeroPedido?`NF ${trip.numeroPedido}`:"",trip.loja].filter(Boolean).join(" · ")||"Viagem sem cliente informado";return <Link className="ct-clean-calendar-row" key={trip.id||index} href={`/dashboard/motorista?data=${todayKey()}`}><b>{hora}</b><span>{texto}</span></Link>;})}
+  {!waiting("trips")&&!tripDays.length&&<p className="ct-clean-muted">Nenhuma viagem programada até {tripDayLabel(addDays(todayKey(),3)).toLowerCase()}.</p>}
+  {tripDays.map(day=><div className="ct-trips-day" key={day.data}><h3>{tripDayLabel(day.data)}</h3>{day.viagens.map((trip,index)=>{const bloqueio=trip.tipoHorario==="Bloqueio";const hora=trip.horario?(trip.horarioFim?`${trip.horario.slice(0,5)}–${trip.horarioFim.slice(0,5)}`:trip.horario.slice(0,5)):`${(Number.isFinite(trip.ordem)?Number(trip.ordem):index)+1}ª`;const texto=bloqueio?"Motorista bloqueado":[trip.clienteFornecedor,trip.numeroPedido?`NF ${trip.numeroPedido}`:"",trip.loja].filter(Boolean).join(" · ")||"Viagem sem cliente informado";return <Link className="ct-clean-calendar-row" key={trip.id||index} href={`/dashboard/motorista?data=${day.data}`}><b>{hora}</b><span>{texto}</span></Link>;})}</div>)}
  </section>;
  const peopleBlock=events.length>0&&<section className="ct-clean-card">
   {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}

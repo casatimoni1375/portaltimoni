@@ -751,3 +751,8 @@ html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first
 }
 /* Faixa do título ocupa a largura toda mesmo quando o bloco do título tem largura máxima (ex.: Equipe). */
 @media(min-width:768px){html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card)>:first-child{max-width:none!important;}}
+
+/* 21/11: Viagens programadas agrupadas por dia (hoje + 3 dias). */
+main .ct-trips-day h3{color:var(--ct-clean-muted);font-size:var(--ct-font-caption)!important;font-weight:600!important;margin:12px 0 2px;}
+main .ct-trips-day:first-of-type h3{margin-top:0;}
+.ct-trips-day+.ct-trips-day{border-top:1px solid #edf0f6;margin-top:6px;padding-top:4px;}
