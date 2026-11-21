@@ -148,10 +148,11 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
 
   {/* 18/11: boxes no padrão dos contadores — Motorista | Pedidos enviados | Pedidos atrasados, conforme a permissão. */}
   {(capabilities.pendingBox||capabilities.trips||capabilities.orders||capabilities.purchases||capabilities.shortcuts?.estoque)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
-   {capabilities.pendingBox&&!capabilities.purchases?<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":toDoCount}</strong><span>Pedidos a fazer</span></Link>:tripsCard}
-   {/* 18/11: quem faz pedidos (Compras) vê "Pedidos a fazer"; os demais continuam com "Pedidos enviados". */}
-   {capabilities.purchases?<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":pendingCount}</strong><span>Pedidos a fazer</span></Link>
-    :capabilities.orders&&allOrders&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
+   {/* 21/11 (Ciça): boxes Pedidos a fazer | Pedidos enviados (em andamento) | Pedidos atrasados, cada um pela sua permissão; no acesso dela, Pedidos a fazer ocupa o lugar de Viagens hoje. */}
+   {!capabilities.pendingBox&&tripsCard}
+   {(capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":toDoCount}</strong><span>Pedidos a fazer</span></Link>}
+   {/* Demais acessos com Compras seguem só com "Pedidos a fazer" (regra de 18/11). */}
+   {capabilities.orders&&allOrders&&(!capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
    {capabilities.orders&&<Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`} className={`ct-clean-metric ${lateOrders.length?"ct-clean-late":"ct-clean-normal"}`}><strong>{waiting("orders")?"–":lateOrders.length}</strong><span>Pedidos atrasados</span></Link>}
    {capabilities.shortcuts?.estoque&&<Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"–":stockCount}</strong><span>Estoque</span></Link>}
   </section>}
