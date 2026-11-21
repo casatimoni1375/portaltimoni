@@ -29,6 +29,10 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   const [sentOrders, setSentOrders] = useState<SentOrder[]>([]);
   const [, setExceptions] = useState<PurchaseException[]>([]);
   const [selected, setSelected] = useState<{ id: string; nome: string } | null>(null);
+  // 21/11 (Ciça): filtro por fornecedor digitado — só filtra o que já está na tela, sem consulta nova.
+  const [busca, setBusca] = useState("");
+  const norm = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const matches = (name: string) => !norm(busca) || norm(name).includes(norm(busca));
   const [mobileStatus, setMobileStatus] = useState<"todos" | "enviados" | "atrasados">("todos");
   // 18/11 (Ciça): todos os acessos de Compras veem três colunas — Enviados (no prazo) | Atrasados | Recebidos.
   const singleUnit = true;
@@ -92,7 +96,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
   }, [unitKey]);
 
   useEffect(()=>{const id=query.get("pedido");if(id){const order=sentOrders.find(item=>item.id===id);if(order)setSelected(order);}},[query,sentOrders]);
-  const visibleOrders=sentOrders.filter(order=>(!query.get("unidade")||query.get("unidade")==="todas"||order.unidade===query.get("unidade"))&&(query.get("filtro")!=="atrasados"||(order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())))).sort((a,b)=>(a.previsaoEntrega||"9999").localeCompare(b.previsaoEntrega||"9999"));
+  const visibleOrders=sentOrders.filter(order=>matches(order.nome)&&(!query.get("unidade")||query.get("unidade")==="todas"||order.unidade===query.get("unidade"))&&(query.get("filtro")!=="atrasados"||(order.previsaoEntrega&&order.previsaoEntrega.slice(0,10)<new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())))).sort((a,b)=>(a.previsaoEntrega||"9999").localeCompare(b.previsaoEntrega||"9999"));
   const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const isLate = (order: SentOrder) => Boolean(order.previsaoEntrega) && order.previsaoEntrega.slice(0, 10) < todayKey;
   const orderTone = (_order: SentOrder) => "border-[#e1e6f0]";
@@ -103,6 +107,10 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
     <section className="ct-compras-tab ct-clean-card">
       <div className="ct-clean-card-heading">
         <h2>Pedidos de compra</h2>
+        <div className="ct-sent-search ml-auto mr-2 flex items-center gap-1 rounded-lg border border-[#c9d8f0] bg-white px-2 max-md:mr-0 max-md:mt-2 max-md:w-full">
+          <input type="search" value={busca} onChange={event => setBusca(event.target.value)} placeholder="Filtrar fornecedor" aria-label="Filtrar por fornecedor" className="w-56 bg-transparent py-1.5 text-[14px] text-[#182443] outline-none max-md:w-full" />
+          {busca && <button type="button" onClick={() => setBusca("")} aria-label="Limpar filtro" className="px-1 text-slate-400 hover:text-slate-600">×</button>}
+        </div>
         <button type="button" onClick={() => void request.current?.run({ urgent: true, force: true })} disabled={loading} className="ct-clean-action">Atualizar lista</button>
       </div>
       {error && <p role="alert" className="ct-notice-error">{error}</p>}
@@ -148,7 +156,7 @@ export default function PedidoCompraClient({ visibleUnits }: { visibleUnits: Req
         const late = mine.filter(isLate);
         const onTime = mine.filter((order) => !isLate(order));
         const chosen = query.get("unidade");
-        const got = (received || []).filter((order) => columnUnits.some((unit) => unit === order.unidade) && (!chosen || chosen === "todas" || order.unidade === chosen));
+        const got = (received || []).filter((order) => matches(order.nome) && columnUnits.some((unit) => unit === order.unidade) && (!chosen || chosen === "todas" || order.unidade === chosen));
         const store = (_value: string | null) => "";
         // 18/11: etiquetas de cor da empresa (Casa Timoni verde, Rodini amarelo, MCR laranja) e da loja.
         const row = (key: string, name: string, line: string, onClick?: () => void, unidade?: string | null) => { const company = companyOf(name); return (
