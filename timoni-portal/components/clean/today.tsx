@@ -27,7 +27,7 @@ type Source={
  * - trips: card "Viagens do motorista hoje" (atalho clicável para a agenda do Motorista)
  * - people: Aniversários e Férias
  */
-export type TodayCapabilities={orders:boolean;ordersMode?:"atrasados"|"todos";purchases:boolean;comprasEnviadosTodas?:boolean;trips:boolean;tripsCreate:boolean;people:boolean;agenda:"principal"|"timoni"|null;shortcuts?:{estoque:boolean;equipe:boolean;vendas:boolean}};
+export type TodayCapabilities={pendingBox?:boolean;orders:boolean;ordersMode?:"atrasados"|"todos";purchases:boolean;comprasEnviadosTodas?:boolean;trips:boolean;tripsCreate:boolean;people:boolean;agenda:"principal"|"timoni"|null;shortcuts?:{estoque:boolean;equipe:boolean;vendas:boolean}};
 
 const todayKey=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const formatDate=(value:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit"}).format(new Date(value.includes("T")?value:`${value}T12:00:00-03:00`));
@@ -39,13 +39,13 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const params=useSearchParams();const requested=params.get("unidade");
  const unit=defaultUnit==="todas"&&["rio_claro","araras","todas"].includes(requested||"")?requested!:defaultUnit;
  const [data,setData]=useState<Source>({}),[errors,setErrors]=useState<Record<string,string>>({});
- const [loading,setLoading]=useState<Record<string,boolean>>({orders:capabilities.orders,purchases:capabilities.purchases,trips:capabilities.trips,people:capabilities.people,agenda:Boolean(capabilities.agenda),estoque:Boolean(capabilities.shortcuts?.estoque)});
+ const [loading,setLoading]=useState<Record<string,boolean>>({orders:capabilities.orders,purchases:capabilities.purchases||Boolean(capabilities.pendingBox),trips:capabilities.trips,people:capabilities.people,agenda:Boolean(capabilities.agenda),estoque:Boolean(capabilities.shortcuts?.estoque)});
  const [reload,setReload]=useState(0);const capabilityKey=JSON.stringify(capabilities);
 
  useEffect(()=>{let active=true,pending=false;const controller=new AbortController();const caps=JSON.parse(capabilityKey) as TodayCapabilities;
   const run=async()=>{if(pending||document.hidden)return;pending=true;const day=todayKey();const sources:Array<[keyof Source,string]>=[];
    if(caps.orders)sources.push(["orders","/api/pedido-de-compra"]);
-   if(caps.purchases)sources.push(["purchases","/api/compras"]);
+   if(caps.purchases||caps.pendingBox)sources.push(["purchases","/api/compras"]);
    // 21/11: Viagens programadas = hoje + próximos 3 dias (pedido da Ciça); o box "Viagens hoje" usa só o dia de hoje.
    if(caps.trips)sources.push(["trips",`/api/motorista-agenda?inicio=${day}&dias=4`]);
    if(caps.shortcuts?.estoque)sources.push(["estoque","/api/estoque"]);
@@ -89,11 +89,14 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
 
  const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",hour:"2-digit",hour12:false}).format(new Date()));
  // Tela Hoje v2 (acessos com Compras/Pedidos): contadores = cards do Trello por coluna.
- const pending=(data.purchases?.suppliers||[]).filter(item=>allowed(item.unit));
+ const allPending=(data.purchases?.suppliers||[]).filter(item=>allowed(item.unit));
+ // 21/11: Ciça vê o box "Pedidos a fazer" no lugar de "Viagens hoje"; as listas de Compras seguem só para quem tem o bloco Compras.
+ const pending=capabilities.purchases?allPending:[];
+ const toDoCount=unit==="todas"?(data.purchases?.summary?.pedidosParaFazer??allPending.length):allPending.length;
  // Dois blocos: atrasados (urgentes) e a fazer (demais).
  const pedidosAtrasados=pending.filter(item=>item.urgent);
  const pedidosAFazer=pending.filter(item=>!item.urgent);
- const summary=data.purchases?.summary;
+ const summary=capabilities.purchases?data.purchases?.summary:undefined;
  const pendingCount=unit==="todas"?(summary?.pedidosParaFazer??pending.length):pending.length;
  useEffect(()=>{window.dispatchEvent(new CustomEvent("ct-pending-counts",{detail:{compras:pendingCount,motorista:trips.length,agenda:agendaEvents.length+meetings.length}}));},[pendingCount,trips.length,agendaEvents.length,meetings.length]);
  const sentRC=unit==="araras"?0:(summary?.enviadosRioClaro??0);
@@ -144,11 +147,12 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
   {Object.keys(errors).length>0&&<div className="ct-clean-source-notice" role="status"><span>Algumas informações não puderam ser atualizadas. Os dados já carregados foram preservados.</span><button type="button" onClick={()=>setReload(value=>value+1)}>Tentar novamente</button></div>}
 
   {/* 18/11: boxes no padrão dos contadores — Motorista | Pedidos enviados | Pedidos atrasados, conforme a permissão. */}
-  {(capabilities.trips||capabilities.orders||capabilities.purchases||capabilities.shortcuts?.estoque)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
-   {tripsCard}
-   {/* 18/11: quem faz pedidos (Compras) vê "Pedidos a fazer"; os demais continuam com "Pedidos enviados". */}
-   {capabilities.purchases?<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":pendingCount}</strong><span>Pedidos a fazer</span></Link>
-    :capabilities.orders&&allOrders&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
+  {(capabilities.pendingBox||capabilities.trips||capabilities.orders||capabilities.purchases||capabilities.shortcuts?.estoque)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
+   {/* 21/11 (Ciça): boxes Pedidos a fazer | Pedidos enviados (em andamento) | Pedidos atrasados, cada um pela sua permissão; no acesso dela, Pedidos a fazer ocupa o lugar de Viagens hoje. */}
+   {!capabilities.pendingBox&&tripsCard}
+   {(capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":toDoCount}</strong><span>Pedidos a fazer</span></Link>}
+   {/* Demais acessos com Compras seguem só com "Pedidos a fazer" (regra de 18/11). */}
+   {capabilities.orders&&allOrders&&(!capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
    {capabilities.orders&&<Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`} className={`ct-clean-metric ${lateOrders.length?"ct-clean-late":"ct-clean-normal"}`}><strong>{waiting("orders")?"–":lateOrders.length}</strong><span>Pedidos atrasados</span></Link>}
    {capabilities.shortcuts?.estoque&&<Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"–":stockCount}</strong><span>Estoque</span></Link>}
   </section>}
