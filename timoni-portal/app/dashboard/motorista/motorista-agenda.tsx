@@ -338,12 +338,13 @@ function ordenarViagens(viagens: Viagem[]) {
   });
 }
 
-function estiloBoxViagem(_v: Viagem) {
-  // Card sem contorno, em cinza bem claro (aprovado).
-  return { backgroundColor: "#f5f6fb", borderWidth: 0 };
+function estiloBoxViagem(v: Viagem) {
+  // 23/11/2026: card na cor do tipo (Entrega azul claro, Coleta amarelo claro), sem contorno.
+  const coleta = lerMetaMotorista(v.notasJson).tipo === "Retirada";
+  return { backgroundColor: coleta ? "#FFF3C4" : "#E3EEFB", borderWidth: 0 };
 }
 
-// Etiquetas preenchidas (17/11/2026): Entrega azul, Coleta vermelho; Casa Timoni verde, Rodini amarelo, MCR laranja.
+// Etiquetas sólidas com texto branco (23/11/2026): Entrega azul, Coleta mostarda; Casa Timoni verde, Rodini roxo, MCR laranja.
 function EtiquetasViagem({ v }: { v: Viagem }) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
   const loja = String(v.loja || "").trim();
@@ -354,15 +355,15 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
       {tipo === "Retirada"
-        ? <span className={base} style={{ background: "#FCEBEB", color: "#A32D2D" }}>Coleta</span>
-        : <span className={base} style={{ background: "#E3EEFB", color: "#185FA5" }}>Entrega</span>}
+        ? <span className={base} style={{ background: "#B8860B", color: "#ffffff" }}>Coleta</span>
+        : <span className={base} style={{ background: "#185FA5", color: "#ffffff" }}>Entrega</span>}
       {rotuloEmpresa && (ehCasaTimoni
-        ? <span className={base} style={{ background: "#DDF1EE", color: "#0F6E56" }}>{rotuloEmpresa}</span>
+        ? <span className={base} style={{ background: "#0F6E56", color: "#ffffff" }}>{rotuloEmpresa}</span>
         : lojaMin === "rodini"
-          ? <span className={base} style={{ background: "#FAEEDA", color: "#854F0B" }}>{rotuloEmpresa}</span>
+          ? <span className={base} style={{ background: "#534AB7", color: "#ffffff" }}>{rotuloEmpresa}</span>
           : lojaMin === "mcr"
-            ? <span className={base} style={{ background: "#FCE4D2", color: "#9A3412" }}>{rotuloEmpresa}</span>
-            : <span className={base} style={{ background: "#EDEDEA", color: "#444441" }}>{rotuloEmpresa}</span>)}
+            ? <span className={base} style={{ background: "#C2410C", color: "#ffffff" }}>{rotuloEmpresa}</span>
+            : <span className={base} style={{ background: "#5F5E5A", color: "#ffffff" }}>{rotuloEmpresa}</span>)}
     </div>
   );
 }
@@ -380,28 +381,66 @@ function pagamentoTexto(notasJson?: string) {
   return lerMetaMotorista(notasJson).pagamento;
 }
 
-function linhaPrincipalRelatorio(v: Viagem, index: number) {
-  const tipo = lerMetaMotorista(v.notasJson).tipo;
-  const partes = [
-    `${index + 1}. ${tipo === "Retirada" ? "Coleta" : tipo}`,
-    v.tipoHorario === "Bloqueio" ? "Bloqueio" : "",
-    lojaLabel(v.loja),
-    v.vendedor ? `Vend.: ${v.vendedor}` : "",
-    v.horario ? `${horaCurta(v.horario)}${v.horarioFim ? ` a ${horaCurta(v.horarioFim)}` : ""}` : "",
-  ].filter(Boolean);
-  return partes.join(" | ");
+
+// Novo padrão do card (23/11/2026, modelo da Ciça).
+// Entrega: "Entrega MCR | NF 123 | CLIENTE | A/C: NOME | VOL.: 3"
+// Coleta:  "FORNECEDOR | RESPONSÁVEL | PED 123 | VOL.: 3"
+// Nas duas: "Horário: 08:00 a 10:00 | Bloqueado" quando houver horário. Coleta sem vendedor (só a Ciça organiza).
+function siglaEmpresa(loja?: string) {
+  const l = String(loja || "").trim().toLocaleLowerCase("pt-BR");
+  if (l === "rodini") return "ROD";
+  if (l === "mcr") return "MCR";
+  if (l === "casa timoni" || l === "araras" || l === "rio_claro") return "CT";
+  return String(loja || "").toUpperCase();
 }
 
-// Desktop (18/11/2026, aprovado pela Ciça): tudo numa linha em negrito, separado por " | ".
-// Ex.: "1. Entrega | Rodini | Vend.: Adriel | NF E85971 | BRUNO CONTATO | VOLUME: 1"
-function linhaUnicaDesktop(v: Viagem, index: number) {
-  return [
-    linhaPrincipalRelatorio(v, index),
-    documentoTexto(v.numeroPedido),
-    v.clienteFornecedor ? String(v.clienteFornecedor).toUpperCase() : "",
-    v.contatoNome ? `A/C: ${String(v.contatoNome).toUpperCase()}` : "",
-    v.volumes ? `VOLUME: ${String(v.volumes).toUpperCase()}` : "",
-  ].filter(Boolean).join(" | ");
+// Entrega sempre NF; coleta sempre PED (pedido de compra). Tira prefixo digitado.
+function numeroSemPrefixo(valor?: string) {
+  return pedidoTexto(valor).replace(/^(nf|ped)\s*[:.\-]?\s*/i, "").trim();
+}
+
+function pedidoColeta(valor?: string) {
+  const n = numeroSemPrefixo(valor);
+  return n ? `PED ${n}` : "";
+}
+
+function notaEntrega(valor?: string) {
+  const n = numeroSemPrefixo(valor);
+  return n ? `NF ${n}` : "";
+}
+
+function horarioViagem(v: Viagem) {
+  if (!v.horario) return "";
+  return `${horaCurta(v.horario)}${v.horarioFim ? ` a ${horaCurta(v.horarioFim)}` : ""}`;
+}
+
+function CabecalhoViagem({ v }: { v: Viagem }) {
+  const coleta = lerMetaMotorista(v.notasJson).tipo === "Retirada";
+  const bloqueado = v.tipoHorario === "Bloqueio";
+  const vol = v.volumes ? `VOL.: ${String(v.volumes).toUpperCase()}` : "";
+  const linha1 = coleta
+    ? [v.clienteFornecedor ? String(v.clienteFornecedor).toUpperCase() : "", v.contatoNome ? String(v.contatoNome).toUpperCase() : "", pedidoColeta(v.numeroPedido), vol]
+    : [`Entrega ${siglaEmpresa(v.loja)}`.trim(), notaEntrega(v.numeroPedido), v.clienteFornecedor ? String(v.clienteFornecedor).toUpperCase() : "", v.contatoNome ? `A/C: ${String(v.contatoNome).toUpperCase()}` : "", vol];
+  const hora = horarioViagem(v);
+  const linha2 = [hora ? `Horário: ${hora}` : "", bloqueado ? "Bloqueado" : ""].filter(Boolean).join(" | ");
+  return (
+    <>
+      <p style={estiloLinhaPrincipal(v)} className={`ct-mot-linha ${classeLinhaPrincipal(v)}`}>{linha1.filter(Boolean).join(" | ")}</p>
+      {linha2 && <p className="mt-1 font-bold text-slate-900">{linha2}</p>}
+    </>
+  );
+}
+
+function RodapeViagem({ v }: { v: Viagem }) {
+  const coleta = lerMetaMotorista(v.notasJson).tipo === "Retirada";
+  const pag = pagamentoTexto(v.notasJson);
+  return (
+    <p className="ct-mot-apoio mt-1 text-slate-500">
+      <strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""}
+      {!coleta && <> <span className="mx-1">|</span> <strong>Vendedor:</strong>{v.vendedor ? ` ${v.vendedor}` : ""}</>}
+      {" "}<span className="mx-1">|</span> <strong>Pagamento:</strong>{pag ? ` ${pag}` : ""}
+    </p>
+  );
 }
 
 function separarVolume(valor?: string) {
@@ -865,22 +904,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                       <article key={v.id} style={estiloBoxViagem(v)} className="ct-mot-viagem rounded-xl border p-3 md:flex md:items-start md:justify-between md:gap-6">
                         <div className="min-w-0 md:flex-1">
                         <EtiquetasViagem v={v} />
-                        <p style={estiloLinhaPrincipal(v)} className={`ct-mot-linha hidden md:block text-sm ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
-                        <div className="md:hidden">
-                        <p style={estiloLinhaPrincipal(v)} className={`text-sm ${classeLinhaPrincipal(v)}`}>{linhaPrincipalRelatorio(v, index)}</p>
-                        <p className="mt-2 text-sm font-bold uppercase text-slate-900">
-                          {documentoTexto(v.numeroPedido)}
-                          {documentoTexto(v.numeroPedido) && v.clienteFornecedor ? " | " : ""}
-                          {v.clienteFornecedor ? <>{v.contatoNome ? "CLIENTE " : ""}{v.clienteFornecedor.toUpperCase()}</> : null}
-                          {(documentoTexto(v.numeroPedido) || v.clienteFornecedor) && v.contatoNome ? " | " : ""}
-                          {v.contatoNome ? <>A/C: {v.contatoNome.toUpperCase()}</> : null}
-                          {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
-                        </p>
-                        {v.contatoNome && v.volumes && <p className="mt-1 text-sm font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
-                        </div>
+<CabecalhoViagem v={v} />
                         {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                        {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-sm text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-sm text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
-                        <p className="ct-mot-apoio mt-1 text-sm text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                        {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-sm text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-sm text-slate-600">Obs.: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
+                        <RodapeViagem v={v} />
                         {lerConclusao(v.notasJson)?.observacaoConclusao && <p className="mt-2 text-sm text-emerald-800">Conclusão: {lerConclusao(v.notasJson)?.observacaoConclusao}</p>}
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2 md:mt-0 md:shrink-0 md:justify-end">
@@ -902,22 +929,10 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="ct-mot-viagem min-w-0 flex-1 font-[Arial] text-[11pt] md:font-[inherit] leading-[1.35]">
-                    <p style={estiloLinhaPrincipal(v)} className={`ct-mot-linha hidden md:block ${classeLinhaPrincipal(v)}`}>{linhaUnicaDesktop(v, index)}</p>
-                    <div className="md:hidden">
-                    <p style={estiloLinhaPrincipal(v)} className={classeLinhaPrincipal(v)}>{linhaPrincipalRelatorio(v, index)}</p>
-                    <p className="mt-2 font-bold uppercase text-slate-900">
-                      {documentoTexto(v.numeroPedido)}
-                      {documentoTexto(v.numeroPedido) && v.clienteFornecedor ? " | " : ""}
-                      {v.clienteFornecedor ? <>{v.contatoNome ? "CLIENTE " : ""}{v.clienteFornecedor.toUpperCase()}</> : null}
-                      {(documentoTexto(v.numeroPedido) || v.clienteFornecedor) && v.contatoNome ? " | " : ""}
-                      {v.contatoNome ? <>A/C: {v.contatoNome.toUpperCase()}</> : null}
-                      {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
-                    </p>
-                    {v.contatoNome && v.volumes && <p className="mt-1 font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
-                    </div>
+<CabecalhoViagem v={v} />
                     {v.endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-slate-700"><span>End.: {formatarEnderecoExibicao(v.endereco, v.numero, v.complemento)}</span>{separarEndereco(v.endereco).link && <a href={separarEndereco(v.endereco).link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                    {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
-                    <p className="ct-mot-apoio mt-1 font-[Arial] text-[10pt] md:font-[inherit] text-slate-500"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{pagamentoTexto(v.notasJson) ? ` ${pagamentoTexto(v.notasJson)}` : ""}</p>
+                    {v.info && (String(v.info).trim().startsWith("#ERROR") ? <p className="mt-1 text-amber-700">Observação com erro na planilha. Abra Editar, confira o texto e salve de novo.</p> : <p className="mt-1 text-slate-600">Obs.: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>)}
+                    <RodapeViagem v={v} />
                   </div>
                   {canEdit && <div className="flex flex-wrap gap-2 sm:shrink-0 sm:justify-end">
                     {lerConclusao(v.notasJson) && <Carimbo>Concluído</Carimbo>}
