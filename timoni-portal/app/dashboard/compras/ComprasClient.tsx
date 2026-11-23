@@ -266,16 +266,17 @@ export default function ComprasClient() {
       </section>
 
       <section className="ct-compras-counts grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["Pedidos para fazer", summary?.pedidosParaFazer ?? (trello.configured && trello.suppliers ? suppliers.length : undefined)],
-          ["Atrasados", summary?.atrasados],
-          ["Enviados — Rio Claro", summary?.enviadosRioClaro],
-          ["Enviados — Araras", summary?.enviadosAraras],
-        ].map(([label, value]) => (
-          <article key={String(label)} className={`ct-compras-count rounded-2xl border border-slate-200 bg-white p-5 shadow-sm${label === "Atrasados" && Number(value) > 0 ? " is-urgent" : ""}`}>
+        {/* 23/11 (Ciça): os quatro contadores viram atalhos para a lista correspondente, já filtrada. */}
+        {([
+          ["Pedidos para fazer", summary?.pedidosParaFazer ?? (trello.configured && trello.suppliers ? suppliers.length : undefined), `/dashboard/compras?aba=montar${viewUnit ? `&unidade=${viewUnit}` : ""}`],
+          ["Atrasados", summary?.atrasados, `/dashboard/compras?aba=acompanhar&filtro=atrasados${viewUnit ? `&unidade=${viewUnit}` : ""}`],
+          ["Enviados — Rio Claro", summary?.enviadosRioClaro, "/dashboard/compras?aba=acompanhar&unidade=rio_claro"],
+          ["Enviados — Araras", summary?.enviadosAraras, "/dashboard/compras?aba=acompanhar&unidade=araras"],
+        ] as Array<[string, number | undefined, string]>).map(([label, value, href]) => (
+          <Link key={label} href={href} className={`ct-compras-count block cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md${label === "Atrasados" && Number(value) > 0 ? " is-urgent" : ""}`}>
             <p className="text-3xl max-md:text-[20px] font-semibold text-slate-950">{loadingTrello ? "…" : value ?? "—"}</p>
             <p className="mt-2 text-sm max-md:text-[11px] text-slate-600">{label}</p>
-          </article>
+          </Link>
         ))}
       </section>
 

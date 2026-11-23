@@ -114,11 +114,13 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  // 18/11 (opção A da Ciça): box "Viagens hoje", igual aos demais; o agendamento fica no Motorista (Nova viagem).
  const tripsCard=capabilities.trips&&<Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("trips")?"–":trips.length}</strong><span>Viagens hoje</span></Link>;
  const agendaCard=capabilities.agenda&&<Link href={agendaHref} className="ct-clean-metric ct-clean-normal"><strong>{waiting("agenda")?"–":agendaCount}</strong><span>{capabilities.agenda==="principal"?"Compromissos hoje":"Agenda CT hoje"}</span></Link>;
- const tripsList=capabilities.trips&&<section className="ct-clean-card"><div className="ct-clean-card-heading"><h2>Viagens programadas</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>Ver agenda</Link></div>
+ // 23/11 (Ciça): a mesma lista vira o card "Agenda Motorista" no lugar de "Pedidos a fazer".
+ const renderTrips=(title:string,linkLabel:string,extra="")=>capabilities.trips&&<section className={`ct-clean-card${extra}`}><div className="ct-clean-card-heading"><h2>{title}</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>{linkLabel}</Link></div>
   {waiting("trips")&&<p className="ct-clean-muted">Carregando…</p>}
   {!waiting("trips")&&!tripDays.length&&<p className="ct-clean-muted">Nenhuma viagem programada até {tripDayLabel(addDays(todayKey(),3)).toLowerCase()}.</p>}
   {tripDays.map(day=><div className="ct-trips-day" key={day.data}><h3>{tripDayLabel(day.data)}</h3>{day.viagens.map((trip,index)=>{const bloqueio=trip.tipoHorario==="Bloqueio";const hora=trip.horario?(trip.horarioFim?`${trip.horario.slice(0,5)}–${trip.horarioFim.slice(0,5)}`:trip.horario.slice(0,5)):`${(Number.isFinite(trip.ordem)?Number(trip.ordem):index)+1}ª`;const texto=bloqueio?"Motorista bloqueado":[trip.clienteFornecedor,trip.numeroPedido?`NF ${trip.numeroPedido}`:"",trip.loja].filter(Boolean).join(" · ")||"Viagem sem cliente informado";return <Link className="ct-clean-calendar-row" key={trip.id||index} href={`/dashboard/motorista?data=${day.data}`}><b>{hora}</b><span>{texto}</span></Link>;})}</div>)}
  </section>;
+ const tripsList=renderTrips("Viagens programadas","Ver agenda");
  const peopleBlock=events.length>0&&<section className="ct-clean-card">
   {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<div className="ct-clean-people-group" key={kind}><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div>:null;})}
  </section>;
@@ -149,7 +151,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
   {/* 18/11: boxes no padrão dos contadores — Motorista | Pedidos enviados | Pedidos atrasados, conforme a permissão. */}
   {(capabilities.pendingBox||capabilities.trips||capabilities.orders||capabilities.purchases||capabilities.shortcuts?.estoque)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
    {/* 21/11 (Ciça): boxes Pedidos a fazer | Pedidos enviados (em andamento) | Pedidos atrasados, cada um pela sua permissão; no acesso dela, Pedidos a fazer ocupa o lugar de Viagens hoje. */}
-   {!capabilities.pendingBox&&tripsCard}
+   {/* 23/11 (Ciça): contador Motorista (viagens de hoje) volta para o acesso dela, ao lado de Pedidos a fazer. */}
+   {tripsCard}
    {(capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":toDoCount}</strong><span>Pedidos a fazer</span></Link>}
    {/* Demais acessos com Compras seguem só com "Pedidos a fazer" (regra de 18/11). */}
    {capabilities.orders&&allOrders&&(!capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
@@ -175,7 +178,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
    {pedidosAtrasados.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAtrasados.length})</Link></div>
     {pedidosAtrasados.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
-   {pedidosAFazer.length>0&&<section className="ct-clean-card ct-m-order-6"><div className="ct-clean-card-heading"><h2>Pedidos a fazer</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAFazer.length})</Link></div>
+   {capabilities.pendingBox&&capabilities.trips&&renderTrips("Agenda Motorista","Ver todos"," ct-m-order-6")}
+   {!capabilities.pendingBox&&pedidosAFazer.length>0&&<section className="ct-clean-card ct-m-order-6"><div className="ct-clean-card-heading"><h2>Pedidos a fazer</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAFazer.length})</Link></div>
     {pedidosAFazer.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
    </div>
