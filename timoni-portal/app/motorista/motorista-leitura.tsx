@@ -178,19 +178,19 @@ const ETIQUETA_BASE = "rounded-full px-2.5 py-0.5 text-xs max-md:text-[10px] fon
 // Coleta em amarelo; Entrega em azul (padrão do módulo Motorista).
 function EtiquetaTipo({ tipo }: { tipo: string }) {
   return tipo === "Retirada"
-    ? <span className={ETIQUETA_BASE} style={{ background: "#B8860B", color: "#ffffff" }}>Coleta</span>
-    : <span className={ETIQUETA_BASE} style={{ background: "#185FA5", color: "#ffffff" }}>Entrega</span>;
+    ? <span className={ETIQUETA_BASE} style={{ background: "#FFE600", color: "#1a1a1a" }}>Coleta</span>
+    : <span className={ETIQUETA_BASE} style={{ background: "#5CE1FF", color: "#1a1a1a" }}>Entrega</span>;
 }
 
-// Etiquetas sólidas (23/11/2026): Casa Timoni verde, Rodini roxo, MCR laranja.
+// Etiquetas marca-texto (23/11/2026): Casa Timoni verde, Rodini lilás, MCR laranja.
 function EtiquetaEmpresa({ loja }: { loja?: string }) {
   const valor = String(loja || "").trim();
   const min = valor.toLocaleLowerCase("pt-BR");
   if (!valor) return null;
   const ehCasaTimoni = min === "casa timoni" || min === "araras" || min === "ct";
   const texto = ehCasaTimoni ? "Casa Timoni" : min === "rio_claro" ? "Rio Claro" : valor;
-  const fundo = ehCasaTimoni ? "#0F6E56" : min === "rodini" ? "#534AB7" : min === "mcr" ? "#C2410C" : "#5F5E5A";
-  return <span className={ETIQUETA_BASE} style={{ background: fundo, color: "#ffffff" }}>{texto}</span>;
+  const fundo = ehCasaTimoni ? "#7DFF6A" : min === "rodini" ? "#D9A8FF" : min === "mcr" ? "#FFAE42" : "#E2E2DC";
+  return <span className={ETIQUETA_BASE} style={{ background: fundo, color: "#1a1a1a" }}>{texto}</span>;
 }
 
 function finalizada(v: Viagem) {
