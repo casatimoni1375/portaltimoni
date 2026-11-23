@@ -344,7 +344,7 @@ function estiloBoxViagem(v: Viagem) {
   return { backgroundColor: coleta ? "#FFFAE6" : "#F1F6FD", borderWidth: 0 };
 }
 
-// Etiquetas marca-texto com texto escuro (23/11/2026): Entrega azul, Coleta amarelo; Casa Timoni verde, Rodini lilás, MCR laranja.
+// Etiquetas marca-texto com texto escuro (23/11/2026): Entrega azul, Coleta amarelo; Casa Timoni laranja neon, Rodini lilás, MCR verde neon.
 function EtiquetasViagem({ v }: { v: Viagem }) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
   const loja = String(v.loja || "").trim();
@@ -358,11 +358,11 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
         ? <span className={base} style={{ background: "#FFE600", color: "#1a1a1a" }}>Coleta</span>
         : <span className={base} style={{ background: "#5CE1FF", color: "#1a1a1a" }}>Entrega</span>}
       {rotuloEmpresa && (ehCasaTimoni
-        ? <span className={base} style={{ background: "#7DFF6A", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
+        ? <span className={base} style={{ background: "#FF9A1F", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
         : lojaMin === "rodini"
           ? <span className={base} style={{ background: "#D9A8FF", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
           : lojaMin === "mcr"
-            ? <span className={base} style={{ background: "#FFAE42", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
+            ? <span className={base} style={{ background: "#7DFF6A", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
             : <span className={base} style={{ background: "#E2E2DC", color: "#1a1a1a" }}>{rotuloEmpresa}</span>)}
     </div>
   );

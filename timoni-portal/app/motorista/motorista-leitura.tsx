@@ -182,14 +182,14 @@ function EtiquetaTipo({ tipo }: { tipo: string }) {
     : <span className={ETIQUETA_BASE} style={{ background: "#5CE1FF", color: "#1a1a1a" }}>Entrega</span>;
 }
 
-// Etiquetas marca-texto (23/11/2026): Casa Timoni verde, Rodini lilás, MCR laranja.
+// Etiquetas marca-texto (23/11/2026): Casa Timoni laranja neon, Rodini lilás, MCR verde neon.
 function EtiquetaEmpresa({ loja }: { loja?: string }) {
   const valor = String(loja || "").trim();
   const min = valor.toLocaleLowerCase("pt-BR");
   if (!valor) return null;
   const ehCasaTimoni = min === "casa timoni" || min === "araras" || min === "ct";
   const texto = ehCasaTimoni ? "Casa Timoni" : min === "rio_claro" ? "Rio Claro" : valor;
-  const fundo = ehCasaTimoni ? "#7DFF6A" : min === "rodini" ? "#D9A8FF" : min === "mcr" ? "#FFAE42" : "#E2E2DC";
+  const fundo = ehCasaTimoni ? "#FF9A1F" : min === "rodini" ? "#D9A8FF" : min === "mcr" ? "#7DFF6A" : "#E2E2DC";
   return <span className={ETIQUETA_BASE} style={{ background: fundo, color: "#1a1a1a" }}>{texto}</span>;
 }
 
