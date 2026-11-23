@@ -756,3 +756,6 @@ html body :is(main section.ct-clean-card,.ct-std-card,.ct-rt-card):has(> p:first
 main .ct-trips-day h3{color:var(--ct-clean-muted);font-size:var(--ct-font-caption)!important;font-weight:600!important;margin:12px 0 2px;}
 main .ct-trips-day:first-of-type h3{margin-top:0;}
 .ct-trips-day+.ct-trips-day{border-top:1px solid #edf0f6;margin-top:6px;padding-top:4px;}
+/* 23/11: contadores de Compras clicáveis — só cursor de mão e leve destaque ao passar o mouse. */
+html body .ct-compras-module a.ct-compras-count{cursor:pointer;text-decoration:none!important;transition:border-color .15s,box-shadow .15s;}
+html body .ct-compras-module a.ct-compras-count:hover{border-color:#8fb0e3!important;box-shadow:0 2px 8px rgba(30,64,175,.12)!important;}
