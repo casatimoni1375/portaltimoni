@@ -137,15 +137,36 @@ function ordenarViagens(viagens: Viagem[]) {
 }
 
 function estiloBoxViagem(v: Viagem) {
-  const tipo = lerTipo(v.notasJson);
-  if (tipo === "Retirada") {
-    return { backgroundColor: "#ffffff", borderColor: "#AFA9EC" };
-  }
-  const loja = String(v.loja || "").trim().toLocaleLowerCase("pt-BR");
-  const entregaAraras = loja === "araras" || loja === "casa timoni";
-  return entregaAraras
-    ? { backgroundColor: "#ffffff", borderColor: "#5DCAA5" }
-    : { backgroundColor: "#ffffff", borderColor: "#85B7EB" };
+  // 23/11/2026: mesmo padrão da Agenda do Motorista — azul claro (entrega), amarelo claro (coleta), sem contorno.
+  return { backgroundColor: lerTipo(v.notasJson) === "Retirada" ? "#FFF3C4" : "#E3EEFB", borderWidth: 0 };
+}
+
+function siglaEmpresa(loja?: string) {
+  const l = String(loja || "").trim().toLocaleLowerCase("pt-BR");
+  if (l === "rodini") return "ROD";
+  if (l === "mcr") return "MCR";
+  if (l === "casa timoni" || l === "araras" || l === "rio_claro" || l === "ct") return "CT";
+  return String(loja || "").toUpperCase();
+}
+
+function numeroSemPrefixo(valor?: string) {
+  return pedidoTexto(valor).replace(/^(nf|ped)\s*[:.\-]?\s*/i, "").trim();
+}
+
+function tituloViagem(v: Viagem) {
+  const coleta = lerTipo(v.notasJson) === "Retirada";
+  const n = numeroSemPrefixo(v.numeroPedido);
+  const vol = v.volumes ? `VOL.: ${String(v.volumes).toUpperCase()}` : "";
+  const cli = v.clienteFornecedor ? String(v.clienteFornecedor).toUpperCase() : "";
+  const partes = coleta
+    ? [cli, v.contatoNome ? String(v.contatoNome).toUpperCase() : "", n ? `PED ${n}` : "", vol]
+    : [`Entrega ${siglaEmpresa(v.loja)}`.trim(), n ? `NF ${n}` : "", cli, v.contatoNome ? `A/C: ${String(v.contatoNome).toUpperCase()}` : "", vol];
+  return partes.filter(Boolean).join(" | ");
+}
+
+function horarioLinha(v: Viagem) {
+  const hora = v.horario ? `${horaCurta(v.horario)}${v.horarioFim ? ` a ${horaCurta(v.horarioFim)}` : ""}` : "";
+  return [hora ? `Horário: ${hora}` : "", v.tipoHorario === "Bloqueio" ? "Bloqueado" : ""].filter(Boolean).join(" | ");
 }
 
 function classeLinhaPrincipal(_v: Viagem) {
@@ -157,30 +178,19 @@ const ETIQUETA_BASE = "rounded-full px-2.5 py-0.5 text-xs max-md:text-[10px] fon
 // Coleta em amarelo; Entrega em azul (padrão do módulo Motorista).
 function EtiquetaTipo({ tipo }: { tipo: string }) {
   return tipo === "Retirada"
-    ? <span className={ETIQUETA_BASE} style={{ background: "#FFF1B8", color: "#7A5A00" }}>Coleta</span>
-    : <span className={ETIQUETA_BASE} style={{ background: "#E3EEFB", color: "#185FA5" }}>Entrega</span>;
+    ? <span className={ETIQUETA_BASE} style={{ background: "#B8860B", color: "#ffffff" }}>Coleta</span>
+    : <span className={ETIQUETA_BASE} style={{ background: "#185FA5", color: "#ffffff" }}>Entrega</span>;
 }
 
-// Casa Timoni em verde; MCR e Rodini em cinza (mesma cor entre elas).
+// Etiquetas sólidas (23/11/2026): Casa Timoni verde, Rodini roxo, MCR laranja.
 function EtiquetaEmpresa({ loja }: { loja?: string }) {
   const valor = String(loja || "").trim();
   const min = valor.toLocaleLowerCase("pt-BR");
   if (!valor) return null;
   const ehCasaTimoni = min === "casa timoni" || min === "araras" || min === "ct";
   const texto = ehCasaTimoni ? "Casa Timoni" : min === "rio_claro" ? "Rio Claro" : valor;
-  return ehCasaTimoni
-    ? <span className={ETIQUETA_BASE} style={{ background: "#DDF1EE", color: "#0F6E56" }}>{texto}</span>
-    : <span className={ETIQUETA_BASE} style={{ background: "#EDEDEA", color: "#444441" }}>{texto}</span>;
-}
-
-function linhaPrincipal(v: Viagem) {
-  return [
-    lerTipo(v.notasJson) === "Retirada" ? "Coleta" : "Entrega",
-    v.tipoHorario === "Bloqueio" ? "Bloqueio" : "",
-    lojaLabel(v.loja),
-    v.vendedor ? `Vend.: ${v.vendedor}` : "",
-    v.horario ? `${horaCurta(v.horario)}${v.horarioFim ? ` a ${horaCurta(v.horarioFim)}` : ""}` : "",
-  ].filter(Boolean).join(" | ");
+  const fundo = ehCasaTimoni ? "#0F6E56" : min === "rodini" ? "#534AB7" : min === "mcr" ? "#C2410C" : "#5F5E5A";
+  return <span className={ETIQUETA_BASE} style={{ background: fundo, color: "#ffffff" }}>{texto}</span>;
 }
 
 function finalizada(v: Viagem) {
@@ -295,7 +305,7 @@ export default function MotoristaLeitura() {
                       const enderecoInfo = separarEndereco(v.endereco);
                       const endereco = formatarEnderecoExibicao(v.endereco, v.numero, v.complemento);
                       return (
-                        <article key={v.id} style={estiloBoxViagem(v)} className={`rounded-xl border p-3 ${bloqueio ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
+                        <article key={v.id} style={estiloBoxViagem(v)} className="rounded-xl p-3">
                           <div className="flex items-start gap-3">
                             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-slate-700 shadow-sm">{index + 1}</span>
                             <div className="min-w-0 flex-1">
@@ -303,23 +313,14 @@ export default function MotoristaLeitura() {
                                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
                                   <EtiquetaTipo tipo={lerTipo(v.notasJson)} />
                                   <EtiquetaEmpresa loja={v.loja} />
-                                  {v.tipoHorario === "Bloqueio" ? <span className="rounded-full bg-slate-200 px-2 py-px text-[10px] font-semibold text-slate-700">Bloqueio</span> : null}
-                                  {v.vendedor ? <span className="text-xs max-md:text-[10px] text-slate-600">Vend.: {v.vendedor}</span> : null}
                                 </div>
                                 {!bloqueio && concluida(v.notasJson) && <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">Concluído</span>}
                               </div>
-                              <p className="mt-2 text-xs max-md:text-[10px] font-bold uppercase text-slate-900">
-                                {documentoTexto(v.numeroPedido)}
-                                {documentoTexto(v.numeroPedido) && v.clienteFornecedor ? " | " : ""}
-                                {v.clienteFornecedor ? <>{v.contatoNome ? "CLIENTE " : ""}{v.clienteFornecedor.toUpperCase()}</> : null}
-                                {(documentoTexto(v.numeroPedido) || v.clienteFornecedor) && v.contatoNome ? " | " : ""}
-                                {v.contatoNome ? <>A/C: {v.contatoNome.toUpperCase()}</> : null}
-                                {!v.contatoNome && v.volumes ? <> | VOLUME: {String(v.volumes).toUpperCase()}</> : null}
-                              </p>
-                              {v.contatoNome && v.volumes && <p className="mt-1 text-xs max-md:text-[10px] font-bold uppercase text-slate-900">VOLUME: {String(v.volumes).toUpperCase()}</p>}
+                              <p className="mt-2 text-xs max-md:text-[10px] font-bold text-slate-900">{tituloViagem(v)}</p>
+                              {horarioLinha(v) && <p className="mt-1 text-xs max-md:text-[10px] font-bold text-slate-900">{horarioLinha(v)}</p>}
                               {endereco && <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs max-md:text-[10px] text-slate-700"><span>End.: {endereco}</span>{enderecoInfo.link && <a href={enderecoInfo.link} target="_blank" rel="noreferrer" className="font-semibold text-blue-800 underline underline-offset-2">Google Maps</a>}</p>}
-                              {v.info && <p className="mt-1 text-xs max-md:text-[10px] text-slate-600">Observação: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
-                              <p className="mt-2 text-xs max-md:text-[10px] text-slate-600"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""} <span className="mx-1">|</span> <strong>Forma de pagamento:</strong>{lerPagamento(v.notasJson) ? ` ${lerPagamento(v.notasJson)}` : ""}</p>
+                              {v.info && <p className="mt-1 text-xs max-md:text-[10px] text-slate-600">Obs.: <span className="whitespace-pre-line">{String(v.info).replace(/^[\r\n]+/, "")}</span></p>}
+                              <p className="mt-2 text-xs max-md:text-[10px] text-slate-600"><strong>Preenchido por:</strong>{v.preenchidoPor ? ` ${v.preenchidoPor}` : ""}{lerTipo(v.notasJson) !== "Retirada" && <> <span className="mx-1">|</span> <strong>Vendedor:</strong>{v.vendedor ? ` ${v.vendedor}` : ""}</>} <span className="mx-1">|</span> <strong>Pagamento:</strong>{lerPagamento(v.notasJson) ? ` ${lerPagamento(v.notasJson)}` : ""}</p>
                             </div>
                           </div>
                         </article>

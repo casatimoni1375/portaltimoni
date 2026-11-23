@@ -55,12 +55,12 @@ export default async function MotoristaPage() {
         .motorista-agenda-controle select,
         .motorista-agenda-controle input,
         .motorista-agenda-controle textarea{font-size:14px;line-height:1.4;}
-        /* Desktop (18/11/2026): viagem em 16 px usando a largura toda; apoio (Preenchido por) em 14 px. */
+        /* Desktop (18/11/2026): viagem em 16 px usando a largura toda; apoio (Preenchido por / Pagamento) em 16 px desde 23/11. */
         @media (min-width:768px){
           .motorista-agenda-controle .ct-mot-viagem p,
           .motorista-agenda-controle .ct-mot-viagem span{font-size:16px;line-height:1.45;}
           .motorista-agenda-controle .ct-mot-viagem p.ct-mot-apoio,
-          .motorista-agenda-controle .ct-mot-viagem p.ct-mot-apoio *{font-size:14px;}
+          .motorista-agenda-controle .ct-mot-viagem p.ct-mot-apoio *{font-size:16px;}
           .motorista-agenda-controle .ct-mot-viagem span.rounded-full{font-size:13px;}
           /* 18/11 (2): mesma escala da tela Hoje — linha principal 18, quadro do dia com faixa azul clara e título 20, barra e botões 16. */
           .motorista-agenda-controle .ct-mot-viagem p.ct-mot-linha{font-size:18px;line-height:1.4;color:#182443;}
