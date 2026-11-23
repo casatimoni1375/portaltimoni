@@ -341,7 +341,7 @@ function ordenarViagens(viagens: Viagem[]) {
 function estiloBoxViagem(v: Viagem) {
   // 23/11/2026: card na cor do tipo (Entrega azul claro, Coleta amarelo claro), sem contorno.
   const coleta = lerMetaMotorista(v.notasJson).tipo === "Retirada";
-  return { backgroundColor: coleta ? "#FFF3C4" : "#E3EEFB", borderWidth: 0 };
+  return { backgroundColor: coleta ? "#FFFAE6" : "#F1F6FD", borderWidth: 0 };
 }
 
 // Etiquetas sólidas com texto branco (23/11/2026): Entrega azul, Coleta mostarda; Casa Timoni verde, Rodini roxo, MCR laranja.

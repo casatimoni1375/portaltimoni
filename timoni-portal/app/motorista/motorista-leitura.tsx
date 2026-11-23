@@ -138,7 +138,7 @@ function ordenarViagens(viagens: Viagem[]) {
 
 function estiloBoxViagem(v: Viagem) {
   // 23/11/2026: mesmo padrão da Agenda do Motorista — azul claro (entrega), amarelo claro (coleta), sem contorno.
-  return { backgroundColor: lerTipo(v.notasJson) === "Retirada" ? "#FFF3C4" : "#E3EEFB", borderWidth: 0 };
+  return { backgroundColor: lerTipo(v.notasJson) === "Retirada" ? "#FFFAE6" : "#F1F6FD", borderWidth: 0 };
 }
 
 function siglaEmpresa(loja?: string) {
