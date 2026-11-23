@@ -112,7 +112,8 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
  const operational=!capabilities.orders&&!capabilities.purchases;
  const agendaCount=agendaEvents.length+meetings.length;
  // 18/11 (opção A da Ciça): box "Viagens hoje", igual aos demais; o agendamento fica no Motorista (Nova viagem).
- const tripsCard=capabilities.trips&&<Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("trips")?"–":trips.length}</strong><span>Viagens hoje</span></Link>;
+ // 23/11 (Ciça): no acesso dela o box se chama "Motorista" (mesma contagem: viagens de hoje).
+ const tripsCard=capabilities.trips&&<Link href={`/dashboard/motorista?data=${todayKey()}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("trips")?"–":trips.length}</strong><span>{capabilities.pendingBox?"Motorista":"Viagens hoje"}</span></Link>;
  const agendaCard=capabilities.agenda&&<Link href={agendaHref} className="ct-clean-metric ct-clean-normal"><strong>{waiting("agenda")?"–":agendaCount}</strong><span>{capabilities.agenda==="principal"?"Compromissos hoje":"Agenda CT hoje"}</span></Link>;
  // 23/11 (Ciça): a mesma lista vira o card "Agenda Motorista" no lugar de "Pedidos a fazer".
  const renderTrips=(title:string,linkLabel:string,extra="")=>capabilities.trips&&<section className={`ct-clean-card${extra}`}><div className="ct-clean-card-heading"><h2>{title}</h2><Link href={`/dashboard/motorista?data=${todayKey()}`}>{linkLabel}</Link></div>
@@ -151,12 +152,20 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
   {/* 18/11: boxes no padrão dos contadores — Motorista | Pedidos enviados | Pedidos atrasados, conforme a permissão. */}
   {(capabilities.pendingBox||capabilities.trips||capabilities.orders||capabilities.purchases||capabilities.shortcuts?.estoque)&&<section className="ct-clean-metrics ct-today-boxes" aria-label="Resumo do dia">
    {/* 21/11 (Ciça): boxes Pedidos a fazer | Pedidos enviados (em andamento) | Pedidos atrasados, cada um pela sua permissão; no acesso dela, Pedidos a fazer ocupa o lugar de Viagens hoje. */}
-   {/* 23/11 (Ciça): contador Motorista (viagens de hoje) volta para o acesso dela, ao lado de Pedidos a fazer. */}
+   {/* 23/11 (Ciça): ordem no acesso dela — Motorista | Pedidos a fazer | Enviados Rio Claro | Enviados Araras | Atrasados (mesmos números da página Compras). */}
+   {capabilities.pendingBox?<>
+    {tripsCard}
+    <Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":toDoCount}</strong><span>Pedidos a fazer</span></Link>
+    {unit!=="araras"&&<Link href="/dashboard/compras?aba=acompanhar&unidade=rio_claro" className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":data.purchases?.summary?.enviadosRioClaro??"–"}</strong><span>Enviados Rio Claro</span></Link>}
+    {unit!=="rio_claro"&&<Link href="/dashboard/compras?aba=acompanhar&unidade=araras" className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":data.purchases?.summary?.enviadosAraras??"–"}</strong><span>Enviados Araras</span></Link>}
+    {capabilities.orders&&<Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`} className={`ct-clean-metric ${lateOrders.length?"ct-clean-late":"ct-clean-normal"}`}><strong>{waiting("orders")?"–":lateOrders.length}</strong><span>Atrasados</span></Link>}
+   </>:<>
    {tripsCard}
    {(capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=montar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("purchases")?"–":toDoCount}</strong><span>Pedidos a fazer</span></Link>}
    {/* Demais acessos com Compras seguem só com "Pedidos a fazer" (regra de 18/11). */}
    {capabilities.orders&&allOrders&&(!capabilities.purchases||capabilities.pendingBox)&&<Link href={`/dashboard/compras?aba=acompanhar&unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("orders")?"–":sentOrders.length}</strong><span>Pedidos enviados</span></Link>}
    {capabilities.orders&&<Link href={`/dashboard/compras?aba=acompanhar&filtro=atrasados&unidade=${unit}`} className={`ct-clean-metric ${lateOrders.length?"ct-clean-late":"ct-clean-normal"}`}><strong>{waiting("orders")?"–":lateOrders.length}</strong><span>Pedidos atrasados</span></Link>}
+   </>}
    {capabilities.shortcuts?.estoque&&<Link href={`/dashboard/estoque?unidade=${unit}`} className="ct-clean-metric ct-clean-normal"><strong>{waiting("estoque")?"–":stockCount}</strong><span>Estoque</span></Link>}
   </section>}
   {/* Duas colunas independentes: cada bloco sobe logo abaixo do anterior, sem espaço vazio. */}
