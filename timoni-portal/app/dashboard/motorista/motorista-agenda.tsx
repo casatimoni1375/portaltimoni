@@ -608,6 +608,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
     setLoading(true);
     setErro("");
     await loader.run(datas, {
+      day: (dia, lista) => setViagens(current => ({ ...current, [dia]: lista as Viagem[] })),
       success: pares => setViagens(current => ({ ...current, ...Object.fromEntries(pares) as Record<string, Viagem[]> })),
       error: error => setErro(error instanceof Error ? error.message : "Não foi possível carregar a agenda."),
       done: () => setLoading(false),
@@ -900,7 +901,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
                     <p className="mt-1 flex items-center gap-2 font-semibold text-slate-950">{d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}{data === hoje && <Carimbo>Hoje</Carimbo>}</p>
                   </button>
                   <div className="mt-3 space-y-2">
-                    {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
+                    {loading && !viagens[data] ? <p className="text-sm text-slate-400">Carregando...</p> : itens.length === 0 ? <p className="text-sm text-slate-400">Sem viagens.</p> : itens.map((v, index) => (
                       <article key={v.id} style={estiloBoxViagem(v)} className="ct-mot-viagem rounded-xl border p-3 md:flex md:items-start md:justify-between md:gap-6">
                         <div className="min-w-0 md:flex-1">
                         <EtiquetasViagem v={v} />
@@ -924,7 +925,7 @@ export default function MotoristaAgenda({ readOnly = false, canCreate = false, c
           </div>
         ) : modo === "dia" ? (
           <div className="mt-4 space-y-3">
-            {loading ? <p className="text-sm text-slate-400">Carregando...</p> : itensDia.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-400">Sem viagens neste dia.</p> : itensDia.map((v, index) => (
+            {loading && !viagens[selecionado] ? <p className="text-sm text-slate-400">Carregando...</p> : itensDia.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-400">Sem viagens neste dia.</p> : itensDia.map((v, index) => (
               <article key={v.id} style={estiloBoxViagem(v)} className="rounded-2xl border p-4">
                 <EtiquetasViagem v={v} />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
