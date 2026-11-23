@@ -245,6 +245,19 @@ export async function POST(request: Request) {
       });
     }
 
+    // Pedido enviado deixa de estar pendente: tira qualquer etiqueta "Pendente" do cartão.
+    const pendingLabelIds = new Set(
+      (board.labels || [])
+        .filter((label) => normalizeTrelloText(label.name || "") === "pendente")
+        .map((label) => label.id),
+    );
+    for (const labelId of card.idLabels || []) {
+      if (!pendingLabelIds.has(labelId)) continue;
+      await trelloFetch(`/cards/${encodeURIComponent(cardId)}/idLabels/${encodeURIComponent(labelId)}`, {
+        method: "DELETE",
+      });
+    }
+
     const printAdded = await attachFile(cardId, attachment);
     const orderFileAdded = await attachFile(cardId, orderFile);
 
