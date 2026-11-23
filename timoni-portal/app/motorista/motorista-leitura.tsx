@@ -237,7 +237,8 @@ export default function MotoristaLeitura() {
       if (document.visibilityState !== "visible") return;
       if (!navigator.onLine) { setErro("Sem conexão. Os dados exibidos serão atualizados ao reconectar."); setLoading(false); return; }
       await loader.run(dias.map(localDateString), {
-        success: pares => { if (ativo) { setViagens(Object.fromEntries(pares) as Record<string, Viagem[]>); setErro(""); } },
+        day: (dia, lista) => { if (ativo) setViagens(atual => ({ ...atual, [dia]: lista as Viagem[] })); },
+        success: pares => { if (ativo) { setViagens(atual => ({ ...atual, ...(Object.fromEntries(pares) as Record<string, Viagem[]>) })); setErro(""); } },
         error: error => { if (ativo) setErro(error instanceof Error ? error.message : "Não foi possível carregar a agenda."); },
         done: () => { if (ativo) setLoading(false); },
       });
@@ -295,7 +296,7 @@ export default function MotoristaLeitura() {
                 </div>
 
                 <div className="mt-3 space-y-3">
-                  {loading ? (
+                  {loading && !viagens[data] ? (
                     <p className="text-xs max-md:text-[10px] text-slate-400">Carregando...</p>
                   ) : itens.length === 0 ? (
                     <p className="text-xs max-md:text-[10px] text-slate-400">Sem viagens.</p>
