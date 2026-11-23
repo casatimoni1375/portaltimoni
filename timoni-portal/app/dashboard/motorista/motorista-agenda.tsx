@@ -341,10 +341,10 @@ function ordenarViagens(viagens: Viagem[]) {
 function estiloBoxViagem(v: Viagem) {
   // 23/11/2026: card na cor do tipo (Entrega azul claro, Coleta amarelo claro), sem contorno.
   const coleta = lerMetaMotorista(v.notasJson).tipo === "Retirada";
-  return { backgroundColor: coleta ? "#FFF3C4" : "#E3EEFB", borderWidth: 0 };
+  return { backgroundColor: coleta ? "#FFFAE6" : "#F1F6FD", borderWidth: 0 };
 }
 
-// Etiquetas sólidas com texto branco (23/11/2026): Entrega azul, Coleta mostarda; Casa Timoni verde, Rodini roxo, MCR laranja.
+// Etiquetas marca-texto com texto escuro (23/11/2026): Entrega azul, Coleta amarelo; Casa Timoni verde, Rodini lilás, MCR laranja.
 function EtiquetasViagem({ v }: { v: Viagem }) {
   const tipo = lerMetaMotorista(v.notasJson).tipo;
   const loja = String(v.loja || "").trim();
@@ -355,15 +355,15 @@ function EtiquetasViagem({ v }: { v: Viagem }) {
   return (
     <div className="mb-2 flex flex-wrap gap-1.5">
       {tipo === "Retirada"
-        ? <span className={base} style={{ background: "#B8860B", color: "#ffffff" }}>Coleta</span>
-        : <span className={base} style={{ background: "#185FA5", color: "#ffffff" }}>Entrega</span>}
+        ? <span className={base} style={{ background: "#FFE600", color: "#1a1a1a" }}>Coleta</span>
+        : <span className={base} style={{ background: "#5CE1FF", color: "#1a1a1a" }}>Entrega</span>}
       {rotuloEmpresa && (ehCasaTimoni
-        ? <span className={base} style={{ background: "#0F6E56", color: "#ffffff" }}>{rotuloEmpresa}</span>
+        ? <span className={base} style={{ background: "#7DFF6A", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
         : lojaMin === "rodini"
-          ? <span className={base} style={{ background: "#534AB7", color: "#ffffff" }}>{rotuloEmpresa}</span>
+          ? <span className={base} style={{ background: "#D9A8FF", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
           : lojaMin === "mcr"
-            ? <span className={base} style={{ background: "#C2410C", color: "#ffffff" }}>{rotuloEmpresa}</span>
-            : <span className={base} style={{ background: "#5F5E5A", color: "#ffffff" }}>{rotuloEmpresa}</span>)}
+            ? <span className={base} style={{ background: "#FFAE42", color: "#1a1a1a" }}>{rotuloEmpresa}</span>
+            : <span className={base} style={{ background: "#E2E2DC", color: "#1a1a1a" }}>{rotuloEmpresa}</span>)}
     </div>
   );
 }
