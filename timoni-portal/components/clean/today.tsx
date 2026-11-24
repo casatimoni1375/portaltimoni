@@ -171,8 +171,7 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
     {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/dashboard/reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<section key={kind} className={`ct-clean-card ct-tone-card ${kind==="birthday"?"ct-tone-green ct-m-order-3":"ct-tone-yellow ct-m-order-4"}`}><div className="ct-clean-people-group"><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div></section>:null;})}
-   {/* 24/11 (Ciça): Agenda Motorista desce para baixo de Férias, na coluna da esquerda. */}
-   {capabilities.pendingBox&&capabilities.trips&&renderTrips("Agenda Motorista","Ver todos"," ct-m-order-6")}
+   {/* 24/11 (Ciça): card Agenda Motorista saiu do Hoje dela; fica só o contador "Viagens hoje". */}
    </aside>
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
