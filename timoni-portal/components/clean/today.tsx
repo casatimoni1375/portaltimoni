@@ -176,9 +176,9 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
    {meetingCards}
-   {/* 24/11 (Ciça): no acesso dela, "Pedidos atrasados" vira "Pedidos a fazer" — até 5 pendentes, com etiqueta Urgente do Trello primeiro; o resto fica em "Ver todos". */}
+   {/* 24/11 (Ciça): no acesso dela, "Pedidos atrasados" vira "Pedidos a fazer" — até 3 pendentes, com etiqueta Urgente do Trello primeiro; o resto fica em "Ver todos". */}
    {capabilities.pendingBox&&pending.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos a fazer</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
-    {[...pending].sort((a,b)=>Number(b.urgent)-Number(a.urgent)).slice(0,5).map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
+    {[...pending].sort((a,b)=>Number(b.urgent)-Number(a.urgent)).slice(0,3).map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
    {!capabilities.pendingBox&&pedidosAtrasados.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAtrasados.length})</Link></div>
     {pedidosAtrasados.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
