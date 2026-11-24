@@ -171,14 +171,19 @@ export default function Today({name,email,capabilities,defaultUnit,notices=null,
     {meetings.map(meeting=><Link className="ct-clean-calendar-row" key={meeting.id} href="/dashboard/reunioes"><b>{meeting.time}</b><span>{meeting.title}</span></Link>)}
    </section>}
    {["birthday","vacation"].map(kind=>{const list=events.filter(event=>event.kind===kind);return list.length?<section key={kind} className={`ct-clean-card ct-tone-card ${kind==="birthday"?"ct-tone-green ct-m-order-3":"ct-tone-yellow ct-m-order-4"}`}><div className="ct-clean-people-group"><h2>{kind==="birthday"?"Aniversários":"Férias"}</h2>{list.map(event=><div key={event.id} className="ct-clean-calendar-row"><b>{formatDate(event.date)}</b><span>{event.name}{kind==="vacation"&&event.end?` · até ${formatDate(event.end)}`:""}</span></div>)}</div></section>:null;})}
+   {/* 24/11 (Ciça): Agenda Motorista desce para baixo de Férias, na coluna da esquerda. */}
+   {capabilities.pendingBox&&capabilities.trips&&renderTrips("Agenda Motorista","Ver todos"," ct-m-order-6")}
    </aside>
    <div className="ct-today-main">
    {notices&&<TodayNotices store={notices.store} isAdmin={notices.isAdmin} canConfirmRead={notices.canConfirmRead} members={notices.members}/>}
    {meetingCards}
-   {pedidosAtrasados.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAtrasados.length})</Link></div>
+   {/* 24/11 (Ciça): no acesso dela, "Pedidos atrasados" vira "Pedidos a fazer" — todos os pendentes, com etiqueta Urgente do Trello primeiro. */}
+   {capabilities.pendingBox&&pending.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos a fazer</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pending.length})</Link></div>
+    {[...pending].sort((a,b)=>Number(b.urgent)-Number(a.urgent)).map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong>{item.urgent&&<span className="ct-clean-badge ct-clean-urgent">Urgente</span>}<Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
+   </section>}
+   {!capabilities.pendingBox&&pedidosAtrasados.length>0&&<section className="ct-clean-card ct-m-order-5"><div className="ct-clean-card-heading"><h2>Pedidos atrasados</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAtrasados.length})</Link></div>
     {pedidosAtrasados.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><span className="ct-clean-badge ct-clean-urgent">Urgente</span><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
-   {capabilities.pendingBox&&capabilities.trips&&renderTrips("Agenda Motorista","Ver todos"," ct-m-order-6")}
    {!capabilities.pendingBox&&pedidosAFazer.length>0&&<section className="ct-clean-card ct-m-order-6"><div className="ct-clean-card-heading"><h2>Pedidos a fazer</h2><Link href={`/dashboard/compras?aba=montar&unidade=${unit}`}>Ver todos ({pedidosAFazer.length})</Link></div>
     {pedidosAFazer.map(item=><div className="ct-clean-action-row" key={item.id}><strong>{item.name}</strong><Link className="ct-clean-action" href={`/dashboard/compras?aba=montar&fornecedor=${item.id}&unidade=${unit}`}>Fazer pedido</Link></div>)}
    </section>}
