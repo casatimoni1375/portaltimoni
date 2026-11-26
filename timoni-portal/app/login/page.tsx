@@ -59,9 +59,6 @@ export default async function LoginPage({
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 max-md:px-6 max-md:py-10 text-center shadow-sm">
         <h1 className="text-2xl max-md:text-[31px] font-semibold text-[#102a83]">Portal Timoni</h1>
-        <p className="mt-2 text-base max-md:text-[20px] text-slate-500">
-          {canResume ? "Seu acesso continua conectado." : "Entre com a conta Google autorizada para acessar o Portal Timoni."}
-        </p>
 
         {errorMessage && (
           <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-base max-md:text-[20px] text-red-700">
@@ -71,9 +68,9 @@ export default async function LoginPage({
 
         {canResume ? (
           <>
-            <p className="mt-3 break-all text-base max-md:text-[20px] text-slate-600">{session?.user?.email}</p>
+            <p className="mt-4 break-all text-base max-md:text-[20px] text-slate-600">{session?.user?.email}</p>
             <Link href="/dashboard" prefetch={false} className="mt-6 block w-full rounded-lg bg-[#102a83] px-4 py-2 text-base max-md:text-[20px] max-md:min-h-[48px] max-md:flex max-md:items-center max-md:justify-center font-semibold text-white hover:bg-[#0c2068]">
-              Entrar no Portal
+              Login
             </Link>
             <form action={async () => {
               "use server";
@@ -91,9 +88,10 @@ export default async function LoginPage({
         >
           <button
             type="submit"
+            data-login="google"
             className="mt-6 w-full rounded-lg bg-[#102a83] px-4 py-2 text-base max-md:text-[20px] max-md:min-h-[48px] font-semibold text-white hover:bg-[#0c2068]"
           >
-            Entrar com Google
+            Login
           </button>
         </form>
         )}
