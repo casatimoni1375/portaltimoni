@@ -759,3 +759,19 @@ main .ct-trips-day:first-of-type h3{margin-top:0;}
 /* 23/11: contadores de Compras clicáveis — só cursor de mão e leve destaque ao passar o mouse. */
 html body .ct-compras-module a.ct-compras-count{cursor:pointer;text-decoration:none!important;transition:border-color .15s,box-shadow .15s;}
 html body .ct-compras-module a.ct-compras-count:hover{border-color:#8fb0e3!important;box-shadow:0 2px 8px rgba(30,64,175,.12)!important;}
+
+/* 26/11/2026: menu lateral fixo ou solto (só computador; o menu de baixo do celular continua fixo). */
+.ct-clean-pin{display:none;}
+@media(min-width:768px){
+.ct-clean-sidebar{display:flex!important;flex-direction:column;gap:8px;}
+.ct-clean-pin{display:flex;align-items:center;gap:10px;margin-top:auto;min-height:44px;padding:8px 12px;border-radius:8px;font-size:14px;color:#5e6378;background:transparent;border:0;cursor:pointer;white-space:nowrap;text-align:left;}
+.ct-clean-pin:hover{background:#f0f3fb;color:var(--ct-clean-blue);}
+.ct-clean-pin svg{flex:none;}
+body:has(.ct-clean-navigation.ct-menu-solto){padding-left:64px;}
+.ct-menu-solto .ct-clean-sidebar{width:64px;overflow-x:hidden;transition:width .15s ease,box-shadow .15s ease;}
+.ct-menu-solto .ct-clean-sidebar:not(:hover):not(:focus-within) :is(.ct-clean-nav-link,.ct-clean-pin)>span{display:none;}
+.ct-menu-solto .ct-clean-sidebar:not(:hover):not(:focus-within) .ct-clean-nav-link{position:relative;justify-content:center;padding-inline:0;}
+.ct-menu-solto .ct-clean-sidebar:not(:hover):not(:focus-within) .ct-clean-pin{justify-content:center;padding-inline:0;}
+.ct-menu-solto .ct-clean-sidebar:not(:hover):not(:focus-within) .ct-clean-nav-link>small{position:absolute;top:2px;right:4px;margin:0;}
+.ct-menu-solto .ct-clean-sidebar:is(:hover,:focus-within){width:176px;box-shadow:6px 0 18px rgba(16,42,131,.12);}
+}
