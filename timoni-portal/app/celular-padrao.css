@@ -439,7 +439,7 @@ html:root:root:root:root body main :is(.ct-clean-metric.ct-clean-urgent > strong
 
 /* 26/11 — Identidade do celular mais próxima do web (pedido da Ciça).
    Muda só cores, cabeçalho, menu e cards; fontes, tamanhos e proporções do celular ficam iguais.
-   Sem fundo forte: tons claros, contorno fino; Motorista não muda. */
+   Sem fundo forte: tons claros, contorno fino. Vale para todas as telas (Hoje, Compras, Estoque, Rotativo, Motorista, Agenda...). */
 @media (max-width: 767px) {
   /* Cabeçalho: linha amarela fina da marca embaixo; iniciais em azul cheio, como o item ativo do web */
   html:root:root body .ct-clean-navigation .ct-clean-top { border-bottom: 2px solid #ffd438 !important; }
@@ -452,7 +452,14 @@ html:root:root:root:root body main :is(.ct-clean-metric.ct-clean-urgent > strong
   html:root:root body .ct-clean-navigation .ct-clean-bottom .ct-clean-nav-link > small { background: #ffd438 !important; color: #102a83 !important; font-weight: 600 !important; }
 
   /* Contadores: fundo bem claro na cor do card (azul, vermelho, âmbar), contorno e número como já estão */
-  html:root:root:root:root:root body main:where(:not(:has(.ct-motorista-page))) :is(.ct-compras-count, .ct-estoque-count, .ct-sent-count, .ct-clean-metric) { background: #f3f7ff !important; }
-  html:root:root:root:root:root body main:where(:not(:has(.ct-motorista-page))) :is(.ct-compras-count.is-urgent, .ct-sent-count.is-late, .ct-clean-metric.ct-clean-late) { background: #fff5f5 !important; }
-  html:root:root:root:root:root body main:where(:not(:has(.ct-motorista-page))) .ct-clean-metric.ct-clean-urgent { background: #fffaf0 !important; }
+  html:root:root:root:root:root body main :is(.ct-compras-count, .ct-estoque-count, .ct-sent-count, .ct-clean-metric) { background: #f3f7ff !important; }
+  html:root:root:root:root:root body main :is(.ct-compras-count.is-urgent, .ct-sent-count.is-late, .ct-clean-metric.ct-clean-late) { background: #fff5f5 !important; }
+  html:root:root:root:root:root body main .ct-clean-metric.ct-clean-urgent { background: #fffaf0 !important; }
+
+  /* Dentro do quadro azul claro de Compras, os contadores continuam brancos para não sumirem no fundo */
+  html:root:root:root:root:root:root body main .ct-compras-tab :is(.ct-sent-count, .ct-clean-metric) { background: #fff !important; }
+  html:root:root:root:root:root:root body main .ct-compras-tab .ct-sent-count.is-late { background: #fff5f5 !important; }
+
+  /* Abas dos módulos (Compras, Estoque, Rotativo...): fechadas em azul bem claro, aberta continua azul cheio */
+  html:root:root body main .ct-clean-module-tabs > a:not([aria-current=page]) { background: #f3f7ff !important; }
 }
