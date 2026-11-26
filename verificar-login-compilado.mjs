@@ -23,7 +23,7 @@ for (const individual of [false, true]) {
     assert.ok(ready, 'Servidor não respondeu.');
     const html = await ready.text();
     assert.equal(html.includes('name="username"'), individual);
-    assert.equal(html.includes('Entrar com Google'), !individual);
+    assert.equal(html.includes('data-login="google"'), !individual);
     const providers = await (await fetch(`${origin}/api/auth/providers`)).json();
     assert.equal(Boolean(providers.credentials), individual);
     assert.ok(providers.google);
